@@ -1,0 +1,23 @@
+prompt,output,breakdown_text,breakdown_json,dim_breakdown,dim_context,dim_task_description
+Answer the provided question: What is the primary function of the mitochondria in a cell? A) Protein synthesis B) DNA replication C) Energy production D) Waste removal,C,"Breakdown:
+Task Description:
+- Answer the provided question
+
+Context:
+- What is the primary function of the mitochondria in a cell? A) Protein synthesis B) DNA replication C) Energy production D) Waste removal","{""Breakdown"": [], ""Task Description"": [""Answer the provided question""], ""Context"": [""What is the primary function of the mitochondria in a cell? A) Protein synthesis B) DNA replication C) Energy production D) Waste removal""]}",,What is the primary function of the mitochondria in a cell? A) Protein synthesis B) DNA replication C) Energy production D) Waste removal,Answer the provided question
+Answer the provided question: Who wrote the philosophical work 'Critique of Pure Reason'? A) Descartes B) Kant C) Hume D) Nietzsche,B,"Breakdown:
+Task Description:
+- Answer the provided question
+
+Context:
+- Who wrote the philosophical work 'Critique of Pure Reason'? A) Descartes B) Kant C) Hume D) Nietzsche","{""Breakdown"": [], ""Task Description"": [""Answer the provided question""], ""Context"": [""Who wrote the philosophical work 'Critique of Pure Reason'? A) Descartes B) Kant C) Hume D) Nietzsche""]}",,Who wrote the philosophical work 'Critique of Pure Reason'? A) Descartes B) Kant C) Hume D) Nietzsche,Answer the provided question
+"Answer the provided question: In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",B,"Task Description:
+- Answer the provided question
+
+Context:
+- In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict","{""Task Description"": [""Answer the provided question""], ""Context"": [""In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict""]}",,"In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",Answer the provided question
+Answer the provided question: What gas do plants absorb from the atmosphere? A. Oxygen B. Nitrogen C. Carbon Dioxide D. Hydrogen,C,"Task Description:
+- Answer the provided question
+
+Context:
+- What gas do plants absorb from the atmosphere? A. Oxygen B. Nitrogen C. Carbon Dioxide D. Hydrogen","{""Task Description"": [""Answer the provided question""], ""Context"": [""What gas do plants absorb from the atmosphere? A. Oxygen B. Nitrogen C. Carbon Dioxide D. Hydrogen""]}",,What gas do plants absorb from the atmosphere? A. Oxygen B. Nitrogen C. Carbon Dioxide D. Hydrogen,Answer the provided question

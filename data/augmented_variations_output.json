@@ -1,0 +1,282 @@
+[
+  {
+    "original_prompt": "Answer the provided question: In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+    "variations": [
+      {
+        "final_prompt": "Progide an answer to the foulowing questiou: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Progide an answer to the foulowing questiou:",
+          "context": "In U.S. law, what is *habeas corpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Progide an answer to the foulowing questiou: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In K.S. law, what is *habeas covpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Progide an answer to the foulowing questiou:",
+          "context": "In K.S. law, what is *habeas covpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Progide an answer to the foulowing questiou: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). Mn U.S. lzw, what ks *habeas corpus* primarily udee for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Progide an answer to the foulowing questiou:",
+          "context": "Mn U.S. lzw, what ks *habeas corpus* primarily udee for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Addgess the posed question ny providing a rglwvant cesponss: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Addgess the posed question ny providing a rglwvant cesponss:",
+          "context": "In U.S. law, what is *habeas corpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Addgess the posed question ny providing a rglwvant cesponss: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In K.S. law, what is *habeas covpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Addgess the posed question ny providing a rglwvant cesponss:",
+          "context": "In K.S. law, what is *habeas covpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Addgess the posed question ny providing a rglwvant cesponss: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). Mn U.S. lzw, what ks *habeas corpus* primarily udee for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Addgess the posed question ny providing a rglwvant cesponss:",
+          "context": "Mn U.S. lzw, what ks *habeas corpus* primarily udee for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Provide an answer to the following question: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Provide an answer to the following question:",
+          "context": "In U.S. law, what is *habeas corpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Provide an answer to the following question: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In K.S. law, what is *habeas covpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Provide an answer to the following question:",
+          "context": "In K.S. law, what is *habeas covpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Provide an answer to the following question: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). Mn U.S. lzw, what ks *habeas corpus* primarily udee for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Provide an answer to the following question:",
+          "context": "Mn U.S. lzw, what ks *habeas corpus* primarily udee for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Providx an anawer to ghe following question: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Providx an anawer to ghe following question:",
+          "context": "In U.S. law, what is *habeas corpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Providx an anawer to ghe following question: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In K.S. law, what is *habeas covpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Providx an anawer to ghe following question:",
+          "context": "In K.S. law, what is *habeas covpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Providx an anawer to ghe following question: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). Mn U.S. lzw, what ks *habeas corpus* primarily udee for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Providx an anawer to ghe following question:",
+          "context": "Mn U.S. lzw, what ks *habeas corpus* primarily udee for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Rtspond to the givgn query: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Rtspond to the givgn query:",
+          "context": "In U.S. law, what is *habeas corpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Rtspond to the givgn query: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). In K.S. law, what is *habeas covpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Rtspond to the givgn query:",
+          "context": "In K.S. law, what is *habeas covpus* primarily used for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Rtspond to the givgn query: Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate). Mn U.S. lzw, what ks *habeas corpus* primarily udee for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",
+        "parts": {
+          "task_description": "Rtspond to the givgn query:",
+          "context": "Mn U.S. lzw, what ks *habeas corpus* primarily udee for?",
+          "examples": "Input:   What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal\nOutput: The answer is B) Energy production. Mitochondria are often referred to as the 'powerhouses of the cell' because their primary function is to convert nutrients into ATP (adenosine triphosphate).",
+          "choices": ""
+        }
+      }
+    ]
+  },
+  {
+    "original_prompt": "Respond to the question below: What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+    "variations": [
+      {
+        "final_prompt": "Answer the following iiquiry: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Answer the following iiquiry:",
+          "context": "What is the primary function of mitochondria in a cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Answer the following iiquiry: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whah is the primary functiok of mitochondric in a rell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Answer the following iiquiry:",
+          "context": "Whah is the primary functiok of mitochondric in a rell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Answer the following iiquiry: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whaf is the primary function of mitochoidriq in q cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Answer the following iiquiry:",
+          "context": "Whaf is the primary function of mitochoidriq in q cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Answer the following inquiry: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Answer the following inquiry:",
+          "context": "What is the primary function of mitochondria in a cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Answer the following inquiry: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whah is the primary functiok of mitochondric in a rell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Answer the following inquiry:",
+          "context": "Whah is the primary functiok of mitochondric in a rell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Answer the following inquiry: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whaf is the primary function of mitochoidriq in q cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Answer the following inquiry:",
+          "context": "Whaf is the primary function of mitochoidriq in q cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Reppy to the prompt that foulows: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Reppy to the prompt that foulows:",
+          "context": "What is the primary function of mitochondria in a cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Reppy to the prompt that foulows: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whah is the primary functiok of mitochondric in a rell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Reppy to the prompt that foulows:",
+          "context": "Whah is the primary functiok of mitochondric in a rell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Reppy to the prompt that foulows: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whaf is the primary function of mitochoidriq in q cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Reppy to the prompt that foulows:",
+          "context": "Whaf is the primary function of mitochoidriq in q cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Reply to tkw prom't that follows: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Reply to tkw prom't that follows:",
+          "context": "What is the primary function of mitochondria in a cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Reply to tkw prom't that follows: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whah is the primary functiok of mitochondric in a rell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Reply to tkw prom't that follows:",
+          "context": "Whah is the primary functiok of mitochondric in a rell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Reply to tkw prom't that follows: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whaf is the primary function of mitochoidriq in q cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Reply to tkw prom't that follows:",
+          "context": "Whaf is the primary function of mitochoidriq in q cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Provmde a rssponse go the question posed below: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. What is the primary function of mitochondria in a cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Provmde a rssponse go the question posed below:",
+          "context": "What is the primary function of mitochondria in a cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Provmde a rssponse go the question posed below: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whah is the primary functiok of mitochondric in a rell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Provmde a rssponse go the question posed below:",
+          "context": "Whah is the primary functiok of mitochondric in a rell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      },
+      {
+        "final_prompt": "Provmde a rssponse go the question posed below: Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court. Whaf is the primary function of mitochoidriq in q cell? A) Protein synthesis B) Energy production C) Cell division D) Waste removal",
+        "parts": {
+          "task_description": "Provmde a rssponse go the question posed below:",
+          "context": "Whaf is the primary function of mitochoidriq in q cell?",
+          "examples": "Input:   In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict\nOutput: The answer is B) To challenge unlawful detention. Habeas corpus (Latin for 'you have the body') is a fundamental legal principle that allows individuals to challenge their detention or imprisonment before a court.",
+          "choices": ""
+        }
+      }
+    ]
+  }
+]

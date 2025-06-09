@@ -1,0 +1,277 @@
+[
+  {
+    "prompt": "Subject: Question about Premium Plan Features\n\nHello,\n\nI'm considering upgrading to your Premium plan, but I couldn't find information about whether it includes API access. Could you please clarify what features are included in this plan?\n\nThanks,\nJamie",
+    "dimensions": {
+      "intent": {
+        "name": "Intent",
+        "highlights": [
+          {
+            "text": "couldn't find information about whether it includes API access",
+            "start": 94,
+            "end": 152
+          }
+        ]
+      },
+      "key_details": {
+        "name": "Key Details",
+        "highlights": [
+          {
+            "text": "Premium plan",
+            "start": 38,
+            "end": 50
+          }
+        ]
+      },
+      "tone": {
+        "name": "Tone",
+        "highlights": [
+          {
+            "text": "Could you please clarify",
+            "start": 154,
+            "end": 178
+          }
+        ]
+      },
+      "sender_context": {
+        "name": "Sender Context",
+        "highlights": [
+          {
+            "text": "I'm considering upgrading to your Premium plan",
+            "start": 67,
+            "end": 115
+          }
+        ]
+      },
+      "call_to_action": {
+        "name": "Call to Action",
+        "highlights": [
+          {
+            "text": "Could you please clarify what features are included in this plan?",
+            "start": 154,
+            "end": 218
+          }
+        ]
+      }
+    }
+  },
+  {
+    "prompt": "Subject: Disappointed with Recent Service\n\nTo whom it may concern,\n\nI've been a loyal customer for 3 years, but my experience last week was extremely disappointing. The delivery was two days late, and when I called customer service, I was on hold for over 30 minutes.\n\nI expect better from a company I've supported for so long.\n\nRegards,\nAlex Morgan",
+    "dimensions": {
+      "intent": {
+        "name": "Intent",
+        "highlights": [
+          {
+            "text": "Disappointed with Recent Service",
+            "start": 9,
+            "end": 40
+          }
+        ]
+      },
+      "key_details": {
+        "name": "Key Details",
+        "highlights": [
+          {
+            "text": "The delivery was two days late, and when I called customer service, I was on hold for over 30 minutes.",
+            "start": 144,
+            "end": 248
+          }
+        ]
+      },
+      "tone": {
+        "name": "Tone",
+        "highlights": [
+          {
+            "text": "extremely disappointing",
+            "start": 120,
+            "end": 143
+          }
+        ]
+      },
+      "sender_context": {
+        "name": "Sender Context",
+        "highlights": [
+          {
+            "text": "I've been a loyal customer for 3 years",
+            "start": 67,
+            "end": 105
+          }
+        ]
+      },
+      "call_to_action": {
+        "name": "Call to Action",
+        "highlights": [
+          {
+            "text": "I expect better from a company I've supported for so long.",
+            "start": 250,
+            "end": 310
+          }
+        ]
+      }
+    }
+  },
+  {
+    "prompt": "Subject: Meeting Request - Partnership Opportunity\n\nHi there,\n\nI'd like to schedule a meeting to discuss a potential partnership between our companies. I'm available next Tuesday or Wednesday afternoon.\n\nLet me know what works best for you.\n\nBest,\nTaylor Johnson\nBusiness Development, XYZ Corp",
+    "dimensions": {
+      "intent": {
+        "name": "Intent",
+        "highlights": [
+          {
+            "text": "I'd like to schedule a meeting to discuss a potential partnership between our companies.",
+            "start": 62,
+            "end": 149
+          }
+        ]
+      },
+      "key_details": {
+        "name": "Key Details",
+        "highlights": [
+          {
+            "text": "I'm available next Tuesday or Wednesday afternoon.",
+            "start": 151,
+            "end": 199
+          }
+        ]
+      },
+      "tone": {
+        "name": "Tone",
+        "highlights": [
+          {
+            "text": "Hi there,",
+            "start": 51,
+            "end": 60
+          }
+        ]
+      },
+      "sender_context": {
+        "name": "Sender Context",
+        "highlights": [
+          {
+            "text": "Taylor Johnson\nBusiness Development, XYZ Corp",
+            "start": 246,
+            "end": 295
+          }
+        ]
+      },
+      "call_to_action": {
+        "name": "Call to Action",
+        "highlights": [
+          {
+            "text": "Let me know what works best for you.",
+            "start": 201,
+            "end": 238
+          }
+        ]
+      }
+    }
+  },
+  {
+    "prompt": "Subject: Unable to Export Data from Dashboard\n\nHi Support,\n\nI'm trying to export my analytics data to CSV, but keep getting an error message: \"Export failed: unknown error\". I've tried using different browsers and clearing my cache.\n\nCan you help me resolve this?\n\nThanks,\nPat Miller\nAccount #12345",
+    "dimensions": {
+      "intent": {
+        "name": "Intent",
+        "highlights": [
+          {
+            "text": "Unable to Export Data from Dashboard",
+            "start": 9,
+            "end": 45
+          }
+        ]
+      },
+      "key_details": {
+        "name": "Key Details",
+        "highlights": [
+          {
+            "text": "I'm trying to export my analytics data to CSV, but keep getting an error message: \"Export failed: unknown error\"",
+            "start": 60,
+            "end": 174
+          }
+        ]
+      },
+      "tone": {
+        "name": "Tone",
+        "highlights": [
+          {
+            "text": "Hi Support,",
+            "start": 47,
+            "end": 58
+          }
+        ]
+      },
+      "sender_context": {
+        "name": "Sender Context",
+        "highlights": [
+          {
+            "text": "Pat Miller\nAccount #12345",
+            "start": 273,
+            "end": 295
+          }
+        ]
+      },
+      "call_to_action": {
+        "name": "Call to Action",
+        "highlights": [
+          {
+            "text": "Can you help me resolve this?",
+            "start": 237,
+            "end": 264
+          }
+        ]
+      }
+    }
+  },
+  {
+    "prompt": "Subject: Feedback Request on New Customer Portal\n\nHello,\n\nWe recently launched our new customer portal and would value your feedback as a frequent user of our services. Could you take 5 minutes to share your thoughts on the new design and functionality?\n\nYour input will help us improve the experience for all users.\n\nThanks,\nThe Product Team",
+    "dimensions": {
+      "intent": {
+        "name": "Intent",
+        "highlights": [
+          {
+            "text": "Feedback Request on New Customer Portal",
+            "start": 9,
+            "end": 49
+          }
+        ]
+      },
+      "key_details": {
+        "name": "Key Details",
+        "highlights": [
+          {
+            "text": "We recently launched our new customer portal and would value your feedback as a frequent user of our services.",
+            "start": 60,
+            "end": 170
+          }
+        ]
+      },
+      "tone": {
+        "name": "Tone",
+        "highlights": [
+          {
+            "text": "would value your feedback",
+            "start": 108,
+            "end": 133
+          }
+        ]
+      },
+      "sender_context": {
+        "name": "Sender Context",
+        "highlights": [
+          {
+            "text": "The Product Team",
+            "start": 330,
+            "end": 346
+          }
+        ]
+      },
+      "call_to_action": {
+        "name": "Call to Action",
+        "highlights": [
+          {
+            "text": "Could you take 5 minutes to share your thoughts on the new design and functionality?",
+            "start": 172,
+            "end": 270
+          }
+        ]
+      }
+    }
+  }
+] 

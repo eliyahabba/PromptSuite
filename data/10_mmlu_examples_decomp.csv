@@ -1,0 +1,139 @@
+prompt,output,breakdown_text,breakdown_json,dim_breakdown,dim_context,dim_examples,dim_task_description
+Answer the provided question: What is the primary function of the mitochondria in a cell? A) Protein synthesis B) DNA replication C) Energy production D) Waste removal,C,"Breakdown:
+Task Description:
+- Answer the provided question:
+
+Context:
+- What is the primary function of the mitochondria in a cell?
+
+Examples: 
+A) Protein synthesis 
+B) DNA replication 
+C) Energy production 
+D) Waste removal","{""Breakdown"": [], ""Task Description"": [""Answer the provided question:""], ""Context"": [""What is the primary function of the mitochondria in a cell?""], ""Examples"": []}",,What is the primary function of the mitochondria in a cell?,,Answer the provided question:
+Answer the provided question: Who wrote the philosophical work 'Critique of Pure Reason'? A) Descartes B) Kant C) Hume D) Nietzsche,B,"Task Description:
+- Answer the provided question:
+
+Context:
+- Who wrote the philosophical work 'Critique of Pure Reason'?
+
+Examples:
+- A) Descartes
+- B) Kant
+- C) Hume
+- D) Nietzsche","{""Task Description"": [""Answer the provided question:""], ""Context"": [""Who wrote the philosophical work 'Critique of Pure Reason'?""], ""Examples"": [""A) Descartes"", ""B) Kant"", ""C) Hume"", ""D) Nietzsche""]}",,Who wrote the philosophical work 'Critique of Pure Reason'?,"A) Descartes
+B) Kant
+C) Hume
+D) Nietzsche",Answer the provided question:
+"Answer the provided question: In U.S. law, what is *habeas corpus* primarily used for? A) To declare bankruptcy B) To challenge unlawful detention C) To request a retrial D) To appeal a verdict",B,"Task Description:
+- Answer the provided question:
+
+Context:
+- In U.S. law, what is *habeas corpus* primarily used for?
+
+Examples:
+- A) To declare bankruptcy 
+- B) To challenge unlawful detention 
+- C) To request a retrial 
+- D) To appeal a verdict","{""Task Description"": [""Answer the provided question:""], ""Context"": [""In U.S. law, what is *habeas corpus* primarily used for?""], ""Examples"": [""A) To declare bankruptcy"", ""B) To challenge unlawful detention"", ""C) To request a retrial"", ""D) To appeal a verdict""]}",,"In U.S. law, what is *habeas corpus* primarily used for?","A) To declare bankruptcy
+B) To challenge unlawful detention
+C) To request a retrial
+D) To appeal a verdict",Answer the provided question:
+Answer the provided question: What gas do plants absorb from the atmosphere? A. Oxygen B. Nitrogen C. Carbon Dioxide D. Hydrogen,C,"Breakdown:
+Task Description:
+- Answer the provided question:
+
+Context:
+- What gas do plants absorb from the atmosphere?
+
+Examples: 
+A. Oxygen
+B. Nitrogen
+C. Carbon Dioxide
+D. Hydrogen","{""Breakdown"": [], ""Task Description"": [""Answer the provided question:""], ""Context"": [""What gas do plants absorb from the atmosphere?""], ""Examples"": []}",,What gas do plants absorb from the atmosphere?,,Answer the provided question:
+Answer the provided question: Which planet is known as the Red Planet? A. Earth B. Venus C. Jupiter D. Mars,D,"Breakdown:
+Task Description:
+- Answer the provided question:
+
+Context:
+- Which planet is known as the Red Planet?
+
+Examples: 
+A. Earth 
+B. Venus 
+C. Jupiter 
+D. Mars","{""Breakdown"": [], ""Task Description"": [""Answer the provided question:""], ""Context"": [""Which planet is known as the Red Planet?""], ""Examples"": []}",,Which planet is known as the Red Planet?,,Answer the provided question:
+Answer the provided question: What is the capital of Japan? A. Seoul B. Tokyo C. Beijing D. Bangkok,B,"Breakdown:
+Task Description:
+- Answer the provided question:
+
+Context:
+- What is the capital of Japan?
+
+Examples:
+- A. Seoul
+- B. Tokyo
+- C. Beijing
+- D. Bangkok","{""Breakdown"": [], ""Task Description"": [""Answer the provided question:""], ""Context"": [""What is the capital of Japan?""], ""Examples"": [""A. Seoul"", ""B. Tokyo"", ""C. Beijing"", ""D. Bangkok""]}",,What is the capital of Japan?,"A. Seoul
+B. Tokyo
+C. Beijing
+D. Bangkok",Answer the provided question:
+Answer the provided question: Who developed the theory of relativity? A. Isaac Newton B. Albert Einstein C. Galileo Galilei D. Niels Bohr,B,"Breakdown:
+Task Description:
+- Answer the provided question:
+
+Context:
+- Who developed the theory of relativity?
+
+Examples:
+- A. Isaac Newton
+- B. Albert Einstein
+- C. Galileo Galilei
+- D. Niels Bohr","{""Breakdown"": [], ""Task Description"": [""Answer the provided question:""], ""Context"": [""Who developed the theory of relativity?""], ""Examples"": [""A. Isaac Newton"", ""B. Albert Einstein"", ""C. Galileo Galilei"", ""D. Niels Bohr""]}",,Who developed the theory of relativity?,"A. Isaac Newton
+B. Albert Einstein
+C. Galileo Galilei
+D. Niels Bohr",Answer the provided question:
+Answer the provided question: What is the powerhouse of the cell? A. Nucleus B. Mitochondria C. Ribosome D. Endoplasmic Reticulum,B,"Breakdown:
+Task Description:
+- Answer the provided question:
+
+Context:
+- What is the powerhouse of the cell?
+
+Examples:
+- A. Nucleus
+- B. Mitochondria
+- C. Ribosome
+- D. Endoplasmic Reticulum","{""Breakdown"": [], ""Task Description"": [""Answer the provided question:""], ""Context"": [""What is the powerhouse of the cell?""], ""Examples"": [""A. Nucleus"", ""B. Mitochondria"", ""C. Ribosome"", ""D. Endoplasmic Reticulum""]}",,What is the powerhouse of the cell?,"A. Nucleus
+B. Mitochondria
+C. Ribosome
+D. Endoplasmic Reticulum",Answer the provided question:
+Answer the provided question: Which element has the chemical symbol 'O'? A. Gold B. Oxygen C. Osmium D. Oxide,B,"Task Description:
+- Answer the provided question:
+
+Context:
+- Which element has the chemical symbol 'O'?
+
+Examples:
+- A. Gold
+- B. Oxygen
+- C. Osmium
+- D. Oxide","{""Task Description"": [""Answer the provided question:""], ""Context"": [""Which element has the chemical symbol 'O'?""], ""Examples"": [""A. Gold"", ""B. Oxygen"", ""C. Osmium"", ""D. Oxide""]}",,Which element has the chemical symbol 'O'?,"A. Gold
+B. Oxygen
+C. Osmium
+D. Oxide",Answer the provided question:
+Answer the provided question: What is the longest river in the world? A. Amazon B. Yangtze C. Nile D. Mississippi,C,"Breakdown:
+Task Description:
+- Answer the provided question:
+
+Context:
+- What is the longest river in the world?
+
+Examples:
+- A. Amazon
+- B. Yangtze
+- C. Nile
+- D. Mississippi","{""Breakdown"": [], ""Task Description"": [""Answer the provided question:""], ""Context"": [""What is the longest river in the world?""], ""Examples"": [""A. Amazon"", ""B. Yangtze"", ""C. Nile"", ""D. Mississippi""]}",,What is the longest river in the world?,"A. Amazon
+B. Yangtze
+C. Nile
+D. Mississippi",Answer the provided question:
