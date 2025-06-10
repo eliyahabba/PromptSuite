@@ -288,13 +288,16 @@ def display_selected_template_details(available_columns):
     </div>
     """, unsafe_allow_html=True)
     
-    # Template content in a styled container
-    st.markdown("### 📝 Template Content")
-    st.markdown("""
-    <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #dee2e6;">
-    """, unsafe_allow_html=True)
-    st.code(template, language="text")
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Template content and analysis in columns
+    col1, col2 = st.columns(2, gap="large")
+    
+    with col1:
+        st.markdown("### 📝 Template Content")
+        st.markdown("""
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #dee2e6;">
+        """, unsafe_allow_html=True)
+        st.code(template, language="text")
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # Template analysis
     mp = MultiPromptify()
@@ -307,13 +310,9 @@ def display_selected_template_details(available_columns):
             variation_fields = mp.template_parser.get_variation_fields()
             required_columns = mp.template_parser.get_required_columns()
             
-            # Analysis in two columns with enhanced styling
-            st.markdown("### 🔍 Template Analysis")
-            col1, col2 = st.columns(2, gap="large")
-            
-            with col1:
+            with col2:
                 st.markdown("""
-                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #007bff;">
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #007bff; margin-top: 3rem;">
                     <h4 style="color: #007bff; margin-top: 0;">📋 Template Fields</h4>
                 </div>
                 """, unsafe_allow_html=True)
@@ -324,21 +323,10 @@ def display_selected_template_details(available_columns):
                     else:
                         st.markdown(f"- **`{field.name}`** → no variations")
             
-            with col2:
-                st.markdown("""
-                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #28a745;">
-                    <h4 style="color: #28a745; margin-top: 0;">✅ Data Requirements</h4>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                missing_cols = required_columns - set(df.columns)
-                if missing_cols:
-                    st.error(f"❌ Missing columns: {', '.join(missing_cols)}")
-                else:
-                    st.success("✅ All required columns available")
-                    
-                # Show available columns count
-                st.info(f"📊 Using {len(required_columns)} data columns from your dataset")
+            # Check for missing columns and show error if any
+            missing_cols = required_columns - set(df.columns)
+            if missing_cols:
+                st.error(f"❌ Missing columns: {', '.join(missing_cols)}")
             
             # Variation summary
             if variation_fields:
