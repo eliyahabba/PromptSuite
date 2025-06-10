@@ -103,9 +103,6 @@ def configure_generation():
     """Configure generation settings with enhanced visual design"""
     st.subheader("⚙️ Generation Configuration")
     
-    # Info about instruction being in template
-    st.info("💡 **Note:** Your instruction is now part of the template you defined in Step 2. No need to set it again here!")
-    
     # Main settings in cards
     col1, col2 = st.columns(2, gap="large")
     
