@@ -103,6 +103,9 @@ def configure_generation():
     """Configure generation settings with enhanced visual design"""
     st.subheader("⚙️ Generation Configuration")
     
+    # Info about instruction being in template
+    st.info("💡 **Note:** Your instruction is now part of the template you defined in Step 2. No need to set it again here!")
+    
     # Main settings in cards
     col1, col2 = st.columns(2, gap="large")
     
@@ -129,6 +132,9 @@ def configure_generation():
             help=f"Use only the first N rows from your data (total: {len(df)} rows)"
         )
         st.session_state.max_rows = max_rows
+    
+    with col2:
+        st.markdown("**⚙️ Generation Settings**")
         
         # Variations per field
         variations_per_field = st.number_input(
@@ -139,19 +145,6 @@ def configure_generation():
             help="Number of variations to generate for each field with variation annotations"
         )
         st.session_state.variations_per_field = variations_per_field
-    
-    with col2:
-        st.markdown("**✍️ Content Settings**")
-        
-        # Instruction input
-        instruction = st.text_input(
-            "📝 Global Instruction",
-            placeholder=st.session_state.get('preview_instruction', "Please complete the following task"),
-            help="Static instruction text that will be used across all prompts"
-        )
-        if not instruction:
-            instruction = st.session_state.get('preview_instruction', "Please complete the following task")
-        st.session_state.generation_instruction = instruction
         
         # Random seed for reproducibility
         st.markdown("**🎲 Reproducibility Options**")
@@ -261,7 +254,7 @@ def generate_variations_interface():
             estimated_total = effective_rows  # No variations, just one prompt per row
         
         # Compact estimation display
-        st.info(f"📊 **Generation Estimate:** ~{estimated_total:,} variations • {estimated_total//effective_rows if effective_rows > 0 else 0} per row • from {effective_rows:,} rows")
+        st.info(f"📊 **Generation Estimate:** ~{estimated_total:,} variations from {effective_rows:,} rows • ~{estimated_total//effective_rows if effective_rows > 0 else 0} variations per row")
     
     except Exception as e:
         st.warning(f"❌ Could not estimate variations: {str(e)}")
@@ -328,17 +321,12 @@ def generate_all_variations():
                 progress_bar.progress(0.3)
                 
                 template = st.session_state.selected_template
-                instruction = st.session_state.get('generation_instruction')
                 variations_per_field = st.session_state.get('variations_per_field', 3)
                 api_key = st.session_state.get('api_key')
                 
-                # Process few-shot examples - now handled via template syntax
-                # No manual processing needed as few-shot is defined in template
-                
                 # Show configuration details
                 config_details = []
-                if instruction:
-                    config_details.append(f"✍️ Instruction: {instruction[:50]}...")
+                # Template instruction is already part of the template, no need for separate instruction
                 config_details.append(f"🔄 Variations per field: {variations_per_field}")
                 if api_key:
                     config_details.append("🔑 API key configured for advanced variations")
@@ -353,7 +341,6 @@ def generate_all_variations():
                 variations = mp.generate_variations(
                     template=template,
                     data=df,
-                    instruction=instruction,
                     variations_per_field=variations_per_field,
                     api_key=api_key
                 )

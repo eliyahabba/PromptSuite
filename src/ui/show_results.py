@@ -187,40 +187,91 @@ def display_color_legend():
 def display_single_variation(variation, variation_num, original_data):
     """Display a single variation with enhanced visualization"""
     original_row_index = variation.get('original_row_index', 0)
+    
+    # Get original row data for comparison
+    original_row = original_data.iloc[original_row_index] if original_row_index < len(original_data) else None
 
     # Create expandable card for each variation
-    with st.expander(f"🔍 Variation {variation_num} (from row {original_row_index + 1})", expanded=True):
+    with st.expander(f"🔍 Variation {variation_num} (from row {original_row_index + 1})", expanded=(variation_num <= 3)):
 
         # Two column layout
         col1, col2 = st.columns([1, 2], gap="large")
 
         with col1:
-            # Field values used in generation
+            # Field values used in generation with comparison
             st.markdown("**🔧 Field Changes**")
 
             field_values = variation.get('field_values', {})
-            original_values = variation.get('original_values', {})
-
+            
+            # Get original template for comparison
+            original_template = st.session_state.get('selected_template', {})
+            
             for field, value in field_values.items():
-                original_val = original_values.get(field, value)
-
-                # Check if value was modified
-                is_modified = str(value) != str(original_val)
-
-                if is_modified:
-                    st.markdown(f"""
-                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #ff6b6b;">
-                        <strong style="color: #1976d2;">{field}:</strong><br>
-                        <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
-                        <span style="background: {HIGHLIGHT_COLORS['variation']}; padding: 2px 6px; border-radius: 3px; font-weight: bold;">→ {value}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                if field == 'instruction':
+                    # Compare with original instruction template
+                    if isinstance(original_template, dict) and 'instruction' in original_template:
+                        original_val = original_template['instruction']
+                    else:
+                        original_val = value
+                        
+                    # Check if instruction was modified (paraphrased)
+                    is_modified = str(value) != str(original_val)
+                    
+                    if is_modified:
+                        st.markdown(f"""
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <strong style="color: #1976d2;">{field}:</strong><br>
+                            <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
+                            <span style="background: {HIGHLIGHT_COLORS['variation']}; padding: 2px 6px; border-radius: 3px; font-weight: bold;">→ {value}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <strong style="color: #1976d2;">{field}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                elif field == 'few_shot':
+                    # Show few-shot info
+                    if value:
+                        few_shot_count = value.count('\n\n') + 1 if value else 0
+                        st.markdown(f"""
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <strong style="color: #1976d2;">{field}:</strong> <span style="background: {HIGHLIGHT_COLORS['field']}; padding: 2px 6px; border-radius: 3px;">{few_shot_count} examples</span>
+                        </div>
+                        """, unsafe_allow_html=True)
                 else:
-                    st.markdown(f"""
-                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #28a745;">
-                        <strong style="color: #1976d2;">{field}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # For other fields, compare with original row data if available
+                    if original_row is not None and field in original_row.index:
+                        original_val = str(original_row[field]) if pd.notna(original_row[field]) else ""
+                        is_modified = str(value) != str(original_val)
+                        
+                        if is_modified:
+                            st.markdown(f"""
+                            <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                                <strong style="color: #1976d2;">{field}:</strong><br>
+                                <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
+                                <span style="background: {HIGHLIGHT_COLORS['variation']}; padding: 2px 6px; border-radius: 3px; font-weight: bold;">→ {value}</span>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""
+                            <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                                <strong style="color: #1976d2;">{field}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
+                            </div>
+                            """, unsafe_allow_html=True)
+            
+            # Show any additional fields from original data that weren't used in field_values
+            if original_row is not None:
+                for col in original_row.index:
+                    if col not in field_values and pd.notna(original_row[col]) and str(original_row[col]).strip():
+                        original_val = str(original_row[col])
+                        st.markdown(f"""
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <strong style="color: #1976d2;">{col}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{original_val}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
 
         with col2:
             # Generated prompt display

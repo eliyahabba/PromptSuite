@@ -20,7 +20,30 @@ talkative_template = (
     "Prompt: '''{prompt}'''"
 )
 
+detailed_template = """You are a prompt rewriting assistant. Your task is to create {n_augments} creative versions of the given prompt template.
 
+CRITICAL REQUIREMENTS:
+1. PRESERVE ALL PLACEHOLDERS: Any text within curly braces {{}} must appear EXACTLY as given in all variations
+2. Keep the same semantic meaning and task structure
+3. Vary the instructional language while maintaining clarity
+4. Ensure each variation would produce the same type of response
+
+PLACEHOLDERS TO PRESERVE (copy exactly):
+- Do NOT modify anything inside {{}} brackets
+- Common placeholders include: {{text}}, {{category}}, {{question}}, {{options}}, {{answer}}, etc.
+
+WHAT YOU CAN CHANGE:
+- The instructional phrases (e.g., "Answer the following" → "Please respond to")
+- Word order and sentence structure (while keeping meaning)
+- Formatting style (but keep placeholders in logical positions)
+- Level of formality or politeness
+
+OUTPUT FORMAT:
+Return ONLY a Python list of strings. Each string should be a complete prompt variation.
+
+Original prompt: '''{prompt}'''
+
+Generate {n_augments} creative variations:"""
 class Paraphrase(BaseAxisAugmenter):
     def __init__(self, n_augments: int = 1, api_key: str = None):
         """
@@ -54,13 +77,13 @@ class Paraphrase(BaseAxisAugmenter):
             # Import here to avoid circular imports
             from src.utils.model_client import get_completion_with_key
             
-            rephrasing_prompt = self.build_rephrasing_prompt(talkative_template, self.n_augments, prompt)
+            rephrasing_prompt = self.build_rephrasing_prompt(detailed_template, self.n_augments, prompt)
             response = get_completion_with_key(rephrasing_prompt, self.api_key)
             return ast.literal_eval(response)
         except Exception as e:
             print(f"Warning: Paraphrase API failed ({str(e)}), falling back to simple variations")
             return self._generate_simple_paraphrases(prompt)
-    
+
     def _generate_simple_paraphrases(self, prompt: str) -> List[str]:
         """
         Generate simple paraphrase variations without using external API.

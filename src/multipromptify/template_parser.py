@@ -3,7 +3,7 @@ Template parser for MultiPromptify templates with variation annotations.
 """
 
 import re
-from typing import Dict, List, Tuple, Set, Optional
+from typing import Dict, List, Tuple, Set, Optional, Union
 from dataclasses import dataclass
 
 
@@ -44,21 +44,66 @@ class TemplateParser:
         self.fields: List[TemplateField] = []
         self.template: str = ""
         
-    def parse(self, template: str) -> List[TemplateField]:
+    def parse(self, template: Union[str, dict]) -> List[TemplateField]:
         """
         Parse a template string to extract fields and their variation types.
         
         Args:
-            template: Template string with f-string syntax and optional variation annotations
+            template: Template string with f-string syntax and optional variation annotations,
+                     OR dictionary with 'instruction' and 'template' keys
             
         Returns:
             List of TemplateField objects
         """
-        self.template = template
+        # Handle both old string format and new dictionary format
+        if isinstance(template, dict):
+            # New format: {'instruction': '...', 'template': '...'}
+            if 'instruction' in template and 'template' in template:
+                # Parse both instruction and template parts
+                instruction_text = template['instruction']
+                template_text = template['template']
+                
+                # Combine fields from both parts
+                self.template = template_text  # Store template part for main processing
+                self.fields = []
+                
+                # Parse template part first (this contains the processing rules)
+                template_matches = self.FIELD_PATTERN.findall(template_text)
+                for match in template_matches:
+                    field = self._parse_field(match)
+                    if field not in self.fields:
+                        self.fields.append(field)
+                
+                # Parse instruction part to find data fields (without variation types)
+                instruction_matches = self.FIELD_PATTERN.findall(instruction_text)
+                for match in instruction_matches:
+                    # For instruction fields, we only care about the field name (no variations)
+                    field_name = match.split(':')[0].strip() if ':' in match else match.strip()
+                    
+                    # Only add if it's not already in the list and not a special field
+                    if field_name not in [f.name for f in self.fields] and field_name not in ['instruction', 'few_shot']:
+                        field = TemplateField(name=field_name, variation_type=None, is_literal=field_name.startswith('_'))
+                        self.fields.append(field)
+                        
+                return self.fields
+            elif 'combined' in template:
+                # Fallback for combined format
+                self.template = template['combined']
+                template_str = template['combined']
+            else:
+                # Unknown dictionary format, convert to string
+                self.template = str(template)
+                template_str = str(template)
+        else:
+            # Old format: simple string
+            self.template = template
+            template_str = template
+        
+        # Parse as string (old format or fallback)
         self.fields = []
         
         # Find all template fields
-        matches = self.FIELD_PATTERN.findall(template)
+        matches = self.FIELD_PATTERN.findall(template_str)
         
         for match in matches:
             field = self._parse_field(match)
@@ -174,12 +219,12 @@ class TemplateParser:
         """
         return [field for field in self.fields if field.name == 'few_shot']
     
-    def validate_template(self, template: str) -> Tuple[bool, List[str]]:
+    def validate_template(self, template: Union[str, dict]) -> Tuple[bool, List[str]]:
         """
         Validate a template string and return any errors.
         
         Args:
-            template: Template string to validate
+            template: Template string to validate OR dictionary with 'instruction' and 'template' keys
             
         Returns:
             Tuple of (is_valid, list_of_errors)
@@ -191,6 +236,24 @@ class TemplateParser:
         except ValueError as e:
             return False, [str(e)]
         
+        # Get template string for validation
+        if isinstance(template, dict):
+            if 'instruction' in template and 'template' in template:
+                template_str = template['template']
+                instruction_str = template['instruction']
+                
+                # Validate both parts
+                if template_str.count('{') != template_str.count('}'):
+                    errors.append("Mismatched brackets in template part")
+                if instruction_str.count('{') != instruction_str.count('}'):
+                    errors.append("Mismatched brackets in instruction part")
+            elif 'combined' in template:
+                template_str = template['combined']
+            else:
+                template_str = str(template)
+        else:
+            template_str = template
+        
         # Check for duplicate field names
         field_names = [f.name for f in fields]
         duplicates = set([name for name in field_names if field_names.count(name) > 1])
@@ -201,8 +264,8 @@ class TemplateParser:
         if not fields:
             errors.append("Template contains no fields")
         
-        # Check for malformed brackets
-        if template.count('{') != template.count('}'):
+        # Check for malformed brackets (for single string templates)
+        if isinstance(template, str) and template.count('{') != template.count('}'):
             errors.append("Mismatched brackets in template")
             
         # Validate few-shot syntax
@@ -211,48 +274,88 @@ class TemplateParser:
                 if field.few_shot_count and field.few_shot_count <= 0:
                     errors.append(f"Few-shot count must be positive, got {field.few_shot_count}")
                     
-                # Check format consistency  
+                # Check format consistency for single string templates
+                if isinstance(template, str):
+                    template_to_check = template
+                elif isinstance(template, dict) and 'template' in template:
+                    template_to_check = template['template']
+                else:
+                    template_to_check = template_str
+                    
                 if field.few_shot_format == 'list':
-                    # Check for {few_shot:[N} or {few_shot:[N]} or {few_shot:train[N]} pattern in template
-                    if not re.search(r'\{few_shot:(?:train|test)?\[\d+\]?\}', template):
+                    # Check for {few_shot:[N} or {few_shot:[N]} or {few_shot:train[N]} pattern
+                    if not re.search(r'\{few_shot:(?:train|test)?\[\d+\]?\}', template_to_check):
                         errors.append("List format few-shot should use syntax like {few_shot:[N]} or {few_shot:train[N]}")
                 elif field.few_shot_format == 'tuple':
-                    # Check for {few_shot:(N)} or {few_shot:test(N)} pattern in template
-                    if not re.search(r'\{few_shot:(?:train|test)?\(\d+\)\}', template):
+                    # Check for {few_shot:(N)} or {few_shot:test(N)} pattern
+                    if not re.search(r'\{few_shot:(?:train|test)?\(\d+\)\}', template_to_check):
                         errors.append("Tuple format few-shot should use syntax like {few_shot:(N)} or {few_shot:test(N)}")
         
         return len(errors) == 0, errors
     
-    def format_template(self, template: str, values: Dict[str, str]) -> str:
+    def format_template(self, template: Union[str, dict], values: Dict[str, str]) -> str:
         """
         Format a template with provided values.
         
         Args:
-            template: Template string
+            template: Template string OR dictionary with 'instruction' and 'template' keys
             values: Dictionary of field names to values
             
         Returns:
             Formatted string
         """
+        # Handle both old string format and new dictionary format
+        if isinstance(template, dict):
+            if 'instruction' in template and 'template' in template:
+                # New format: process instruction first, then template
+                instruction_text = template['instruction']
+                template_text = template['template']
+                
+                # First, format the instruction with data values
+                formatted_instruction = instruction_text
+                for field_name, field_value in values.items():
+                    placeholder = f'{{{field_name}}}'
+                    if placeholder in formatted_instruction:
+                        formatted_instruction = formatted_instruction.replace(placeholder, str(field_value))
+                
+                # Add the formatted instruction to values
+                values_with_instruction = values.copy()
+                values_with_instruction['instruction'] = formatted_instruction
+                
+                # Now format the template part
+                template_to_format = template_text
+            elif 'combined' in template:
+                # Fallback for combined format
+                template_to_format = template['combined']
+                values_with_instruction = values
+            else:
+                # Unknown dictionary format
+                template_to_format = str(template)
+                values_with_instruction = values
+        else:
+            # Old format: simple string
+            template_to_format = template
+            values_with_instruction = values
+        
         # Create a copy of values with field names only (remove variation types and few-shot syntax)
         format_values = {}
         
-        for field_match in self.FIELD_PATTERN.findall(template):
+        for field_match in self.FIELD_PATTERN.findall(template_to_format):
             # For few-shot fields, extract just the field name
             few_shot_match = self.FEW_SHOT_PATTERN.match(field_match)
             if few_shot_match:
                 field_name = few_shot_match.group('field')
-                if field_name in values:
-                    format_values[field_match] = values[field_name]
+                if field_name in values_with_instruction:
+                    format_values[field_match] = values_with_instruction[field_name]
             else:
                 # Regular field
                 field_name = field_match.split(':')[0].strip()
-                if field_name in values:
-                    format_values[field_match] = values[field_name]
+                if field_name in values_with_instruction:
+                    format_values[field_match] = values_with_instruction[field_name]
         
         # Replace fields in template
-        formatted = template
-        for field_match in self.FIELD_PATTERN.findall(template):
+        formatted = template_to_format
+        for field_match in self.FIELD_PATTERN.findall(template_to_format):
             if field_match in format_values:
                 formatted = formatted.replace(
                     f'{{{field_match}}}', 
