@@ -1,6 +1,5 @@
 from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
 from typing import List
-from src.utils.model_client import get_completion
 import ast
 
 
@@ -23,26 +22,96 @@ talkative_template = (
 
 
 class Paraphrase(BaseAxisAugmenter):
-    def __init__(self, n_augments: int = 1):
+    def __init__(self, n_augments: int = 1, api_key: str = None):
         """
         Initialize the paraphrse augmenter.
 
         Args:
-            k: number of paraphrase needed
+            n_augments: number of paraphrase needed
+            api_key: API key for the language model service
         """
         super().__init__(n_augments=n_augments)
+        self.api_key = api_key
 
-    def build_rephrasing_prompt(self, template: str, n_augments: int, prompt: str) -> \
-            str:
+    def build_rephrasing_prompt(self, template: str, n_augments: int, prompt: str) -> str:
         return template.format(n_augments=n_augments, prompt=prompt)
 
-    def augment(self, prompt:str) -> List[str]:
-        prompt = self.build_rephrasing_prompt(talkative_template, self.n_augments, prompt)
-        response = get_completion(prompt)
-        return ast.literal_eval(response)
+    def augment(self, prompt: str) -> List[str]:
+        """
+        Generate paraphrase variations of the prompt.
+        
+        Args:
+            prompt: The text to paraphrase
+            
+        Returns:
+            List of paraphrased variations
+        """
+        if not self.api_key:
+            # If no API key provided, return simple variations
+            return self._generate_simple_paraphrases(prompt)
+        
+        try:
+            # Import here to avoid circular imports
+            from src.utils.model_client import get_completion_with_key
+            
+            rephrasing_prompt = self.build_rephrasing_prompt(talkative_template, self.n_augments, prompt)
+            response = get_completion_with_key(rephrasing_prompt, self.api_key)
+            return ast.literal_eval(response)
+        except Exception as e:
+            print(f"Warning: Paraphrase API failed ({str(e)}), falling back to simple variations")
+            return self._generate_simple_paraphrases(prompt)
+    
+    def _generate_simple_paraphrases(self, prompt: str) -> List[str]:
+        """
+        Generate simple paraphrase variations without using external API.
+        
+        Args:
+            prompt: The text to paraphrase
+            
+        Returns:
+            List of simple paraphrased variations
+        """
+        variations = [prompt]  # Always include original
+        
+        # Simple paraphrasing rules
+        paraphrase_rules = [
+            # Question reformulations
+            lambda t: t.replace("What is", "Can you tell me what") + "?" if "What is" in t and not t.endswith("?") else t,
+            lambda t: t.replace("How do", "What is the way to") if "How do" in t else t,
+            lambda t: t.replace("Why is", "What is the reason that") if "Why is" in t else t,
+            
+            # Statement reformulations
+            lambda t: "Please " + t.lower() if not t.lower().startswith(("please", "can you", "could you")) else t,
+            lambda t: "Could you " + t.lower() if not t.lower().startswith(("could you", "can you", "please")) else t,
+            lambda t: t.replace("I need", "I require") if "I need" in t else t,
+            lambda t: t.replace("I want", "I would like") if "I want" in t else t,
+            lambda t: t.replace("Classify", "Determine") if "Classify" in t else t,
+            lambda t: t.replace("Answer", "Respond to") if "Answer" in t else t,
+            lambda t: t.replace("Explain", "Describe") if "Explain" in t else t,
+            lambda t: t.replace("Choose", "Select") if "Choose" in t else t,
+            lambda t: t.replace("Find", "Identify") if "Find" in t else t,
+        ]
+        
+        for rule in paraphrase_rules:
+            if len(variations) >= self.n_augments + 1:  # +1 for original
+                break
+            paraphrased = rule(prompt)
+            if paraphrased != prompt and paraphrased not in variations:
+                variations.append(paraphrased)
+        
+        # Fill with simple variations if needed
+        while len(variations) < self.n_augments + 1:
+            if not prompt.endswith("."):
+                variations.append(prompt + ".")
+            elif "the" in prompt.lower():
+                variations.append(prompt.replace("the ", "this ").replace("The ", "This "))
+            else:
+                break
+        
+        return variations[:self.n_augments + 1]
 
 
 if __name__ == '__main__':
-    para = Paraphrase(10)
+    para = Paraphrase(3)
     print(para.augment("Describe a historical figure you admire"))
 
