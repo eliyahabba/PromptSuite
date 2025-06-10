@@ -127,7 +127,7 @@ class TemplateParser:
         
         return TemplateField(
             name=field_name,
-            variation_type='few-shot',
+            variation_type=None,  # Few-shot should not be a variation type
             is_literal=False,
             few_shot_count=count,
             few_shot_format=few_shot_format,

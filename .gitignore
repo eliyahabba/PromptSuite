@@ -1,0 +1,4 @@
+.env
+/.idea/
+**/tmp/*
+/src/ui/old/

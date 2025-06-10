@@ -46,7 +46,7 @@ def render():
 def template_suggestions_interface(available_columns):
     """Interface for selecting template suggestions"""
     st.subheader("Choose a Template Suggestion")
-    st.write("Select a pre-built template that matches your data structure")
+    st.write("Select a pre-built template that matches your data structure and task type")
     
     # Show currently selected template at the top
     if st.session_state.get('template_ready', False):
@@ -65,90 +65,99 @@ def template_suggestions_interface(available_columns):
     
     suggestions = st.session_state.template_suggestions
     
-    # Filter suggestions based on available columns
-    compatible_suggestions = []
-    for suggestion in suggestions:
-        # Extract field names from template (without variation types)
-        field_pattern = r'\{([^:}]+)(?::[^}]+)?\}'
-        template_fields = re.findall(field_pattern, suggestion['template'])
-        required_fields = [f for f in template_fields if f not in ['instruction', 'few_shot']]
-        
-        # Check if we have the required columns
-        missing_fields = set(required_fields) - set(available_columns)
-        if not missing_fields:
-            compatible_suggestions.append(suggestion)
-        else:
-            suggestion['missing_fields'] = missing_fields
+    # Create tabs for each category
+    category_tabs = []
+    category_data = []
     
-    if compatible_suggestions:
-        st.success(f"✅ Found {len(compatible_suggestions)} compatible templates for your data")
-        
-        for suggestion in compatible_suggestions:
-            # Check if this is the currently selected template
-            is_selected = (st.session_state.get('template_ready', False) and 
-                          st.session_state.get('selected_template', '') == suggestion['template'])
+    for category_key, category_info in suggestions.items():
+        category_tabs.append(f"📋 {category_info['category_name']}")
+        category_data.append((category_key, category_info))
+    
+    # Create tabs for categories
+    tabs = st.tabs(category_tabs)
+    
+    for i, (tab, (category_key, category_info)) in enumerate(zip(tabs, category_data)):
+        with tab:
+            st.write(f"**{category_info['description']}**")
             
-            # Style the expander differently if selected
-            if is_selected:
-                expander_label = f"✅ {suggestion['name']} (Currently Selected)"
-                border_style = "border-left: 4px solid #4CAF50; background-color: #f1f8e9;"
-            else:
-                expander_label = f"📋 {suggestion['name']}"
-                border_style = "border-left: 4px solid #e0e0e0;"
+            # Filter templates based on available columns for this category
+            compatible_templates = []
+            incompatible_templates = []
             
-            with st.expander(expander_label, expanded=is_selected):
-                # Add visual container with conditional styling
-                # st.markdown(f"""
-                # <div style="{border_style} padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                # """, unsafe_allow_html=True)
+            for template in category_info['templates']:
+                # Extract field names from template (without variation types)
+                field_pattern = r'\{([^:}]+)(?::[^}]+)?\}'
+                template_fields = re.findall(field_pattern, template['template'])
+                required_fields = [f for f in template_fields if f not in ['instruction', 'few_shot']]
                 
-                st.write(f"**Description:** {suggestion['description']}")
-                st.code(suggestion['template'], language="text")
-                
-                # Show which columns will be used
-                field_pattern = r'\{([^:}]+)(?::([^}]+))?\}'
-                matches = re.findall(field_pattern, suggestion['template'])
-                
-                st.write("**Template fields:**")
-                for field, variation_type in matches:
-                    if field in available_columns:
-                        status = "✅ Available"
-                        color = "green"
-                    elif field in ['instruction', 'few_shot']:
-                        status = "⚙️ User input"
-                        color = "blue"
-                    else:
-                        status = "❌ Missing"
-                        color = "red"
-                    
-                    variation_info = f" (variation: {variation_type})" if variation_type else ""
-                    st.markdown(f"- **{field}**{variation_info}: <span style='color: {color}'>{status}</span>", unsafe_allow_html=True)
-                
-                # Button styling based on selection
-                if is_selected:
-                    st.markdown("### ✅ This template is currently selected")
-                    if st.button(f"🔄 Re-select {suggestion['name']}", key=f"reselect_template_{suggestion['name']}"):
-                        st.session_state.selected_template = suggestion['template']
-                        st.session_state.template_name = suggestion['name']
-                        st.session_state.template_ready = True
-                        st.success(f"✅ Re-selected {suggestion['name']} template")
-                        st.rerun()
+                # Check if we have the required columns
+                missing_fields = set(required_fields) - set(available_columns)
+                if not missing_fields:
+                    compatible_templates.append(template)
                 else:
-                    if st.button(f"✨ Select {suggestion['name']} Template", key=f"use_template_{suggestion['name']}", type="primary"):
-                        st.session_state.selected_template = suggestion['template']
-                        st.session_state.template_name = suggestion['name']
-                        st.session_state.template_ready = True
-                        st.success(f"✅ Selected {suggestion['name']} template")
-                        st.rerun()
+                    template['missing_fields'] = missing_fields
+                    incompatible_templates.append(template)
+            
+            if compatible_templates:
+                st.success(f"✅ Found {len(compatible_templates)} compatible {category_info['category_name']} templates")
                 
-                st.markdown("</div>", unsafe_allow_html=True)
-    
-    # Show incompatible suggestions with guidance
-    incompatible_suggestions = [s for s in suggestions if s not in compatible_suggestions]
-    if incompatible_suggestions:
-        with st.expander("⚠️ Templates requiring additional columns", expanded=False):
-            for suggestion in incompatible_suggestions:
-                st.write(f"**{suggestion['name']}**: Missing columns: {', '.join(suggestion.get('missing_fields', []))}")
+                for template in compatible_templates:
+                    # Check if this is the currently selected template
+                    is_selected = (st.session_state.get('template_ready', False) and 
+                                  st.session_state.get('selected_template', '') == template['template'])
+                    
+                    # Style the expander differently if selected
+                    if is_selected:
+                        expander_label = f"✅ {template['name']} (Currently Selected)"
+                    else:
+                        expander_label = f"📋 {template['name']}"
+                    
+                    with st.expander(expander_label, expanded=is_selected):
+                        st.write(f"**Description:** {template['description']}")
+                        st.code(template['template'], language="text")
+                        
+                        # Show which columns will be used
+                        field_pattern = r'\{([^:}]+)(?::([^}]+))?\}'
+                        matches = re.findall(field_pattern, template['template'])
+                        
+                        st.write("**Template fields:**")
+                        for field, variation_type in matches:
+                            if field in available_columns:
+                                status = "✅ Available"
+                                color = "green"
+                            elif field in ['instruction', 'few_shot']:
+                                status = "⚙️ User input"
+                                color = "blue"
+                            else:
+                                status = "❌ Missing"
+                                color = "red"
+                            
+                            variation_info = f" (variation: {variation_type})" if variation_type else ""
+                            st.markdown(f"- **{field}**{variation_info}: <span style='color: {color}'>{status}</span>", unsafe_allow_html=True)
+                        
+                        # Button styling based on selection
+                        button_key = f"template_{category_key}_{template['name'].lower().replace(' ', '_')}"
+                        if is_selected:
+                            if st.button(f"🔄 Re-select {template['name']}", key=f"re_{button_key}"):
+                                st.session_state.selected_template = template['template']
+                                st.session_state.template_name = template['name']
+                                st.session_state.template_ready = True
+                                st.success(f"✅ Re-selected {template['name']} template")
+                                st.rerun()
+                        else:
+                            if st.button(f"✨ Select {template['name']}", key=button_key, type="primary"):
+                                st.session_state.selected_template = template['template']
+                                st.session_state.template_name = template['name']
+                                st.session_state.template_ready = True
+                                st.success(f"✅ Selected {template['name']} template")
+                                st.rerun()
+            
+            # Show incompatible templates if any
+            if incompatible_templates:
+                with st.expander(f"⚠️ {category_info['category_name']} templates requiring additional columns"):
+                    for template in incompatible_templates:
+                        st.write(f"**{template['name']}**: Missing columns: {', '.join(template.get('missing_fields', []))}")
+                        st.code(template['template'], language="text")
 
 
 def custom_template_interface(available_columns):
@@ -333,21 +342,6 @@ def display_selected_template_details(available_columns):
             
             # Variation summary
             if variation_fields:
-                st.markdown("### 🔄 Variation Summary")
-                variation_summary = []
-                for field, var_type in variation_fields.items():
-                    variation_summary.append(f"**{field}**: {var_type}")
-                
-                st.markdown("""
-                <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107;">
-                    <h5 style="color: #856404; margin-top: 0;">Fields that will generate variations:</h5>
-                """, unsafe_allow_html=True)
-                
-                for summary in variation_summary:
-                    st.markdown(f"- {summary}")
-                
-                st.markdown("</div>", unsafe_allow_html=True)
-                
                 # API key requirement check
                 if any(var_type in ['paraphrase'] for var_type in variation_fields.values()):
                     st.info("🔑 This template uses paraphrase variations - you'll need to provide an API key in the next step.")

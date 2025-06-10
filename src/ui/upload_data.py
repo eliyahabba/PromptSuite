@@ -127,66 +127,86 @@ def get_sample_datasets():
         "Sentiment Analysis": {
             'data': pd.DataFrame({
                 'text': [
-                    'I love this movie!', 
-                    'This book is terrible.', 
-                    'The weather is nice today.',
-                    'The service was okay.',
-                    'Best purchase ever!'
+                    'I absolutely love this product!', 
+                    'This service is terrible and disappointing.', 
+                    'The experience was okay, nothing special.',
+                    'Outstanding quality and fast delivery!',
+                    'Not impressed, could be much better.'
                 ],
-                'label': ['positive', 'negative', 'neutral', 'neutral', 'positive']
+                'label': ['positive', 'negative', 'neutral', 'positive', 'negative']
             }),
-            'description': 'Text sentiment classification dataset'
+            'description': 'Text sentiment classification dataset with positive, negative, and neutral labels'
         },
         "Question Answering": {
             'data': pd.DataFrame({
                 'question': [
                     'What is the capital of France?', 
-                    'How many days in a week?',
+                    'How many days are in a week?',
                     'Who wrote Romeo and Juliet?',
-                    'What is 2+2?',
-                    'What color is the sky?'
+                    'What is 12 plus 8?',
+                    'What color is typically associated with the sky?',
+                    'What is 15 minus 7?',
+                    'What is 6 times 4?'
                 ],
-                'answer': ['Paris', '7', 'Shakespeare', '4', 'Blue'],
+                'answer': ['Paris', '7', 'Shakespeare', '20', 'Blue', '8', '24'],
                 'context': [
                     'Geography', 
                     'Time and calendar', 
                     'Literature',
                     'Mathematics',
-                    'Nature'
-                ]
+                    'Nature',
+                    'Mathematics',
+                    'Mathematics'
+                ],
+                'split': ['train', 'train', 'train', 'train', 'test', 'test', 'test']
             }),
-            'description': 'General knowledge Q&A dataset'
+            'description': 'General knowledge Q&A dataset with context and train/test split'
         },
         "Multiple Choice": {
             'data': pd.DataFrame({
                 'question': [
-                    'What is the largest planet?',
-                    'Which element has symbol O?',
-                    'What is the fastest land animal?'
+                    'What is the largest planet in our solar system?',
+                    'Which chemical element has the symbol O?',
+                    'What is the fastest land animal?',
+                    'What is the smallest prime number?',
+                    'Which continent is known as the "Dark Continent"?'
                 ],
                 'options': [
-                    'A) Earth B) Jupiter C) Mars',
-                    'A) Oxygen B) Gold C) Silver', 
-                    'A) Lion B) Cheetah C) Horse'
+                    'A) Earth B) Jupiter C) Mars D) Venus',
+                    'A) Oxygen B) Gold C) Silver D) Iron', 
+                    'A) Lion B) Cheetah C) Horse D) Leopard',
+                    'A) 1 B) 2 C) 3 D) 0',
+                    'A) Asia B) Africa C) Europe D) Australia'
                 ],
-                'answer': ['B', 'A', 'B'],
-                'subject': ['Astronomy', 'Chemistry', 'Biology']
+                'answer': ['B', 'A', 'B', 'B', 'B'],
+                'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
             }),
-            'description': 'Multiple choice questions dataset'
+            'description': 'Multiple choice questions with options, answers, and subject categories'
         },
         "Text Classification": {
             'data': pd.DataFrame({
                 'text': [
-                    'Book a flight to Paris',
-                    'Cancel my subscription',
-                    'What is the weather today?',
-                    'Set a reminder for 3pm',
-                    'Order pizza for dinner'
+                    'Book a flight to Paris for next week',
+                    'Cancel my subscription to the premium service',
+                    'What is the weather forecast for tomorrow?',
+                    'Set a reminder for my meeting at 3pm',
+                    'Order two large pizzas for dinner delivery',
+                    'Check my bank account balance',
+                    'Find the nearest coffee shop location'
                 ],
-                'category': ['travel', 'service', 'information', 'productivity', 'food'],
-                'intent': ['booking', 'cancellation', 'query', 'scheduling', 'ordering']
+                'category': ['travel', 'service', 'information', 'productivity', 'food', 'banking', 'location'],
+                'intent': ['booking', 'cancellation', 'query', 'scheduling', 'ordering', 'inquiry', 'search'],
+                'context': [
+                    'Travel booking', 
+                    'Customer service', 
+                    'Weather inquiry',
+                    'Calendar management',
+                    'Food ordering',
+                    'Banking service',
+                    'Local search'
+                ]
             }),
-            'description': 'Intent and category classification dataset'
+            'description': 'Intent and category classification with context for various user requests'
         }
     }
 
