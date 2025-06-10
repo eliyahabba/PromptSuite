@@ -57,7 +57,7 @@ class MultiPromptify:
     
     def generate_variations(
         self,
-        template: str,
+        template: Union[str, Dict[str, str]],
         data: Union[pd.DataFrame, str, dict],
         instruction: str = None,
         variations_per_field: int = 3,
@@ -68,9 +68,9 @@ class MultiPromptify:
         Generate prompt variations based on template and data.
         
         Args:
-            template: Template string with variation annotations
+            template: Template string with variation annotations OR dictionary with 'instruction' and 'template' keys
             data: Input data (DataFrame, CSV file path, or dict)
-            instruction: Static instruction text
+            instruction: Static instruction text (optional, can be provided via template dict)
             variations_per_field: Number of variations per field
             api_key: API key for services that need it (like paraphrase)
             **kwargs: Additional arguments
@@ -78,6 +78,15 @@ class MultiPromptify:
         Returns:
             List of variation dictionaries
         """
+        # Handle new format where template is a dictionary
+        if isinstance(template, dict):
+            if 'instruction' in template and 'template' in template:
+                instruction = template['instruction']
+                template = template['template']
+            elif 'combined' in template:
+                # Fallback to combined format
+                template = template['combined']
+        
         # Load data if it's a file path
         if isinstance(data, str):
             if data.endswith('.csv'):

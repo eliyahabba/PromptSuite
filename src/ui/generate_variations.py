@@ -82,7 +82,21 @@ def display_current_setup(df, template, template_name):
     
     with col2:
         st.markdown(f"**📝 Template: {template_name}**")
-        st.code(template, language="text")
+        
+        # Handle new template format (dictionary) vs old format (string)
+        if isinstance(template, dict):
+            if 'instruction' in template and 'template' in template:
+                st.markdown("**Instruction:**")
+                st.code(template['instruction'], language="text")
+                st.markdown("**Processing Template:**")
+                st.code(template['template'], language="text")
+            else:
+                # Fallback to combined or string representation
+                template_str = template.get('combined', str(template))
+                st.code(template_str, language="text")
+        else:
+            # Old format - just display as string
+            st.code(template, language="text")
 
 
 def configure_generation():
@@ -152,7 +166,20 @@ def configure_generation():
     
     # Check if template uses paraphrase variations
     template = st.session_state.get('selected_template', '')
-    needs_api_key = ':paraphrase' in template
+    
+    # Handle new template format (dictionary) vs old format (string)
+    template_text = ''
+    if isinstance(template, dict):
+        if 'template' in template:
+            template_text = template['template']
+        elif 'combined' in template:
+            template_text = template['combined']
+        else:
+            template_text = str(template)
+    else:
+        template_text = template
+    
+    needs_api_key = ':paraphrase' in template_text
     
     if needs_api_key:
         # Enhanced API Configuration in sidebar
