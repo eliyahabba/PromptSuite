@@ -126,11 +126,11 @@ class MultiPromptify:
                 for example in few_shot_examples:
                     conversation_messages.append({
                         "role": "user",
-                        "content": example["question"]
+                        "content": example
                     })
                     conversation_messages.append({
                         "role": "assistant", 
-                        "content": example["answer"]
+                        "content": ""  # Empty response for few-shot examples
                     })
                 
                 # Add main question as final user message
@@ -241,8 +241,8 @@ class MultiPromptify:
                 "Example: \"gold\": \"answer\" or \"gold\": \"label\""
             )
     
-    def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> List[Dict[str, str]]:
-        """Generate few-shot examples as structured conversation data."""
+    def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> List[str]:
+        """Generate few-shot examples as list of complete prompts."""
         
         num_examples = few_shot_field.few_shot_count
         
@@ -274,7 +274,7 @@ class MultiPromptify:
                 random_state=current_row_idx
             )
         
-        # Create structured examples
+        # Create examples
         examples = []
         for _, example_row in sampled_data.iterrows():
             # Fill all placeholders including the gold field with real values
@@ -284,28 +284,19 @@ class MultiPromptify:
                     all_values[col] = str(example_row[col])
             
             # For few-shot examples, fill everything including the gold field
-            question_with_answer = self._fill_template_placeholders(instruction_variant, all_values)
+            complete_example = self._fill_template_placeholders(instruction_variant, all_values)
             
-            if question_with_answer:
-                examples.append({
-                    "question": question_with_answer,
-                    "answer": ""  # Not used in this context
-                })
+            if complete_example:
+                examples.append(complete_example)
         
         return examples
     
-    def _format_few_shot_as_string(self, few_shot_examples: List[Dict[str, str]]) -> str:
-        """Convert structured few-shot examples back to string format for backward compatibility."""
+    def _format_few_shot_as_string(self, few_shot_examples: List[str]) -> str:
+        """Format few-shot examples as string."""
         if not few_shot_examples:
             return ""
         
-        formatted_examples = []
-        for example in few_shot_examples:
-            # Format as a complete prompt with question and answer
-            formatted_example = example['question']
-            formatted_examples.append(formatted_example)
-        
-        return "\n\n".join(formatted_examples)
+        return "\n\n".join(few_shot_examples)
     
     def _generate_few_shot_examples(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> str:
         """Generate few-shot examples using the configured parameters. (Legacy method for backward compatibility)"""
