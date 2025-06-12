@@ -231,20 +231,10 @@ class MultiPromptify:
         return unique_variations[:variations_per_field + 1]
     
     def _validate_gold_field_requirement(self, instruction_template: str, gold_field: str, few_shot_fields: list):
-        """Validate that gold field is provided when needed for separating questions from answers."""
-        needs_gold_field = False
+        """Validate that gold field is provided when needed for few-shot examples."""
         
         # Check if few-shot is configured (needs to separate question from answer)
-        if few_shot_fields and len(few_shot_fields) > 0:
-            needs_gold_field = True
-        
-        # Check if instruction template has the gold field placeholder
-        if instruction_template and gold_field:
-            gold_placeholder = f'{{{gold_field}}}'
-            if gold_placeholder in instruction_template:
-                needs_gold_field = True
-        
-        if needs_gold_field and not gold_field:
+        if few_shot_fields and len(few_shot_fields) > 0 and not gold_field:
             raise ValueError(
                 "Gold field is required when using few-shot examples. "
                 "Please specify the 'gold' field in your template to indicate which column contains the correct answers/labels. "
