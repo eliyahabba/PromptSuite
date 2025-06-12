@@ -69,20 +69,14 @@ class Paraphrase(BaseAxisAugmenter):
         Returns:
             List of paraphrased variations
         """
-        if not self.api_key:
-            # If no API key provided, return simple variations
-            return self._generate_simple_paraphrases(prompt)
-        
-        try:
-            # Import here to avoid circular imports
-            from src.utils.model_client import get_completion_with_key
-            
-            rephrasing_prompt = self.build_rephrasing_prompt(detailed_template, self.n_augments, prompt)
-            response = get_completion_with_key(rephrasing_prompt, self.api_key)
-            return ast.literal_eval(response)
-        except Exception as e:
-            print(f"Warning: Paraphrase API failed ({str(e)}), falling back to simple variations")
-            return self._generate_simple_paraphrases(prompt)
+        from src.utils.model_client import get_completion_with_key
+
+        rephrasing_prompt = self.build_rephrasing_prompt(detailed_template, self.n_augments, prompt)
+        response = get_completion_with_key(rephrasing_prompt, self.api_key)
+        return ast.literal_eval(response)
+        # except Exception as e:
+        #     print(f"Warning: Paraphrase API failed ({str(e)}), falling back to simple variations")
+        #     return self._generate_simple_paraphrases(prompt)
 
     def _generate_simple_paraphrases(self, prompt: str) -> List[str]:
         """

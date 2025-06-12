@@ -405,29 +405,15 @@ def display_generation_results():
     # Use the shared display function with collapsible option
     with st.container():
         # Add collapsible container for the results
-        show_results = st.checkbox("🎯 Show Full Results", value=True)
-        
-        if show_results:
-            display_full_results(
-                variations=variations,
-                original_data=original_data,
-                stats=stats,
-                generation_time=generation_time,
-                show_export=True,
-                show_header=True
-            )
-        else:
-            # Show just a summary when collapsed
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
-                        padding: 1.5rem; border-radius: 10px; margin: 1rem 0; text-align: center;">
-                <h3 style="color: white; margin: 0;">🎉 {len(variations)} variations generated successfully!</h3>
-                <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;">
-                    Check the box above to view all results
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-    
+        display_full_results(
+            variations=variations,
+            original_data=original_data,
+            stats=stats,
+            generation_time=generation_time,
+            show_export=True,
+            show_header=True
+        )
+
     # Generation complete - no more navigation needed
     st.markdown("---")
     st.markdown("""

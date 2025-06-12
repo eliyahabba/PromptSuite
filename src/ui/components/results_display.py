@@ -50,12 +50,15 @@ def display_full_results(variations, original_data, stats, generation_time, show
 
     # Tabbed interface
     if show_export:
-        tab1, tab2 = st.tabs(["📋 All Variations", "💾 Export"])
-        
+        tab1, tab2, tab3 = st.tabs(["📋 All Variations", "💬 Conversation Format", "💾 Export"])
+
         with tab1:
             display_enhanced_variations(variations, original_data)
-        
+
         with tab2:
+            display_conversation_format(variations)
+
+        with tab3:
             export_interface(variations)
     else:
         # Just show variations without export tab
@@ -172,10 +175,147 @@ def display_color_legend():
     pass
 
 
+def display_conversation_format(variations):
+    """Display variations in conversation format within the UI"""
+    st.markdown("""
+    <div style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2196f3; margin-bottom: 2rem;">
+        <h3 style="color: #1976d2; margin-top: 0;">💬 Conversation Format Display</h3>
+        <p style="margin-bottom: 0; color: #0d47a1;">Each variation displayed as a conversation with role and content structure</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if not variations:
+        st.warning("No variations to display")
+        return
+
+    # Convert to conversation format
+    conversations = convert_to_conversation_format(variations)
+
+    # Quick action buttons
+    col1, col2, col3 = st.columns([1, 1, 1])
+
+    with col1:
+        # Copy all conversations button
+        all_conversations_json = json.dumps(conversations, indent=2, ensure_ascii=False)
+        if st.button("📋 Copy All Conversations JSON", use_container_width=True):
+            st.code(all_conversations_json, language="json")
+
+    with col2:
+        # Download button (same as in export tab)
+        st.download_button(
+            label="💾 Download Conversations",
+            data=all_conversations_json,
+            file_name="prompt_variations_conversation.json",
+            mime="application/json",
+            use_container_width=True
+        )
+
+    with col3:
+        # Stats
+        total_messages = sum(len(conv) for conv in conversations)
+        st.metric("Total Messages", f"{total_messages:,}")
+
+    st.markdown("---")
+
+    # Pagination controls
+    total_conversations = len(conversations)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("### 📄 Navigation")
+        page_options = [5, 10, 20, 50]
+        items_per_page = st.selectbox("Conversations per page", page_options, index=1, key="conv_per_page")
+
+        total_pages = (total_conversations - 1) // items_per_page + 1 if total_conversations > 0 else 1
+        page = st.number_input(f"Page (1-{total_pages})", min_value=1, max_value=total_pages, value=1, key="conv_page")
+        if page is None:
+            page = 1
+
+    # Calculate range
+    start_idx = (page - 1) * items_per_page
+    end_idx = min(start_idx + items_per_page, total_conversations)
+
+    st.markdown(f"""
+    <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; margin: 1rem 0;">
+        <strong>Showing conversations {start_idx + 1}-{end_idx} of {total_conversations:,}</strong>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Display conversations
+    for i in range(start_idx, end_idx):
+        conversation = conversations[i]
+        original_variation = variations[i]
+        display_single_conversation(conversation, i + 1, original_variation)
+
+
+def display_single_conversation(conversation, conversation_num, original_variation):
+    """Display a single conversation in chat format"""
+    original_row_index = original_variation.get('original_row_index', 0)
+
+    # Create expandable card for each conversation
+    with st.expander(f"💬 Conversation {conversation_num} (from row {original_row_index + 1})", expanded=(conversation_num <= 3)):
+
+        # Display metadata
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            st.markdown("**📝 Conversation Messages:**")
+
+        with col2:
+            # Copy button for JSON format
+            conversation_json = json.dumps(conversation, indent=2, ensure_ascii=False)
+            if st.button(f"📋 Copy JSON", key=f"copy_conv_{conversation_num}"):
+                st.code(conversation_json, language="json")
+
+        # Display each message in the conversation
+        for msg_idx, message in enumerate(conversation):
+            role = message.get('role', 'user')
+            content = message.get('content', '')
+
+            # Different styling for user vs assistant
+            if role == 'user':
+                # User message styling
+                st.markdown(f"""
+                <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
+                            border-radius: 10px; border-left: 4px solid #2196f3;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="background: #2196f3; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;">
+                            👤 USER
+                        </div>
+                    </div>
+                    <div style="color: #0d47a1; white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                        {content.replace('<', '&lt;').replace('>', '&gt;')}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # Assistant message styling  
+                st.markdown(f"""
+                <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); 
+                            border-radius: 10px; border-left: 4px solid #4caf50;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="background: #4caf50; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;">
+                            🤖 ASSISTANT
+                        </div>
+                    </div>
+                    <div style="color: #2e7d32; white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                        {content.replace('<', '&lt;').replace('>', '&gt;')}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        # Show raw JSON with a toggle button instead of nested expander
+        if st.button("🔍 Show/Hide Raw JSON", key=f"toggle_json_{conversation_num}"):
+            st.session_state[f"show_json_{conversation_num}"] = not st.session_state.get(f"show_json_{conversation_num}", False)
+        
+        if st.session_state.get(f"show_json_{conversation_num}", False):
+            st.code(conversation_json, language="json")
+
+
 def display_single_variation(variation, variation_num, original_data):
     """Display a single variation with enhanced visualization"""
     original_row_index = variation.get('original_row_index', 0)
-    
+
     # Get original row data for comparison
     original_row = original_data.iloc[original_row_index] if original_row_index < len(original_data) else None
 
@@ -190,18 +330,18 @@ def display_single_variation(variation, variation_num, original_data):
             st.markdown("**🔧 Field Changes**")
 
             field_values = variation.get('field_values', {})
-            
+
             # Get original template for comparison
             original_template = st.session_state.get('selected_template', {})
             # Also check template_config from the variation itself
             template_config = variation.get('template_config', {})
-            
+
             for field, value in field_values.items():
                 if field == 'instruction':
                     # Get the original instruction template value
                     original_val = None
                     operation_type = None
-                    
+
                     # Try to get the original instruction_template from template_config first, then original_template
                     for template_source in [template_config, original_template]:
                         if isinstance(template_source, dict):
@@ -214,7 +354,7 @@ def display_single_variation(variation, variation_num, original_data):
                                 if isinstance(template_content, dict) and 'instruction_template' in template_content:
                                     original_val = template_content['instruction_template']
                                     break
-                    
+
                     # Check what operation was applied to instruction
                     for template_source in [template_config, original_template]:
                         if isinstance(template_source, dict) and 'instruction' in template_source:
@@ -222,18 +362,18 @@ def display_single_variation(variation, variation_num, original_data):
                             if isinstance(instruction_config, list) and instruction_config:
                                 operation_type = instruction_config[0]  # e.g., 'paraphrase'
                                 break
-                    
+
                     # If we couldn't find the original, use the current value
                     if original_val is None:
                         original_val = value
-                        
+
                     # Check if instruction was modified
                     is_modified = str(value) != str(original_val) and original_val != value
-                    
+
                     if is_modified:
                         # Create operation description
                         operation_desc = f" ({operation_type})" if operation_type else ""
-                        
+
                         st.markdown(f"""
                         <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
                             <strong style="color: #1976d2;">{field}{operation_desc}:</strong><br>
@@ -248,7 +388,7 @@ def display_single_variation(variation, variation_num, original_data):
                             <strong style="color: #1976d2;">{field}{operation_desc}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
                         </div>
                         """, unsafe_allow_html=True)
-                        
+
                 elif field == 'few_shot':
                     # Show few-shot info
                     if value:
@@ -263,7 +403,7 @@ def display_single_variation(variation, variation_num, original_data):
                     if original_row is not None and field in original_row.index:
                         original_val = str(original_row[field]) if pd.notna(original_row[field]) else ""
                         is_modified = str(value) != str(original_val)
-                        
+
                         # Check what operations were applied to this field
                         operation_types = []
                         for template_source in [template_config, original_template]:
@@ -272,9 +412,9 @@ def display_single_variation(variation, variation_num, original_data):
                                 if isinstance(field_config, list):
                                     operation_types = field_config
                                     break
-                        
+
                         operation_desc = f" ({', '.join(operation_types)})" if operation_types else ""
-                        
+
                         if is_modified:
                             st.markdown(f"""
                             <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
@@ -289,7 +429,7 @@ def display_single_variation(variation, variation_num, original_data):
                                 <strong style="color: #1976d2;">{field}{operation_desc}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
                             </div>
                             """, unsafe_allow_html=True)
-            
+
             # Show any additional fields from original data that weren't used in field_values
             if original_row is not None:
                 for col in original_row.index:
@@ -339,6 +479,43 @@ def highlight_prompt_fields(prompt, field_values):
     return highlighted
 
 
+def convert_to_conversation_format(variations):
+    """
+    Convert variations to simple conversation format
+    Each prompt becomes a user message in conversation format
+    
+    Args:
+        variations: List of generated variations
+        
+    Returns:
+        List of conversations in the format:
+        [
+            [
+                {
+                    "role": "user",
+                    "content": "prompt content"
+                }
+            ]
+        ]
+    """
+    conversations = []
+
+    for variation in variations:
+        prompt = variation.get('prompt', '')
+
+        # Create simple conversation format - each prompt is a user message
+        conversation = [
+            {
+                "role": "user",
+                "content": prompt.strip()
+            }
+        ]
+
+        conversations.append(conversation)
+
+    return conversations
+
+
 def export_interface(variations):
     """Interface for exporting results in various formats"""
     st.markdown("""
@@ -352,76 +529,104 @@ def export_interface(variations):
         st.warning("No variations to export")
         return
 
-    # Enhanced export options with cards
-    col1, col2, col3 = st.columns(3)
+    # Enhanced export options with cards - 2x2 layout
+    col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #ff9800; margin: 0;">📋 JSON Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Complete data with metadata</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # Row 1 - JSON and CSV
+        subcol1, subcol2 = st.columns(2)
 
-        json_data = json.dumps(variations, indent=2, ensure_ascii=False)
-        st.download_button(
-            label="📥 Download JSON",
-            data=json_data,
-            file_name="prompt_variations.json",
-            mime="application/json",
-            use_container_width=True
-        )
+        with subcol1:
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #ff9800; margin: 0;">📋 JSON Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Complete data with metadata</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            json_data = json.dumps(variations, indent=2, ensure_ascii=False)
+            st.download_button(
+                label="📥 Download JSON",
+                data=json_data,
+                file_name="prompt_variations.json",
+                mime="application/json",
+                use_container_width=True
+            )
+
+        with subcol2:
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #4caf50; margin: 0;">📊 CSV Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Spreadsheet compatible</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Flatten for CSV
+            flattened = []
+            for var in variations:
+                flat_var = {
+                    'prompt': var['prompt'],
+                    'original_row_index': var.get('original_row_index', ''),
+                    'variation_count': var.get('variation_count', ''),
+                    'prompt_length': len(var['prompt'])
+                }
+                # Add field values
+                for key, value in var.get('field_values', {}).items():
+                    flat_var[f'field_{key}'] = value
+                flattened.append(flat_var)
+
+            csv_df = pd.DataFrame(flattened)
+            csv_data = csv_df.to_csv(index=False)
+
+            st.download_button(
+                label="📥 Download CSV",
+                data=csv_data,
+                file_name="prompt_variations.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
 
     with col2:
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #4caf50; margin: 0;">📊 CSV Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Spreadsheet compatible</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # Row 2 - Text and Conversation formats
+        subcol1, subcol2 = st.columns(2)
 
-        # Flatten for CSV
-        flattened = []
-        for var in variations:
-            flat_var = {
-                'prompt': var['prompt'],
-                'original_row_index': var.get('original_row_index', ''),
-                'variation_count': var.get('variation_count', ''),
-                'prompt_length': len(var['prompt'])
-            }
-            # Add field values
-            for key, value in var.get('field_values', {}).items():
-                flat_var[f'field_{key}'] = value
-            flattened.append(flat_var)
+        with subcol1:
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #9c27b0; margin: 0;">📝 Text Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Plain text prompts only</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-        csv_df = pd.DataFrame(flattened)
-        csv_data = csv_df.to_csv(index=False)
+            text_data = "\n\n--- VARIATION ---\n\n".join([var['prompt'] for var in variations])
 
-        st.download_button(
-            label="📥 Download CSV",
-            data=csv_data,
-            file_name="prompt_variations.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
+            st.download_button(
+                label="📥 Download TXT",
+                data=text_data,
+                file_name="prompt_variations.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
 
-    with col3:
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #9c27b0; margin: 0;">📝 Text Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Plain text prompts only</p>
-        </div>
-        """, unsafe_allow_html=True)
+        with subcol2:
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #e91e63; margin: 0;">💬 Conversation Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Chat format with roles</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-        text_data = "\n\n--- VARIATION ---\n\n".join([var['prompt'] for var in variations])
+            # Convert to conversation format
+            conversation_data = convert_to_conversation_format(variations)
+            conversation_json = json.dumps(conversation_data, indent=2, ensure_ascii=False)
 
-        st.download_button(
-            label="📥 Download TXT",
-            data=text_data,
-            file_name="prompt_variations.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
+            st.download_button(
+                label="📥 Download Conversation",
+                data=conversation_json,
+                file_name="prompt_variations_conversation.json",
+                mime="application/json",
+                use_container_width=True
+            )
 
 
 def display_simple_download_options(variations):
@@ -430,7 +635,7 @@ def display_simple_download_options(variations):
     """
     if not variations:
         return
-        
+
     st.markdown("---")
     st.markdown("""
     <div style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2196f3; margin: 2rem 0;">
@@ -438,75 +643,104 @@ def display_simple_download_options(variations):
         <p style="margin-bottom: 0; color: #0d47a1;">Choose your preferred format to download the generated variations</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
+
+    col1, col2 = st.columns(2)
+
     with col1:
-        # JSON download with enhanced styling
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #ff9800; margin: 0;">📋 JSON Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Complete data with metadata</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        json_data = json.dumps(variations, indent=2, ensure_ascii=False)
-        st.download_button(
-            label="📥 Download JSON",
-            data=json_data,
-            file_name="prompt_variations.json",
-            mime="application/json",
-            use_container_width=True
-        )
-    
+        # Row 1 - JSON and CSV
+        subcol1, subcol2 = st.columns(2)
+
+        with subcol1:
+            # JSON download with enhanced styling
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #ff9800; margin: 0;">📋 JSON Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Complete data with metadata</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            json_data = json.dumps(variations, indent=2, ensure_ascii=False)
+            st.download_button(
+                label="📥 Download JSON",
+                data=json_data,
+                file_name="prompt_variations.json",
+                mime="application/json",
+                use_container_width=True
+            )
+
+        with subcol2:
+            # CSV download with enhanced styling
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #4caf50; margin: 0;">📊 CSV Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Spreadsheet compatible</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Flatten for CSV
+            flattened = []
+            for var in variations:
+                flat_var = {
+                    'prompt': var['prompt'],
+                    'original_row_index': var.get('original_row_index', ''),
+                    'variation_count': var.get('variation_count', ''),
+                }
+                # Add field values
+                for key, value in var.get('field_values', {}).items():
+                    flat_var[f'field_{key}'] = value
+                flattened.append(flat_var)
+
+            csv_df = pd.DataFrame(flattened)
+            csv_data = csv_df.to_csv(index=False)
+
+            st.download_button(
+                label="📥 Download CSV",
+                data=csv_data,
+                file_name="prompt_variations.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+
     with col2:
-        # CSV download with enhanced styling
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #4caf50; margin: 0;">📊 CSV Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Spreadsheet compatible</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Flatten for CSV
-        flattened = []
-        for var in variations:
-            flat_var = {
-                'prompt': var['prompt'],
-                'original_row_index': var.get('original_row_index', ''),
-                'variation_count': var.get('variation_count', ''),
-            }
-            # Add field values
-            for key, value in var.get('field_values', {}).items():
-                flat_var[f'field_{key}'] = value
-            flattened.append(flat_var)
-        
-        csv_df = pd.DataFrame(flattened)
-        csv_data = csv_df.to_csv(index=False)
-        
-        st.download_button(
-            label="📥 Download CSV",
-            data=csv_data,
-            file_name="prompt_variations.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
-    
-    with col3:
-        # Text download with enhanced styling
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #9c27b0; margin: 0;">📝 Text Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Plain text prompts only</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        text_data = "\n\n--- VARIATION ---\n\n".join([var['prompt'] for var in variations])
-        
-        st.download_button(
-            label="📥 Download TXT",
-            data=text_data,
-            file_name="prompt_variations.txt",
-            mime="text/plain",
-            use_container_width=True
-        ) 
+        # Row 2 - Text and Conversation formats
+        subcol1, subcol2 = st.columns(2)
+
+        with subcol1:
+            # Text download with enhanced styling
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #9c27b0; margin: 0;">📝 Text Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Plain text prompts only</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            text_data = "\n\n--- VARIATION ---\n\n".join([var['prompt'] for var in variations])
+
+            st.download_button(
+                label="📥 Download TXT",
+                data=text_data,
+                file_name="prompt_variations.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
+
+        with subcol2:
+            # Conversation download with enhanced styling
+            st.markdown("""
+            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+                <h4 style="color: #e91e63; margin: 0;">💬 Conversation Format</h4>
+                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Chat format with roles</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Convert to conversation format
+            conversation_data = convert_to_conversation_format(variations)
+            conversation_json = json.dumps(conversation_data, indent=2, ensure_ascii=False)
+
+            st.download_button(
+                label="📥 Download Conversation",
+                data=conversation_json,
+                file_name="prompt_variations_conversation.json",
+                mime="application/json",
+                use_container_width=True
+            )
