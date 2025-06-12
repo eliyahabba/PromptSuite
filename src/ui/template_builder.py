@@ -371,7 +371,28 @@ def template_builder_interface(available_columns):
 
             # Display configuration in a nice format
             st.markdown("**Template Configuration:**")
-            st.json(configured_fields)
+            
+            # Create a cleaner display format
+            config_display = {}
+            for field_name, config in configured_fields.items():
+                if field_name == 'instruction_template':
+                    config_display[field_name] = config
+                elif field_name == 'few_shot':
+                    config_display[field_name] = f"{config['count']} {config['format']} examples from {config['split']} data"
+                elif isinstance(config, list):
+                    config_display[field_name] = config
+                else:
+                    config_display[field_name] = config
+            
+            # Display as formatted dictionary
+            for key, value in config_display.items():
+                if key == 'instruction_template':
+                    st.markdown(f"**{key}:**")
+                    st.code(value, language="text")
+                elif isinstance(value, list):
+                    st.markdown(f"**{key}:** {', '.join(value)}")
+                else:
+                    st.markdown(f"**{key}:** {value}")
 
             # Show field summary
             field_summary = []
@@ -432,7 +453,18 @@ def display_selected_template_details(available_columns):
 
     with col1:
         st.markdown("### 📝 Template Configuration")
-        st.json(template)
+        
+        # Display template in a cleaner format
+        for key, value in template.items():
+            if key == 'instruction_template':
+                st.markdown(f"**{key}:**")
+                st.code(value, language="text")
+            elif key == 'few_shot' and isinstance(value, dict):
+                st.markdown(f"**{key}:** {value['count']} {value['format']} examples from {value['split']} data")
+            elif isinstance(value, list):
+                st.markdown(f"**{key}:** {', '.join(value)}")
+            else:
+                st.markdown(f"**{key}:** {value}")
 
     with col2:
         st.markdown("### 📊 Template Analysis")
