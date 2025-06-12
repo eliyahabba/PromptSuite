@@ -1,7 +1,7 @@
 import random
 from typing import List, Dict, Any
-from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
-from src.utils.model_client import get_completion
+from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.shared.model_client import get_completion
 
 
 class ContextAugmenter(BaseAxisAugmenter):

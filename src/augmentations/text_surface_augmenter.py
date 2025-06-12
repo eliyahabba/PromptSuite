@@ -6,8 +6,8 @@ from typing import List
 
 import numpy as np
 
-from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
-from src.utils.constants import TextSurfaceAugmenterConstants
+from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.shared.constants import TextSurfaceAugmenterConstants
 
 
 class TextSurfaceAugmenter(BaseAxisAugmenter):

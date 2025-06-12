@@ -7,12 +7,12 @@ import json
 from typing import Dict, List, Any, Optional
 
 from .template_parser import TemplateParser
-from src.axis_augmentation.context_augmenter import ContextAugmenter
-from src.axis_augmentation.fewshot_augmenter import FewShotAugmenter
-from src.axis_augmentation.multidoc_augmenter import MultiDocAugmenter
-from src.axis_augmentation.multiple_choice_augmenter import MultipleChoiceAugmenter
-from src.axis_augmentation.paraphrase_instruct import Paraphrase
-from src.axis_augmentation.text_surface_augmenter import TextSurfaceAugmenter
+from src.augmentations.context_augmenter import ContextAugmenter
+from src.augmentations.fewshot_augmenter import FewShotAugmenter
+from src.augmentations.multidoc_augmenter import MultiDocAugmenter
+from src.augmentations.multiple_choice_augmenter import MultipleChoiceAugmenter
+from src.augmentations.paraphrase_instruct import Paraphrase
+from src.augmentations.text_surface_augmenter import TextSurfaceAugmenter
 
 
 class MultiPromptify:

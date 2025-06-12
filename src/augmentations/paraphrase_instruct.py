@@ -1,4 +1,4 @@
-from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
+from src.augmentations.base_augmenter import BaseAxisAugmenter
 from typing import List
 import ast
 
@@ -69,7 +69,7 @@ class Paraphrase(BaseAxisAugmenter):
         Returns:
             List of paraphrased variations
         """
-        from src.utils.model_client import get_completion_with_key
+        from src.shared.model_client import get_completion_with_key
 
         rephrasing_prompt = self.build_rephrasing_prompt(detailed_template, self.n_augments, prompt)
         response = get_completion_with_key(rephrasing_prompt, self.api_key)

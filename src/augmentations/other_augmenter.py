@@ -1,8 +1,8 @@
 # Augmentor for custom augmentations
 # This module provides an augmenter that generates variations of a prompt
 from typing import List, Dict, Any
-from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
-from src.utils.model_client import get_completion
+from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.shared.model_client import get_completion
 
 
 class OtherAugmenter(BaseAxisAugmenter):

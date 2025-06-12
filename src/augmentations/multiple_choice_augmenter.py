@@ -1,8 +1,8 @@
 import random
 from typing import List, Dict, Any
 
-from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
-from src.utils.constants import MultipleChoiceConstants
+from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.shared.constants import MultipleChoiceConstants
 
 
 class MultipleChoiceAugmenter(BaseAxisAugmenter):

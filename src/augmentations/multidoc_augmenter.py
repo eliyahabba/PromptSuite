@@ -5,7 +5,7 @@ from typing import List
 
 from datasets import load_dataset
 
-from src.utils.constants import MultiDocConstants
+from src.shared.constants import MultiDocConstants
 
 
 class MultiDocAugmenter():

@@ -4,14 +4,14 @@ Augmentation pipeline that combines multiple augmentation methods.
 import random
 from typing import List, Optional, Dict, Any
 
-from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
-from src.axis_augmentation.context_augmenter import ContextAugmenter
-from src.axis_augmentation.fewshot_augmenter import FewShotAugmenter
-from src.axis_augmentation.multidoc_augmenter import MultiDocAugmenter
-from src.axis_augmentation.multiple_choice_augmenter import MultipleChoiceAugmenter
-from src.axis_augmentation.paraphrase_instruct import Paraphrase
-from src.axis_augmentation.text_surface_augmenter import TextSurfaceAugmenter
-from src.utils.constants import AugmentationPipelineConstants, BaseAugmenterConstants
+from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.augmentations.context_augmenter import ContextAugmenter
+from src.augmentations.fewshot_augmenter import FewShotAugmenter
+from src.augmentations.multidoc_augmenter import MultiDocAugmenter
+from src.augmentations.multiple_choice_augmenter import MultipleChoiceAugmenter
+from src.augmentations.paraphrase_instruct import Paraphrase
+from src.augmentations.text_surface_augmenter import TextSurfaceAugmenter
+from src.shared.constants import AugmentationPipelineConstants, BaseAugmenterConstants
 
 
 class AugmentationPipeline:

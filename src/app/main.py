@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     # Get the absolute path to load.py
     script_dir = Path(__file__).parent.absolute()
-    load_py_path = script_dir / "load.py"
+    load_py_path = script_dir / "workflows" / "load.py"
     
     # Verify the file exists
     if not load_py_path.exists():

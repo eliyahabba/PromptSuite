@@ -1,4 +1,4 @@
-from src.utils.constants import BaseAugmenterConstants
+from src.shared.constants import BaseAugmenterConstants
 
 class BaseAxisAugmenter:
     """

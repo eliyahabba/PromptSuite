@@ -2,8 +2,8 @@ from typing import Dict, List, Any
 import pandas as pd
 import random
 
-from src.axis_augmentation.base_augmenter import BaseAxisAugmenter
-from src.utils.constants import FewShotConstants, BaseAugmenterConstants
+from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.shared.constants import FewShotConstants, BaseAugmenterConstants
 
 
 class FewShotAugmenter(BaseAxisAugmenter):
