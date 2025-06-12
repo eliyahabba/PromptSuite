@@ -196,27 +196,49 @@ def display_single_variation(variation, variation_num, original_data):
             
             for field, value in field_values.items():
                 if field == 'instruction':
-                    # Compare with original instruction template
-                    if isinstance(original_template, dict) and 'instruction' in original_template:
-                        original_val = original_template['instruction']
-                    else:
+                    # Get the original instruction template value
+                    original_val = None
+                    operation_type = None
+                    
+                    # Try to get the original instruction_template from the template
+                    if isinstance(original_template, dict):
+                        if 'instruction_template' in original_template:
+                            original_val = original_template['instruction_template']
+                        elif 'template' in original_template:
+                            # If it's a nested template structure
+                            template_content = original_template['template']
+                            if isinstance(template_content, dict) and 'instruction_template' in template_content:
+                                original_val = template_content['instruction_template']
+                        
+                        # Check what operation was applied to instruction
+                        if 'instruction' in original_template:
+                            instruction_config = original_template['instruction']
+                            if isinstance(instruction_config, list) and instruction_config:
+                                operation_type = instruction_config[0]  # e.g., 'paraphrase'
+                    
+                    # If we couldn't find the original, use the current value
+                    if original_val is None:
                         original_val = value
                         
-                    # Check if instruction was modified (paraphrased)
-                    is_modified = str(value) != str(original_val)
+                    # Check if instruction was modified
+                    is_modified = str(value) != str(original_val) and original_val != value
                     
                     if is_modified:
+                        # Create operation description
+                        operation_desc = f" ({operation_type})" if operation_type else ""
+                        
                         st.markdown(f"""
                         <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
-                            <strong style="color: #1976d2;">{field}:</strong><br>
+                            <strong style="color: #1976d2;">{field}{operation_desc}:</strong><br>
                             <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
                             <span style="background: {HIGHLIGHT_COLORS['variation']}; padding: 2px 6px; border-radius: 3px; font-weight: bold;">→ {value}</span>
                         </div>
                         """, unsafe_allow_html=True)
                     else:
+                        operation_desc = f" ({operation_type})" if operation_type else ""
                         st.markdown(f"""
                         <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
-                            <strong style="color: #1976d2;">{field}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
+                            <strong style="color: #1976d2;">{field}{operation_desc}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
                         </div>
                         """, unsafe_allow_html=True)
                         
@@ -235,10 +257,19 @@ def display_single_variation(variation, variation_num, original_data):
                         original_val = str(original_row[field]) if pd.notna(original_row[field]) else ""
                         is_modified = str(value) != str(original_val)
                         
+                        # Check what operations were applied to this field
+                        operation_types = []
+                        if isinstance(original_template, dict) and field in original_template:
+                            field_config = original_template[field]
+                            if isinstance(field_config, list):
+                                operation_types = field_config
+                        
+                        operation_desc = f" ({', '.join(operation_types)})" if operation_types else ""
+                        
                         if is_modified:
                             st.markdown(f"""
                             <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
-                                <strong style="color: #1976d2;">{field}:</strong><br>
+                                <strong style="color: #1976d2;">{field}{operation_desc}:</strong><br>
                                 <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
                                 <span style="background: {HIGHLIGHT_COLORS['variation']}; padding: 2px 6px; border-radius: 3px; font-weight: bold;">→ {value}</span>
                             </div>
@@ -246,7 +277,7 @@ def display_single_variation(variation, variation_num, original_data):
                         else:
                             st.markdown(f"""
                             <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
-                                <strong style="color: #1976d2;">{field}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
+                                <strong style="color: #1976d2;">{field}{operation_desc}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{value}</span>
                             </div>
                             """, unsafe_allow_html=True)
             
