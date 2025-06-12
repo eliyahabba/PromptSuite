@@ -124,7 +124,19 @@ def template_suggestions_interface(available_columns):
 
                         # Display dictionary template
                         st.markdown("**Template Configuration (Dictionary Format):**")
-                        st.json(template['template'])
+                        
+                        # Display template in a cleaner format
+                        template_config = template['template']
+                        for key, value in template_config.items():
+                            if key == 'instruction_template':
+                                st.markdown(f"**{key}:**")
+                                st.code(value, language="text")
+                            elif key == 'few_shot' and isinstance(value, dict):
+                                st.markdown(f"**{key}:** {value['count']} {value['format']} examples from {value['split']} data")
+                            elif isinstance(value, list):
+                                st.markdown(f"**{key}:** {', '.join(value)}")
+                            else:
+                                st.markdown(f"**{key}:** {value}")
 
                         # Show field analysis
                         # st.write("**Template fields:**")
