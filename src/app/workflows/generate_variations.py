@@ -77,10 +77,7 @@ def display_current_setup(df, template, template_name):
         with metric_col2:
             st.metric("🗂️ Columns", len(df.columns))
         
-        st.markdown("**📋 Available Columns:**")
-        columns_text = ", ".join(df.columns.tolist())
-        st.markdown(f'<div style="background: #e9ecef; padding: 0.5rem; border-radius: 5px; font-family: monospace;">{columns_text}</div>', unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown(f"**📝 Template: {template_name}**")
         
@@ -111,47 +108,52 @@ def configure_generation():
         st.markdown("**🔢 Quantity Settings**")
         
         # Max variations setting
+        if 'max_variations' not in st.session_state:
+            st.session_state.max_variations = 50
+            
         max_variations = st.number_input(
             "🎯 Maximum variations to generate",
             min_value=1,
             max_value=1000,
-            value=st.session_state.get('max_variations', 50),
+            key='max_variations',
             help="Total number of prompt variations to generate across all data rows"
         )
-        st.session_state.max_variations = max_variations
         
         # Max rows setting
         df = st.session_state.uploaded_data
+        if 'max_rows' not in st.session_state:
+            st.session_state.max_rows = len(df)
+            
         max_rows = st.number_input(
             "📊 Maximum rows from data to use",
             min_value=1,
             max_value=len(df),
-            value=st.session_state.get('max_rows', len(df)),
+            key='max_rows',
             help=f"Use only the first N rows from your data (total: {len(df)} rows)"
         )
-        st.session_state.max_rows = max_rows
     
     with col2:
         st.markdown("**⚙️ Generation Settings**")
         
         # Variations per field
+        if 'variations_per_field' not in st.session_state:
+            st.session_state.variations_per_field = 3
+            
         variations_per_field = st.number_input(
             "🔄 Variations per field",
             min_value=1,
             max_value=10,
-            value=st.session_state.get('variations_per_field', 3),
+            key='variations_per_field',
             help="Number of variations to generate for each field with variation annotations"
         )
-        st.session_state.variations_per_field = variations_per_field
         
         # Random seed for reproducibility
         st.markdown("**🎲 Reproducibility Options**")
         use_seed = st.checkbox("🔒 Use random seed for reproducible results")
         if use_seed:
-            seed = st.number_input("🌱 Random seed", min_value=0, value=42)
-            if seed is None:
-                seed = 42
-            st.session_state.random_seed = seed
+            if 'random_seed' not in st.session_state:
+                st.session_state.random_seed = 42
+            seed = st.number_input("🌱 Random seed", min_value=0, key='random_seed')
         else:
             st.session_state.random_seed = None
     
@@ -232,9 +234,9 @@ def generate_variations_interface():
 
     # Estimation in a compact info box
     df = st.session_state.uploaded_data
-    max_variations = st.session_state.get('max_variations', 50)
-    variations_per_field = st.session_state.get('variations_per_field', 3)
-    max_rows = st.session_state.get('max_rows', len(df))
+    max_variations = st.session_state.max_variations
+    variations_per_field = st.session_state.variations_per_field
+    max_rows = st.session_state.max_rows
     
     # Use only the selected number of rows for estimation
     effective_rows = min(max_rows, len(df))
@@ -305,7 +307,7 @@ def generate_all_variations():
                 progress_bar.progress(0.2)
                 
                 df = st.session_state.uploaded_data
-                max_rows = st.session_state.get('max_rows', len(df))
+                max_rows = st.session_state.max_rows
                 
                 # Limit data to selected number of rows
                 if max_rows < len(df):
@@ -319,7 +321,7 @@ def generate_all_variations():
                 progress_bar.progress(0.3)
                 
                 template = st.session_state.selected_template
-                variations_per_field = st.session_state.get('variations_per_field', 3)
+                variations_per_field = st.session_state.variations_per_field
                 api_key = st.session_state.get('api_key')
                 
                 # Show configuration details
