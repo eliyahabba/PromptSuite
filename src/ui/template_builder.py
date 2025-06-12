@@ -438,17 +438,46 @@ def display_selected_template_details(available_columns):
     # Template configuration with enhanced styling
     st.markdown("### 📝 Template Configuration")
     
-    # Display template in a clean, expanded format
+    # Display template in a clean, expanded format with colors
     for key, value in template.items():
         if key == 'instruction_template':
-            st.markdown(f"**{key}:**")
-            st.code(value, language="text")
+            st.markdown(f"""
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
+                        border-radius: 6px; border-left: 3px solid #2196f3;">
+                <strong style="color: #1976d2;">📝 {key}:</strong>
+            </div>
+            """, unsafe_allow_html=True)
+            # Add quotes around the instruction template for clarity
+            quoted_value = f'"{value}"'
+            st.code(quoted_value, language="text")
+            
         elif key == 'few_shot' and isinstance(value, dict):
-            st.markdown(f"**{key}:** {value['count']} {value['format']} examples from {value['split']} data")
+            st.markdown(f"""
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%); 
+                        border-radius: 6px; border-left: 3px solid #9c27b0;">
+                <strong style="color: #7b1fa2;">🎯 {key}:</strong> 
+                <span style="color: #4a148c;">{value['count']} {value['format']} examples from {value['split']} data</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
         elif isinstance(value, list):
-            st.markdown(f"**{key}:** {', '.join(value)}")
+            variations_text = ', '.join(value)
+            st.markdown(f"""
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%); 
+                        border-radius: 6px; border-left: 3px solid #4caf50;">
+                <strong style="color: #2e7d32;">🔄 {key}:</strong> 
+                <span style="color: #1b5e20;">{variations_text}</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
         else:
-            st.markdown(f"**{key}:** {value}")
+            st.markdown(f"""
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%); 
+                        border-radius: 6px; border-left: 3px solid #ff9800;">
+                <strong style="color: #f57c00;">⚙️ {key}:</strong> 
+                <span style="color: #e65100;">{value}</span>
+            </div>
+            """, unsafe_allow_html=True)
 
     # Continue button
     st.markdown("""
