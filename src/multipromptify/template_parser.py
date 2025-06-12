@@ -31,6 +31,7 @@ class TemplateParser:
     {
         "instruction_template": "Answer the following question: {question}\nAnswer: {answer}",
         "instruction": ["paraphrase", "surface"],
+        "gold": "answer",  # Name of the column containing the correct answer/label
         "few_shot": {
             "count": 2,
             "format": "fixed",  # or "rotating"
@@ -68,6 +69,9 @@ class TemplateParser:
             if field_name == "instruction_template":
                 # Skip - already handled above
                 continue
+            elif field_name == "gold":
+                # Skip - gold is metadata, not a field
+                continue
             elif field_name == "few_shot":
                 # Special handling for few_shot
                 if isinstance(config, dict):
@@ -103,9 +107,12 @@ class TemplateParser:
         """Get the instruction template string."""
         return self.instruction_template
     
-    def get_required_columns(self) -> Set[str]:
+    def get_required_columns(self, template: dict = None) -> Set[str]:
         """
         Get the set of column names required from the data.
+        
+        Args:
+            template: Optional template dict to check for gold field
         
         Returns:
             Set of column names that should be present in the input data
@@ -124,12 +131,17 @@ class TemplateParser:
         
         # Extract from field definitions
         for field in self.fields:
-            if not field.is_literal and field.name not in {'instruction', 'few_shot'}:
+            if not field.is_literal and field.name not in {'instruction', 'few_shot', 'gold'}:
                 required.add(field.name)
             
             # For few-shot with split, we might need a split column
             if field.name == 'few_shot' and field.few_shot_split in ['train', 'test']:
                 required.add('split')  # Convention: 'split' column indicates train/test
+        
+        # Check if gold field value exists in columns
+        if template and 'gold' in template:
+            gold_column = template['gold']
+            required.add(gold_column)
                 
         return required
     
@@ -180,6 +192,8 @@ class TemplateParser:
         
         try:
             fields = self.parse(template)
+            # Check required columns
+            required_columns = self.get_required_columns(template)
         except ValueError as e:
             return False, [str(e)]
         

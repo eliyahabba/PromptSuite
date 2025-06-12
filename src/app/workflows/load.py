@@ -103,7 +103,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
                             'instruction': ['paraphrase'],
-                            'text': ['surface']
+                            'text': ['surface'],
+                            'gold': 'label'
                         },
                         'description': 'Simple sentiment classification with instruction paraphrases and text surface variations',
                         'sample_data': {
@@ -117,6 +118,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
                             'instruction': ['paraphrase', 'surface'],
                             'text': ['surface', 'context'],
+                            'gold': 'label',
                             'few_shot': {
                                 'count': 2,
                                 'format': 'rotating',
@@ -142,7 +144,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
                             'instruction': ['paraphrase'],
-                            'question': ['surface']
+                            'question': ['surface'],
+                            'gold': 'answer'
                         },
                         'description': 'Q&A with instruction paraphrases and question surface variations',
                         'sample_data': {
@@ -157,6 +160,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase'],
                             'question': ['surface', 'paraphrase'],
                             'context': ['context'],
+                            'gold': 'answer',
                             'few_shot': {
                                 'count': 3,
                                 'format': 'fixed',
@@ -184,7 +188,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
                             'instruction': ['paraphrase'],
                             'question': ['surface'],
-                            'options': ['multiple-choice']
+                            'options': ['multiple-choice'],
+                            'gold': 'answer'
                         },
                         'description': 'Multiple choice with instruction paraphrases, question variations, and option formatting',
                         'sample_data': {
@@ -200,6 +205,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase'],
                             'question': ['surface'],
                             'options': ['multiple-choice', 'surface'],
+                            'gold': 'answer',
                             'few_shot': {
                                 'count': 2,
                                 'format': 'fixed',
@@ -226,7 +232,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             'instruction_template': 'Classify the following text into a category:\nText: "{text}"\nCategory: {category}',
                             'instruction': ['paraphrase'],
-                            'text': ['surface']
+                            'text': ['surface'],
+                            'gold': 'category'
                         },
                         'description': 'Simple text classification with instruction and text variations',
                         'sample_data': {
@@ -240,7 +247,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
                             'instruction': ['paraphrase', 'surface'],
                             'text': ['surface', 'context'],
-                            'category': []  # No variations for output
+                            'category': [],  # No variations for output
+                            'gold': 'category'
                         },
                         'description': 'Text classification with multiple variation types on instruction and text',
                         'sample_data': {
@@ -254,6 +262,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
                             'instruction': ['paraphrase'],
                             'text': ['surface'],
+                            'gold': 'category',
                             'few_shot': {
                                 'count': 3,
                                 'format': 'rotating',
@@ -281,6 +290,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase', 'surface'],
                             'text': ['surface', 'context'],
                             'label': [],
+                            'gold': 'label',
                             'few_shot': {
                                 'count': 2,
                                 'format': 'rotating',
@@ -300,6 +310,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase'],
                             'question': ['surface', 'paraphrase'],
                             'answer': [],
+                            'gold': 'answer',
                             'few_shot': {
                                 'count': 3,
                                 'format': 'fixed',

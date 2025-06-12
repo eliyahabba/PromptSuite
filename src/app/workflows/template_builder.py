@@ -95,7 +95,13 @@ def template_suggestions_interface(available_columns):
             for template in category_info['templates']:
                 # Get required fields from new dictionary format
                 template_dict = template['template']
-                required_fields = [k for k in template_dict.keys() if k not in ['instruction', 'few_shot', 'instruction_template']]
+                required_fields = [k for k in template_dict.keys() if k not in ['instruction', 'few_shot', 'instruction_template', 'gold']]
+
+                # Check if gold field value exists in columns
+                if 'gold' in template_dict:
+                    gold_column = template_dict['gold']
+                    if gold_column not in available_columns:
+                        required_fields.append(gold_column)
 
                 # Check if we have the required columns
                 missing_fields = set(required_fields) - set(available_columns)
@@ -236,8 +242,8 @@ def template_builder_interface(available_columns):
             "Enter your instruction template with placeholders:",
             value=st.session_state.template_config.get('instruction_template', ''),
             key="instruction_template",
-            help="Use {field_name} for placeholders. Example: 'Answer the following question: {question}\\nAnswer: {answer}'",
-            placeholder="Answer the following question: {question}\nAnswer: {answer}"
+                    help="Use {field_name} for placeholders. Example: 'Answer the following question: {question}\\nAnswer: {answer}'. Remember to specify the 'gold' field for the answer column.",
+        placeholder="Answer the following question: {question}\nAnswer: {answer}"
         )
 
         if instruction_template:

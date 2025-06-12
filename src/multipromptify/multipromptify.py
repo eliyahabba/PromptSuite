@@ -23,6 +23,7 @@ class MultiPromptify:
     {
         "instruction_template": "Answer the following question: {question}\nAnswer: {answer}",
         "instruction": ["paraphrase", "surface"],
+        "gold": "answer",  # Name of the column containing the correct answer/label
         "few_shot": {
             "count": 2,
             "format": "fixed",  # or "rotating"
@@ -79,6 +80,9 @@ class MultiPromptify:
         variation_fields = self.template_parser.get_variation_fields()
         few_shot_fields = self.template_parser.get_few_shot_fields()
         
+        # Get gold field (answer column name) from template
+        gold_field = template.get('gold', None)
+        
         # Get instruction template from user or create default
         instruction_template = self.template_parser.get_instruction_template()
         if not instruction_template:
@@ -103,11 +107,11 @@ class MultiPromptify:
                 few_shot_examples = []
                 if few_shot_fields:
                     few_shot_examples = self._generate_few_shot_examples_structured(
-                        few_shot_fields[0], instruction_variant, data, row_idx
+                        few_shot_fields[0], instruction_variant, data, row_idx, gold_field
                     )
                 
                 # Create main question (without answer)
-                main_question = self._create_main_question(instruction_variant, row)
+                main_question = self._create_main_question(instruction_variant, row, gold_field)
                 
                 # Build conversation structure
                 conversation_messages = []
@@ -248,7 +252,7 @@ class MultiPromptify:
         
         return unique_variations[:variations_per_field + 1]
     
-    def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int) -> List[Dict[str, str]]:
+    def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> List[Dict[str, str]]:
         """Generate few-shot examples as structured conversation data."""
         
         num_examples = few_shot_field.few_shot_count
@@ -286,37 +290,42 @@ class MultiPromptify:
         for _, example_row in sampled_data.iterrows():
             # Create question (without answer)
             question_values = {}
-            answer_values = {}
+            answer_value = ""
             
             for col in example_row.index:
                 if pd.notna(example_row[col]):
                     value = str(example_row[col])
-                    if col.lower() in ['answer', 'label', 'response', 'output']:
-                        answer_values[col] = value
+                    # Check if this is the gold answer field
+                    if gold_field and col == gold_field:
+                        answer_value = value
+                    elif not gold_field and col.lower() in ['answer', 'label', 'response', 'output']:
+                        # Fallback to old behavior if no gold field specified
+                        answer_value = value
                     else:
                         question_values[col] = value
             
             # Generate question part and clean up answer placeholders
             question = self._fill_template_placeholders(instruction_variant, question_values)
             
-            # Remove unfilled answer placeholders from question
-            import re
-            question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
-            question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
-            question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
-            question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
+            # Remove unfilled answer placeholders from question (more targeted)
+            if gold_field:
+                # Remove only the specific gold field placeholder
+                import re
+                gold_placeholder = f'\\n*{gold_field.title()}:\\s*\\{{{gold_field}\\}}\\s*'
+                question = re.sub(gold_placeholder, '', question)
+            else:
+                # Fallback to old behavior
+                import re
+                question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
+                question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
+                question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
+                question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
             question = question.strip()
             
-            # Generate answer part (just the answer values)
-            answer = ""
-            if answer_values:
-                # Use the first answer field found
-                answer = list(answer_values.values())[0]
-            
-            if question and answer:
+            if question and answer_value:
                 examples.append({
                     "question": question,
-                    "answer": answer
+                    "answer": answer_value
                 })
         
         return examples
@@ -334,32 +343,44 @@ class MultiPromptify:
         
         return "\n\n".join(formatted_examples)
     
-    def _generate_few_shot_examples(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int) -> str:
+    def _generate_few_shot_examples(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> str:
         """Generate few-shot examples using the configured parameters. (Legacy method for backward compatibility)"""
         
         # Use the new structured method and convert to string
-        structured_examples = self._generate_few_shot_examples_structured(few_shot_field, instruction_variant, data, current_row_idx)
+        structured_examples = self._generate_few_shot_examples_structured(few_shot_field, instruction_variant, data, current_row_idx, gold_field)
         return self._format_few_shot_as_string(structured_examples)
     
-    def _create_main_question(self, instruction_variant: str, row: pd.Series) -> str:
+    def _create_main_question(self, instruction_variant: str, row: pd.Series, gold_field: str = None) -> str:
         """Create main question by filling instruction with row data (excluding answers)."""
         
         row_values = {}
         for col in row.index:
             if pd.notna(row[col]):
-                # Skip answer fields for the main question
-                if col.lower() not in ['answer', 'label', 'response', 'output']:
+                # Skip the gold answer field for the main question
+                if gold_field and col == gold_field:
+                    continue
+                elif not gold_field and col.lower() in ['answer', 'label', 'response', 'output']:
+                    # Fallback to old behavior if no gold field specified
+                    continue
+                else:
                     row_values[col] = str(row[col])
         
         # Fill template and remove any remaining answer placeholders
         question = self._fill_template_placeholders(instruction_variant, row_values)
         
-        # Remove any unfilled answer placeholders and their preceding text
-        import re
-        question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
-        question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
-        question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
-        question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
+        # Remove any unfilled answer placeholders and their preceding text (more targeted)
+        if gold_field:
+            # Remove only the specific gold field placeholder
+            import re
+            gold_placeholder = f'\\n*{gold_field.title()}:\\s*\\{{{gold_field}\\}}\\s*'
+            question = re.sub(gold_placeholder, '', question)
+        else:
+            # Fallback to old behavior
+            import re
+            question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
+            question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
+            question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
+            question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
         
         return question.strip()
     
