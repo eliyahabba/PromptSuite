@@ -88,6 +88,9 @@ class MultiPromptify:
         if not instruction_template:
             instruction_template = self._create_default_instruction_template(data, fields)
         
+        # Validate gold field requirement
+        self._validate_gold_field_requirement(instruction_template, gold_field, few_shot_fields)
+        
         # Generate instruction variations if needed
         instruction_variations = self._generate_instruction_variations(
             instruction_template, variation_fields, variations_per_field, api_key
@@ -252,6 +255,32 @@ class MultiPromptify:
         
         return unique_variations[:variations_per_field + 1]
     
+    def _validate_gold_field_requirement(self, instruction_template: str, gold_field: str, few_shot_fields: list):
+        """Validate that gold field is provided when needed for separating questions from answers."""
+        needs_gold_field = False
+        
+        # Check if few-shot is configured (needs to separate question from answer)
+        if few_shot_fields and len(few_shot_fields) > 0:
+            needs_gold_field = True
+        
+        # Check if instruction template seems to have answer placeholders
+        if instruction_template:
+            import re
+            placeholders = re.findall(r'\{([^}]+)\}', instruction_template)
+            # Look for common answer-like placeholders
+            for placeholder in placeholders:
+                field_name = placeholder.split(':')[0].strip().lower()
+                if field_name in ['answer', 'label', 'response', 'output', 'result', 'category', 'class']:
+                    needs_gold_field = True
+                    break
+        
+        if needs_gold_field and not gold_field:
+            raise ValueError(
+                "Gold field is required when using few-shot examples or when the template contains answer placeholders. "
+                "Please specify the 'gold' field in your template to indicate which column contains the correct answers/labels. "
+                "Example: \"gold\": \"answer\" or \"gold\": \"label\""
+            )
+    
     def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> List[Dict[str, str]]:
         """Generate few-shot examples as structured conversation data."""
         
@@ -298,28 +327,18 @@ class MultiPromptify:
                     # Check if this is the gold answer field
                     if gold_field and col == gold_field:
                         answer_value = value
-                    elif not gold_field and col.lower() in ['answer', 'label', 'response', 'output']:
-                        # Fallback to old behavior if no gold field specified
-                        answer_value = value
                     else:
                         question_values[col] = value
             
             # Generate question part and clean up answer placeholders
             question = self._fill_template_placeholders(instruction_variant, question_values)
             
-            # Remove unfilled answer placeholders from question (more targeted)
+            # Remove unfilled answer placeholders from question
             if gold_field:
                 # Remove only the specific gold field placeholder
                 import re
                 gold_placeholder = f'\\n*{gold_field.title()}:\\s*\\{{{gold_field}\\}}\\s*'
                 question = re.sub(gold_placeholder, '', question)
-            else:
-                # Fallback to old behavior
-                import re
-                question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
-                question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
-                question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
-                question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
             question = question.strip()
             
             if question and answer_value:
@@ -359,28 +378,18 @@ class MultiPromptify:
                 # Skip the gold answer field for the main question
                 if gold_field and col == gold_field:
                     continue
-                elif not gold_field and col.lower() in ['answer', 'label', 'response', 'output']:
-                    # Fallback to old behavior if no gold field specified
-                    continue
                 else:
                     row_values[col] = str(row[col])
         
         # Fill template and remove any remaining answer placeholders
         question = self._fill_template_placeholders(instruction_variant, row_values)
         
-        # Remove any unfilled answer placeholders and their preceding text (more targeted)
+        # Remove any unfilled answer placeholders and their preceding text
         if gold_field:
             # Remove only the specific gold field placeholder
             import re
             gold_placeholder = f'\\n*{gold_field.title()}:\\s*\\{{{gold_field}\\}}\\s*'
             question = re.sub(gold_placeholder, '', question)
-        else:
-            # Fallback to old behavior
-            import re
-            question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
-            question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
-            question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
-            question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
         
         return question.strip()
     
