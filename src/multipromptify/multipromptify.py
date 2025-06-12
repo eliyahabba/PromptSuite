@@ -314,37 +314,22 @@ class MultiPromptify:
                 random_state=current_row_idx
             )
         
-        # Create structured examples by separating questions and answers
+        # Create structured examples
         examples = []
         for _, example_row in sampled_data.iterrows():
-            # Create question (without answer)
-            question_values = {}
-            answer_value = ""
-            
+            # Fill all placeholders including the gold field with real values
+            all_values = {}
             for col in example_row.index:
                 if pd.notna(example_row[col]):
-                    value = str(example_row[col])
-                    # Check if this is the gold answer field
-                    if gold_field and col == gold_field:
-                        answer_value = value
-                    else:
-                        question_values[col] = value
+                    all_values[col] = str(example_row[col])
             
-            # Generate question part and clean up answer placeholders
-            question = self._fill_template_placeholders(instruction_variant, question_values)
+            # For few-shot examples, fill everything including the gold field
+            question_with_answer = self._fill_template_placeholders(instruction_variant, all_values)
             
-            # Remove unfilled answer placeholders from question
-            if gold_field:
-                # Remove only the specific gold field placeholder
-                import re
-                gold_placeholder = f'\\n*{gold_field.title()}:\\s*\\{{{gold_field}\\}}\\s*'
-                question = re.sub(gold_placeholder, '', question)
-            question = question.strip()
-            
-            if question and answer_value:
+            if question_with_answer:
                 examples.append({
-                    "question": question,
-                    "answer": answer_value
+                    "question": question_with_answer,
+                    "answer": ""  # Not used in this context
                 })
         
         return examples
@@ -357,7 +342,7 @@ class MultiPromptify:
         formatted_examples = []
         for example in few_shot_examples:
             # Format as a complete prompt with question and answer
-            formatted_example = f"{example['question']}\n{example['answer']}"
+            formatted_example = example['question']
             formatted_examples.append(formatted_example)
         
         return "\n\n".join(formatted_examples)
@@ -381,15 +366,17 @@ class MultiPromptify:
                 else:
                     row_values[col] = str(row[col])
         
-        # Fill template and remove any remaining answer placeholders
+        # Fill template and remove the gold field placeholder completely
         question = self._fill_template_placeholders(instruction_variant, row_values)
         
-        # Remove any unfilled answer placeholders and their preceding text
+        # Remove the gold field placeholder completely (including its text/formatting)  
         if gold_field:
-            # Remove only the specific gold field placeholder
             import re
-            gold_placeholder = f'\\n*{gold_field.title()}:\\s*\\{{{gold_field}\\}}\\s*'
-            question = re.sub(gold_placeholder, '', question)
+            # Remove {gold_field} placeholder and any text that comes before it on the same line
+            gold_placeholder_pattern = f'[^\\n]*\\{{{gold_field}\\}}[^\\n]*'
+            question = re.sub(gold_placeholder_pattern, '', question)
+            # Clean up any trailing newlines or whitespace
+            question = re.sub(r'\n+$', '', question)
         
         return question.strip()
     
