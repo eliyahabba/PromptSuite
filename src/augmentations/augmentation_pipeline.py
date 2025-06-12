@@ -8,7 +8,7 @@ from src.augmentations.base_augmenter import BaseAxisAugmenter
 from src.augmentations.context_augmenter import ContextAugmenter
 from src.augmentations.fewshot_augmenter import FewShotAugmenter
 from src.augmentations.multidoc_augmenter import MultiDocAugmenter
-from src.augmentations.multiple_choice_augmenter import MultipleChoiceAugmenter
+from src.augmentations.shuffle_augmenter import ShuffleAugmenter
 from src.augmentations.paraphrase_instruct import Paraphrase
 from src.augmentations.text_surface_augmenter import TextSurfaceAugmenter
 from src.shared.constants import AugmentationPipelineConstants, BaseAugmenterConstants
@@ -56,7 +56,7 @@ class AugmentationPipeline:
         # Handle different augmenter interfaces
         if isinstance(augmenter, Paraphrase):
             return augmenter.augment(text)
-        elif isinstance(augmenter, MultipleChoiceAugmenter) and identification_data:
+        elif isinstance(augmenter, ShuffleAugmenter) and identification_data:
             return augmenter.augment(text, identification_data)
         elif isinstance(augmenter, FewShotAugmenter):
             # If we have example pairs in identification_data, use them
@@ -172,30 +172,30 @@ def run_basic_augmentation_example():
         print(f"\n{i + 1}. {text}")
 
 
-def run_multiple_choice_example():
+def run_shuffle_example():
     """
-    Run an example with multiple choice augmentation.
+    Run an example with shuffle augmentation.
     """
-    print("\n\n--- Multiple Choice Example ---")
+    print("\n\n--- Shuffle Example ---")
 
-    mc_augmenter = MultipleChoiceAugmenter(n_augments=3)
-    mc_text = "What is the capital of France?\n\nA) Paris\nB) London\nC) Berlin\nD) Madrid"
+    shuffle_augmenter = ShuffleAugmenter(n_augments=3)
+    shuffle_text = "The quick brown fox jumps over the lazy dog."
 
-    # Identification data for the multiple choice question
-    mc_data = {
-        "question": "What is the capital of France?",
-        "options": ["Paris", "London", "Berlin", "Madrid"],
-        "markers": ["A", "B", "C", "D"]
+    # Identification data for the shuffle question
+    shuffle_data = {
+        "question": "The quick brown fox jumps over the lazy dog.",
+        "options": ["The quick brown fox jumps over the lazy dog.", "The lazy dog jumps over the quick brown fox."],
+        "markers": ["A", "B"]
     }
 
-    # Create a pipeline with just the multiple choice augmenter
-    mc_pipeline = AugmentationPipeline(augmenters=[mc_augmenter], max_variations=10)
-    mc_variations = mc_pipeline.augment(mc_text, mc_data)
+    # Create a pipeline with just the shuffle augmenter
+    shuffle_pipeline = AugmentationPipeline(augmenters=[shuffle_augmenter], max_variations=10)
+    shuffle_variations = shuffle_pipeline.augment(shuffle_text, shuffle_data)
 
-    print(f"\nOriginal text: {mc_text}")
-    print(f"\nGenerated {len(mc_variations)} variations:")
+    print(f"\nOriginal text: {shuffle_text}")
+    print(f"\nGenerated {len(shuffle_variations)} variations:")
 
-    for i, text in enumerate(mc_variations):
+    for i, text in enumerate(shuffle_variations):
         print(f"\n{i + 1}. {text}")
 
 
@@ -322,6 +322,6 @@ def run_multidoc_combined_example():
 if __name__ == "__main__":
     # Run all examples
     # run_basic_augmentation_example()
-    # run_multiple_choice_example()
+    # run_shuffle_example()
     run_fewshot_combined_example()
     # run_multidoc_combined_example()
