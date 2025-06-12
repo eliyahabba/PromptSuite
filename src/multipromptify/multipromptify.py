@@ -83,10 +83,13 @@ class MultiPromptify:
         # Get gold field (answer column name) from template
         gold_field = template.get('gold', None)
         
-        # Get instruction template from user or create default
+        # Get instruction template from user - required
         instruction_template = self.template_parser.get_instruction_template()
         if not instruction_template:
-            instruction_template = self._create_default_instruction_template(data, fields, gold_field)
+            raise ValueError(
+                "Instruction template is required. Please specify 'instruction_template' in your template. "
+                "Example: \"instruction_template\": \"Answer the question: {question}\\nAnswer: {answer}\""
+            )
         
         # Validate gold field requirement
         self._validate_gold_field_requirement(instruction_template, gold_field, few_shot_fields)
@@ -175,55 +178,7 @@ class MultiPromptify:
         else:
             raise ValueError(f"Unsupported file format: {data_path}")
     
-    def _create_default_instruction_template(self, data: pd.DataFrame, fields: List, gold_field: str = None) -> str:
-        """Create default instruction template when user doesn't provide one."""
-        available_columns = data.columns.tolist()
-        
-        # Filter out special fields to get data fields
-        data_fields = [f.name for f in fields if f.name not in ['instruction', 'few_shot']]
-        
-        # Create instruction template based on available data
-        if 'question' in available_columns:
-            if 'options' in available_columns:
-                if gold_field:
-                    return f"Answer the following multiple choice question:\nQuestion: {{question}}\nOptions: {{options}}\nAnswer: {{{gold_field}}}"
-                else:
-                    return "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}"
-            else:
-                if gold_field:
-                    return f"Answer the following question:\nQuestion: {{question}}\nAnswer: {{{gold_field}}}"
-                else:
-                    return "Answer the following question:\nQuestion: {question}"
-        elif 'text' in available_columns:
-            if gold_field:
-                return f"Classify the following text:\nText: \"{{text}}\"\nLabel: {{{gold_field}}}"
-            else:
-                return "Classify the following text:\nText: \"{text}\""
-        elif len(data_fields) >= 2:
-            # Use the first data field as input, gold field as output if available
-            field1 = data_fields[0]
-            if gold_field:
-                return f"Process the following:\n{field1.title()}: {{{field1}}}\nOutput: {{{gold_field}}}"
-            else:
-                field2 = data_fields[1]
-                return f"Process the following:\n{field1.title()}: {{{field1}}}\nOutput: {{{field2}}}"
-        elif len(data_fields) == 1:
-            field = data_fields[0]
-            if gold_field:
-                return f"Process: {{{field}}}\nOutput: {{{gold_field}}}"
-            else:
-                return f"Process: {{{field}}}"
-        else:
-            # Fallback to available columns
-            if len(available_columns) >= 2:
-                col1 = available_columns[0]
-                if gold_field:
-                    return f"Process:\n{col1.title()}: {{{col1}}}\nOutput: {{{gold_field}}}"
-                else:
-                    col2 = available_columns[1]
-                    return f"Process:\n{col1.title()}: {{{col1}}}\nOutput: {{{col2}}}"
-            else:
-                return f"Process: {{{available_columns[0]}}}"
+
     
     def _generate_instruction_variations(
         self, 
