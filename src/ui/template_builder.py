@@ -435,63 +435,20 @@ def display_selected_template_details(available_columns):
     </div>
     """, unsafe_allow_html=True)
 
-    # Template configuration with enhanced styling
+    # Template configuration with subtle styling
     st.markdown("### 📝 Template Configuration")
     
-    # Create a beautiful container for the template
+    # Create a subtle container with light colors
     st.markdown("""
     <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
-                padding: 1.5rem; border-radius: 12px; border: 1px solid #dee2e6; 
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin: 1rem 0;">
+                padding: 1rem; border-radius: 8px; border: 1px solid #dee2e6; 
+                margin: 1rem 0;">
     """, unsafe_allow_html=True)
     
-    # Display template with enhanced formatting
+    # Display as formatted JSON with syntax highlighting
     import json
-    
-    # Create a more colorful display
-    for key, value in template.items():
-        if key == 'instruction_template':
-            st.markdown(f"""
-            <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
-                        border-radius: 8px; border-left: 4px solid #2196f3;">
-                <h4 style="color: #1976d2; margin: 0 0 0.5rem 0;">📝 {key}</h4>
-            </div>
-            """, unsafe_allow_html=True)
-            st.code(value, language="text")
-            
-        elif key == 'few_shot' and isinstance(value, dict):
-            st.markdown(f"""
-            <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); 
-                        border-radius: 8px; border-left: 4px solid #9c27b0;">
-                <h4 style="color: #7b1fa2; margin: 0 0 0.5rem 0;">🎯 {key}</h4>
-                <p style="color: #4a148c; margin: 0; font-weight: 500;">
-                    {value['count']} {value['format']} examples from {value['split']} data
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        elif isinstance(value, list):
-            variations_text = ', '.join(value)
-            st.markdown(f"""
-            <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); 
-                        border-radius: 8px; border-left: 4px solid #4caf50;">
-                <h4 style="color: #2e7d32; margin: 0 0 0.5rem 0;">🔄 {key}</h4>
-                <p style="color: #1b5e20; margin: 0; font-weight: 500;">
-                    {variations_text}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        else:
-            st.markdown(f"""
-            <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); 
-                        border-radius: 8px; border-left: 4px solid #ff9800;">
-                <h4 style="color: #f57c00; margin: 0 0 0.5rem 0;">⚙️ {key}</h4>
-                <p style="color: #e65100; margin: 0; font-weight: 500;">
-                    {value}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+    formatted_json = json.dumps(template, indent=2, ensure_ascii=False)
+    st.code(formatted_json, language="json")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
