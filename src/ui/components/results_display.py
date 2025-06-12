@@ -193,6 +193,8 @@ def display_single_variation(variation, variation_num, original_data):
             
             # Get original template for comparison
             original_template = st.session_state.get('selected_template', {})
+            # Also check template_config from the variation itself
+            template_config = variation.get('template_config', {})
             
             for field, value in field_values.items():
                 if field == 'instruction':
@@ -200,21 +202,26 @@ def display_single_variation(variation, variation_num, original_data):
                     original_val = None
                     operation_type = None
                     
-                    # Try to get the original instruction_template from the template
-                    if isinstance(original_template, dict):
-                        if 'instruction_template' in original_template:
-                            original_val = original_template['instruction_template']
-                        elif 'template' in original_template:
-                            # If it's a nested template structure
-                            template_content = original_template['template']
-                            if isinstance(template_content, dict) and 'instruction_template' in template_content:
-                                original_val = template_content['instruction_template']
-                        
-                        # Check what operation was applied to instruction
-                        if 'instruction' in original_template:
-                            instruction_config = original_template['instruction']
+                    # Try to get the original instruction_template from template_config first, then original_template
+                    for template_source in [template_config, original_template]:
+                        if isinstance(template_source, dict):
+                            if 'instruction_template' in template_source:
+                                original_val = template_source['instruction_template']
+                                break
+                            elif 'template' in template_source:
+                                # If it's a nested template structure
+                                template_content = template_source['template']
+                                if isinstance(template_content, dict) and 'instruction_template' in template_content:
+                                    original_val = template_content['instruction_template']
+                                    break
+                    
+                    # Check what operation was applied to instruction
+                    for template_source in [template_config, original_template]:
+                        if isinstance(template_source, dict) and 'instruction' in template_source:
+                            instruction_config = template_source['instruction']
                             if isinstance(instruction_config, list) and instruction_config:
                                 operation_type = instruction_config[0]  # e.g., 'paraphrase'
+                                break
                     
                     # If we couldn't find the original, use the current value
                     if original_val is None:
@@ -259,10 +266,12 @@ def display_single_variation(variation, variation_num, original_data):
                         
                         # Check what operations were applied to this field
                         operation_types = []
-                        if isinstance(original_template, dict) and field in original_template:
-                            field_config = original_template[field]
-                            if isinstance(field_config, list):
-                                operation_types = field_config
+                        for template_source in [template_config, original_template]:
+                            if isinstance(template_source, dict) and field in template_source:
+                                field_config = template_source[field]
+                                if isinstance(field_config, list):
+                                    operation_types = field_config
+                                    break
                         
                         operation_desc = f" ({', '.join(operation_types)})" if operation_types else ""
                         
