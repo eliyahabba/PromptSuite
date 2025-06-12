@@ -100,18 +100,40 @@ class MultiPromptify:
                     break
                 
                 # Generate few-shot examples if configured
-                few_shot_content = ""
+                few_shot_examples = []
                 if few_shot_fields:
-                    few_shot_content = self._generate_few_shot_examples(
+                    few_shot_examples = self._generate_few_shot_examples_structured(
                         few_shot_fields[0], instruction_variant, data, row_idx
                     )
                 
                 # Create main question (without answer)
                 main_question = self._create_main_question(instruction_variant, row)
                 
-                # Build final prompt
+                # Build conversation structure
+                conversation_messages = []
+                
+                # Add few-shot examples as conversation history
+                for example in few_shot_examples:
+                    conversation_messages.append({
+                        "role": "user",
+                        "content": example["question"]
+                    })
+                    conversation_messages.append({
+                        "role": "assistant", 
+                        "content": example["answer"]
+                    })
+                
+                # Add main question as final user message
+                if main_question:
+                    conversation_messages.append({
+                        "role": "user",
+                        "content": main_question
+                    })
+                
+                # Build traditional prompt format for backward compatibility
                 prompt_parts = []
-                if few_shot_content:
+                if few_shot_examples:
+                    few_shot_content = self._format_few_shot_as_string(few_shot_examples)
                     prompt_parts.append(few_shot_content)
                 if main_question:
                     prompt_parts.append(main_question)
@@ -120,12 +142,13 @@ class MultiPromptify:
                 
                 all_variations.append({
                     'prompt': final_prompt,
+                    'conversation': conversation_messages,
                     'original_row_index': row_idx,
                     'variation_count': len(all_variations) + 1,
                     'template_config': template,
                     'field_values': {
                         'instruction': instruction_variant, 
-                        'few_shot': few_shot_content
+                        'few_shot': few_shot_examples
                     },
                 })
                 
@@ -225,8 +248,8 @@ class MultiPromptify:
         
         return unique_variations[:variations_per_field + 1]
     
-    def _generate_few_shot_examples(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int) -> str:
-        """Generate few-shot examples using the configured parameters."""
+    def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int) -> List[Dict[str, str]]:
+        """Generate few-shot examples as structured conversation data."""
         
         num_examples = few_shot_field.few_shot_count
         
@@ -242,7 +265,7 @@ class MultiPromptify:
         available_data = available_data.drop(index=current_row_idx, errors='ignore')
         
         if len(available_data) == 0:
-            return ""
+            return []
         
         # Sample examples based on format
         if few_shot_field.few_shot_format == 'fixed':
@@ -258,18 +281,65 @@ class MultiPromptify:
                 random_state=current_row_idx
             )
         
-        # Create examples by filling instruction with complete data (including answers)
+        # Create structured examples by separating questions and answers
         examples = []
         for _, example_row in sampled_data.iterrows():
-            example_values = {}
+            # Create question (without answer)
+            question_values = {}
+            answer_values = {}
+            
             for col in example_row.index:
                 if pd.notna(example_row[col]):
-                    example_values[col] = str(example_row[col])
+                    value = str(example_row[col])
+                    if col.lower() in ['answer', 'label', 'response', 'output']:
+                        answer_values[col] = value
+                    else:
+                        question_values[col] = value
             
-            example_prompt = self._fill_template_placeholders(instruction_variant, example_values)
-            examples.append(example_prompt)
+            # Generate question part and clean up answer placeholders
+            question = self._fill_template_placeholders(instruction_variant, question_values)
+            
+            # Remove unfilled answer placeholders from question
+            import re
+            question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
+            question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
+            question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
+            question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
+            question = question.strip()
+            
+            # Generate answer part (just the answer values)
+            answer = ""
+            if answer_values:
+                # Use the first answer field found
+                answer = list(answer_values.values())[0]
+            
+            if question and answer:
+                examples.append({
+                    "question": question,
+                    "answer": answer
+                })
         
-        return "\n\n".join(examples)
+        return examples
+    
+    def _format_few_shot_as_string(self, few_shot_examples: List[Dict[str, str]]) -> str:
+        """Convert structured few-shot examples back to string format for backward compatibility."""
+        if not few_shot_examples:
+            return ""
+        
+        formatted_examples = []
+        for example in few_shot_examples:
+            # Format as a complete prompt with question and answer
+            formatted_example = f"{example['question']}\n{example['answer']}"
+            formatted_examples.append(formatted_example)
+        
+        return "\n\n".join(formatted_examples)
+    
+    def _generate_few_shot_examples(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int) -> str:
+        """Generate few-shot examples using the configured parameters. (Legacy method for backward compatibility)"""
+        
+        # Use the new structured method and convert to string
+        structured_examples = self._generate_few_shot_examples_structured(few_shot_field, instruction_variant, data, current_row_idx)
+        return self._format_few_shot_as_string(structured_examples)
     
     def _create_main_question(self, instruction_variant: str, row: pd.Series) -> str:
         """Create main question by filling instruction with row data (excluding answers)."""
@@ -281,7 +351,17 @@ class MultiPromptify:
                 if col.lower() not in ['answer', 'label', 'response', 'output']:
                     row_values[col] = str(row[col])
         
-        return self._fill_template_placeholders(instruction_variant, row_values)
+        # Fill template and remove any remaining answer placeholders
+        question = self._fill_template_placeholders(instruction_variant, row_values)
+        
+        # Remove any unfilled answer placeholders and their preceding text
+        import re
+        question = re.sub(r'\n*Answer:\s*\{[^}]*\}\s*', '', question)
+        question = re.sub(r'\n*Label:\s*\{[^}]*\}\s*', '', question)  
+        question = re.sub(r'\n*Response:\s*\{[^}]*\}\s*', '', question)
+        question = re.sub(r'\n*Output:\s*\{[^}]*\}\s*', '', question)
+        
+        return question.strip()
     
     def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
         """Fill template placeholders with values."""

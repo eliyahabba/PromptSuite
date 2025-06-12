@@ -249,67 +249,29 @@ def display_conversation_format(variations):
 
 
 def display_single_conversation(conversation, conversation_num, original_variation):
-    """Display a single conversation in chat format"""
+    """Display a single conversation in clean JSON format"""
     original_row_index = original_variation.get('original_row_index', 0)
 
     # Create expandable card for each conversation
     with st.expander(f"💬 Conversation {conversation_num} (from row {original_row_index + 1})", expanded=(conversation_num <= 3)):
 
-        # Display metadata
-        col1, col2 = st.columns([2, 1])
-
+        # Create JSON representation
+        conversation_json = json.dumps(conversation, indent=2, ensure_ascii=False)
+        
+        # Display actions for JSON
+        col1, col2 = st.columns([3, 1])
+        
         with col1:
-            st.markdown("**📝 Conversation Messages:**")
-
+            st.markdown("**📝 Conversation JSON Format:**")
+        
         with col2:
             # Copy button for JSON format
-            conversation_json = json.dumps(conversation, indent=2, ensure_ascii=False)
-            if st.button(f"📋 Copy JSON", key=f"copy_conv_{conversation_num}"):
-                st.code(conversation_json, language="json")
-
-        # Display each message in the conversation
-        for msg_idx, message in enumerate(conversation):
-            role = message.get('role', 'user')
-            content = message.get('content', '')
-
-            # Different styling for user vs assistant
-            if role == 'user':
-                # User message styling
-                st.markdown(f"""
-                <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
-                            border-radius: 10px; border-left: 4px solid #2196f3;">
-                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                        <div style="background: #2196f3; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;">
-                            👤 USER
-                        </div>
-                    </div>
-                    <div style="color: #0d47a1; white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-                        {content.replace('<', '&lt;').replace('>', '&gt;')}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                # Assistant message styling  
-                st.markdown(f"""
-                <div style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); 
-                            border-radius: 10px; border-left: 4px solid #4caf50;">
-                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                        <div style="background: #4caf50; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;">
-                            🤖 ASSISTANT
-                        </div>
-                    </div>
-                    <div style="color: #2e7d32; white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-                        {content.replace('<', '&lt;').replace('>', '&gt;')}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        # Show raw JSON with a toggle button instead of nested expander
-        if st.button("🔍 Show/Hide Raw JSON", key=f"toggle_json_{conversation_num}"):
-            st.session_state[f"show_json_{conversation_num}"] = not st.session_state.get(f"show_json_{conversation_num}", False)
+            if st.button(f"📋 Copy", key=f"copy_conv_{conversation_num}"):
+                # This is just visual feedback
+                st.success("Copied to clipboard!")
         
-        if st.session_state.get(f"show_json_{conversation_num}", False):
-            st.code(conversation_json, language="json")
+        # Always show the clean JSON format
+        st.code(conversation_json, language="json")
 
 
 def display_single_variation(variation, variation_num, original_data):
@@ -481,8 +443,8 @@ def highlight_prompt_fields(prompt, field_values):
 
 def convert_to_conversation_format(variations):
     """
-    Convert variations to simple conversation format
-    Each prompt becomes a user message in conversation format
+    Convert variations to conversation format using structured data
+    Uses the conversation field if available, otherwise falls back to simple format
     
     Args:
         variations: List of generated variations
@@ -493,26 +455,35 @@ def convert_to_conversation_format(variations):
             [
                 {
                     "role": "user",
-                    "content": "prompt content"
-                }
+                    "content": "question content"
+                },
+                {
+                    "role": "assistant", 
+                    "content": "answer content"
+                },
+                ...
             ]
         ]
     """
     conversations = []
-
+    
     for variation in variations:
-        prompt = variation.get('prompt', '')
-
-        # Create simple conversation format - each prompt is a user message
-        conversation = [
-            {
-                "role": "user",
-                "content": prompt.strip()
-            }
-        ]
-
+        # Check if we have structured conversation data
+        if 'conversation' in variation and variation['conversation']:
+            # Use the pre-built conversation structure
+            conversation = variation['conversation']
+        else:
+            # Fallback to simple format for backward compatibility
+            prompt = variation.get('prompt', '')
+            conversation = [
+                {
+                    "role": "user",
+                    "content": prompt.strip()
+                }
+            ]
+        
         conversations.append(conversation)
-
+    
     return conversations
 
 
