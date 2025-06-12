@@ -86,7 +86,7 @@ class MultiPromptify:
         # Get instruction template from user or create default
         instruction_template = self.template_parser.get_instruction_template()
         if not instruction_template:
-            instruction_template = self._create_default_instruction_template(data, fields)
+            instruction_template = self._create_default_instruction_template(data, fields, gold_field)
         
         # Validate gold field requirement
         self._validate_gold_field_requirement(instruction_template, gold_field, few_shot_fields)
@@ -175,7 +175,7 @@ class MultiPromptify:
         else:
             raise ValueError(f"Unsupported file format: {data_path}")
     
-    def _create_default_instruction_template(self, data: pd.DataFrame, fields: List) -> str:
+    def _create_default_instruction_template(self, data: pd.DataFrame, fields: List, gold_field: str = None) -> str:
         """Create default instruction template when user doesn't provide one."""
         available_columns = data.columns.tolist()
         
@@ -183,25 +183,45 @@ class MultiPromptify:
         data_fields = [f.name for f in fields if f.name not in ['instruction', 'few_shot']]
         
         # Create instruction template based on available data
-        if 'question' in available_columns and 'answer' in available_columns:
+        if 'question' in available_columns:
             if 'options' in available_columns:
-                return "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}"
+                if gold_field:
+                    return f"Answer the following multiple choice question:\nQuestion: {{question}}\nOptions: {{options}}\nAnswer: {{{gold_field}}}"
+                else:
+                    return "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}"
             else:
-                return "Answer the following question:\nQuestion: {question}\nAnswer: {answer}"
-        elif 'text' in available_columns and 'label' in available_columns:
-            return "Classify the following text:\nText: \"{text}\"\nLabel: {label}"
+                if gold_field:
+                    return f"Answer the following question:\nQuestion: {{question}}\nAnswer: {{{gold_field}}}"
+                else:
+                    return "Answer the following question:\nQuestion: {question}"
+        elif 'text' in available_columns:
+            if gold_field:
+                return f"Classify the following text:\nText: \"{{text}}\"\nLabel: {{{gold_field}}}"
+            else:
+                return "Classify the following text:\nText: \"{text}\""
         elif len(data_fields) >= 2:
-            # Use the first two data fields
-            field1, field2 = data_fields[:2]
-            return f"Process the following:\n{field1.title()}: {{{field1}}}\nOutput: {{{field2}}}"
+            # Use the first data field as input, gold field as output if available
+            field1 = data_fields[0]
+            if gold_field:
+                return f"Process the following:\n{field1.title()}: {{{field1}}}\nOutput: {{{gold_field}}}"
+            else:
+                field2 = data_fields[1]
+                return f"Process the following:\n{field1.title()}: {{{field1}}}\nOutput: {{{field2}}}"
         elif len(data_fields) == 1:
             field = data_fields[0]
-            return f"Process: {{{field}}}"
+            if gold_field:
+                return f"Process: {{{field}}}\nOutput: {{{gold_field}}}"
+            else:
+                return f"Process: {{{field}}}"
         else:
             # Fallback to available columns
             if len(available_columns) >= 2:
-                col1, col2 = available_columns[:2]
-                return f"Process:\n{col1.title()}: {{{col1}}}\nOutput: {{{col2}}}"
+                col1 = available_columns[0]
+                if gold_field:
+                    return f"Process:\n{col1.title()}: {{{col1}}}\nOutput: {{{gold_field}}}"
+                else:
+                    col2 = available_columns[1]
+                    return f"Process:\n{col1.title()}: {{{col1}}}\nOutput: {{{col2}}}"
             else:
                 return f"Process: {{{available_columns[0]}}}"
     
@@ -263,20 +283,15 @@ class MultiPromptify:
         if few_shot_fields and len(few_shot_fields) > 0:
             needs_gold_field = True
         
-        # Check if instruction template seems to have answer placeholders
-        if instruction_template:
-            import re
-            placeholders = re.findall(r'\{([^}]+)\}', instruction_template)
-            # Look for common answer-like placeholders
-            for placeholder in placeholders:
-                field_name = placeholder.split(':')[0].strip().lower()
-                if field_name in ['answer', 'label', 'response', 'output', 'result', 'category', 'class']:
-                    needs_gold_field = True
-                    break
+        # Check if instruction template has the gold field placeholder
+        if instruction_template and gold_field:
+            gold_placeholder = f'{{{gold_field}}}'
+            if gold_placeholder in instruction_template:
+                needs_gold_field = True
         
         if needs_gold_field and not gold_field:
             raise ValueError(
-                "Gold field is required when using few-shot examples or when the template contains answer placeholders. "
+                "Gold field is required when using few-shot examples. "
                 "Please specify the 'gold' field in your template to indicate which column contains the correct answers/labels. "
                 "Example: \"gold\": \"answer\" or \"gold\": \"label\""
             )
