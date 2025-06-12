@@ -249,34 +249,20 @@ def template_builder_interface(available_columns):
             else:
                 st.warning("⚠️ No placeholders found in template")
 
-        st.markdown("**2. Instruction Variations (Optional)**")
-        include_instruction = st.checkbox(
-            "Apply variations to instruction",
-            value='instruction' in st.session_state.template_config and bool(
-                st.session_state.template_config.get('instruction')),
-            key="include_instruction"
-        )
-
         if instruction_template:
             configured_fields['instruction_template'] = instruction_template
 
-        if include_instruction and instruction_template:
-            selected_variations = st.multiselect(
-                "Variation types for instruction",
-                options=variation_types,
-                default=st.session_state.template_config.get('instruction', []),
-                key="instruction_variations",
-                help="Select variation types to apply to the instruction"
-            )
+        st.markdown("**2. Instruction Variations (Optional)**")
+        selected_variations = st.multiselect(
+            "Variation types for instruction",
+            options=variation_types,
+            default=st.session_state.template_config.get('instruction', []),
+            key="instruction_variations",
+            help="Select variation types to apply to the instruction"
+        )
 
-            if selected_variations:
-                configured_fields['instruction'] = selected_variations
-
-                # Show preview of what instruction variations do
-                st.info(
-                    "💡 Instruction variations change the overall phrasing and structure of your prompts while preserving meaning.")
-        elif include_instruction and not instruction_template:
-            st.error("❌ Please enter an instruction template first")
+        if selected_variations:
+            configured_fields['instruction'] = selected_variations
 
     with field_tabs[1]:
         # Data fields configuration
@@ -285,81 +271,65 @@ def template_builder_interface(available_columns):
 
         for field_name in available_columns:
             with st.expander(f"Configure '{field_name}' field"):
-                include_field = st.checkbox(
-                    f"Apply variations to '{field_name}'",
-                    value=field_name in st.session_state.template_config,
-                    key=f"include_{field_name}"
+                selected_variations = st.multiselect(
+                    f"Variations for {field_name}",
+                    options=variation_types,
+                    default=st.session_state.template_config.get(field_name, []),
+                    key=f"variations_{field_name}",
+                    help=f"Select variation types for {field_name}"
                 )
 
-                if include_field:
-                    selected_variations = st.multiselect(
-                        f"Variations for {field_name}",
-                        options=variation_types,
-                        default=st.session_state.template_config.get(field_name, []),
-                        key=f"variations_{field_name}",
-                        help=f"Select variation types for {field_name}"
-                    )
+                if selected_variations:
+                    configured_fields[field_name] = selected_variations
 
-                    if selected_variations:
-                        configured_fields[field_name] = selected_variations
-
-                        # Show sample data for this field
-                        df = st.session_state.uploaded_data
-                        if not df[field_name].dropna().empty:
-                            sample_value = str(df[field_name].dropna().iloc[0])
-                            st.code(f"Sample: {sample_value[:100]}{'...' if len(sample_value) > 100 else ''}")
+                # Show sample data for this field
+                df = st.session_state.uploaded_data
+                if not df[field_name].dropna().empty:
+                    sample_value = str(df[field_name].dropna().iloc[0])
+                    st.code(f"Sample: {sample_value[:100]}{'...' if len(sample_value) > 100 else ''}")
 
     with field_tabs[2]:
         # Few-shot configuration
         st.markdown("**Few-shot Examples Configuration**")
         st.write("Configure few-shot learning examples:")
 
-        include_few_shot = st.checkbox(
-            "Include few-shot examples",
-            value='few_shot' in st.session_state.template_config,
-            key="include_few_shot"
-        )
+        col1, col2, col3 = st.columns(3)
 
-        if include_few_shot:
-            col1, col2, col3 = st.columns(3)
+        with col1:
+            few_shot_count = st.number_input(
+                "Number of examples",
+                min_value=0,
+                max_value=10,
+                value=st.session_state.template_config.get('few_shot', {}).get('count', 0),
+                key="few_shot_count",
+                help="Set to 0 to disable few-shot examples"
+            )
 
-            with col1:
-                few_shot_count = st.number_input(
-                    "Number of examples",
-                    min_value=1,
-                    max_value=10,
-                    value=st.session_state.template_config.get('few_shot', {}).get('count', 2),
-                    key="few_shot_count",
-                    help="How many examples to include"
-                )
+        with col2:
+            few_shot_format = st.selectbox(
+                "Example selection",
+                options=["rotating", "fixed"],
+                index=0 if st.session_state.template_config.get('few_shot', {}).get('format',
+                                                                                    'rotating') == 'rotating' else 1,
+                key="few_shot_format",
+                help="Rotating: different examples per row, Fixed: same examples for all rows"
+            )
 
-            with col2:
-                few_shot_format = st.selectbox(
-                    "Example selection",
-                    options=["rotating", "fixed"],
-                    index=0 if st.session_state.template_config.get('few_shot', {}).get('format',
-                                                                                        'rotating') == 'rotating' else 1,
-                    key="few_shot_format",
-                    help="Rotating: different examples per row, Fixed: same examples for all rows"
-                )
+        with col3:
+            few_shot_split = st.selectbox(
+                "Data split",
+                options=["all", "train", "test"],
+                index=0,
+                key="few_shot_split",
+                help="Which portion of data to use for examples"
+            )
 
-            with col3:
-                few_shot_split = st.selectbox(
-                    "Data split",
-                    options=["all", "train", "test"],
-                    index=0,
-                    key="few_shot_split",
-                    help="Which portion of data to use for examples"
-                )
-
+        if few_shot_count > 0:
             configured_fields['few_shot'] = {
                 'count': few_shot_count,
                 'format': few_shot_format,
                 'split': few_shot_split
             }
-
-            # Show few-shot preview
-            st.info(f"💡 Few-shot will include {few_shot_count} {few_shot_format} examples from {few_shot_split} data.")
 
     # Template preview and validation
     st.markdown("### 2. Template Preview")
