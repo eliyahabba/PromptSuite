@@ -435,22 +435,20 @@ def display_selected_template_details(available_columns):
     </div>
     """, unsafe_allow_html=True)
 
-    # Template configuration with subtle styling
+    # Template configuration with enhanced styling
     st.markdown("### 📝 Template Configuration")
     
-    # Create a subtle container with light colors
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
-                padding: 1rem; border-radius: 8px; border: 1px solid #dee2e6; 
-                margin: 1rem 0;">
-    """, unsafe_allow_html=True)
-    
-    # Display as formatted JSON with syntax highlighting
-    import json
-    formatted_json = json.dumps(template, indent=2, ensure_ascii=False)
-    st.code(formatted_json, language="json")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Display template in a clean, expanded format
+    for key, value in template.items():
+        if key == 'instruction_template':
+            st.markdown(f"**{key}:**")
+            st.code(value, language="text")
+        elif key == 'few_shot' and isinstance(value, dict):
+            st.markdown(f"**{key}:** {value['count']} {value['format']} examples from {value['split']} data")
+        elif isinstance(value, list):
+            st.markdown(f"**{key}:** {', '.join(value)}")
+        else:
+            st.markdown(f"**{key}:** {value}")
 
     # Continue button
     st.markdown("""
