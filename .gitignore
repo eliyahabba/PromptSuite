@@ -2,3 +2,17 @@
 /.idea/
 **/tmp/*
 /src/ui/old/
+/src/multipromptify.egg-info/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# macOS files
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/

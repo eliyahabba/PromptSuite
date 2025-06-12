@@ -4,9 +4,7 @@ MultiPromptify: A library for generating multi-prompt datasets from single-promp
 
 import pandas as pd
 import json
-import re
-from typing import Dict, List, Any, Union, Optional
-from itertools import product
+from typing import Dict, List, Any, Optional
 
 from .template_parser import TemplateParser
 from src.axis_augmentation.context_augmenter import ContextAugmenter
@@ -19,17 +17,24 @@ from src.axis_augmentation.text_surface_augmenter import TextSurfaceAugmenter
 
 class MultiPromptify:
     """
-    Main class for generating prompt variations based on templates.
+    Main class for generating prompt variations based on dictionary templates.
     
-    Supports two formats:
-    1. Simple template: "{instruction:paraphrase} {question:surface}"
-    2. Complex template: {'instruction': 'Question: {question}', 'template': '{instruction:paraphrase} {few_shot:(2)}'}
+    Template format:
+    {
+        "instruction_template": "Answer the following question: {question}\nAnswer: {answer}",
+        "instruction": ["paraphrase", "surface"],
+        "few_shot": {
+            "count": 2,
+            "format": "fixed",  # or "rotating"
+            "split": "train"    # or "test" or "all"
+        },
+        "question": ["surface"]
+    }
     """
     
     VARIATION_TYPE_TO_AUGMENTER = {
         "paraphrase": Paraphrase,
         "surface": TextSurfaceAugmenter,
-        "non-semantic": TextSurfaceAugmenter,
         "context": ContextAugmenter,
         "multiple-choice": MultipleChoiceAugmenter,
         "multidoc": MultiDocAugmenter,
@@ -42,28 +47,42 @@ class MultiPromptify:
     
     def generate_variations(
         self,
-        template: Union[str, Dict[str, str]],
-        data: Union[pd.DataFrame, str, dict],
+        template: dict,
+        data: pd.DataFrame,
         variations_per_field: int = 3,
         api_key: str = None,
         **kwargs
     ) -> List[Dict[str, Any]]:
         """
-        Generate prompt variations based on template and data.
+        Generate prompt variations based on dictionary template and data.
+        
+        Args:
+            template: Dictionary template with field configurations
+            data: DataFrame with the data
+            variations_per_field: Number of variations per field
+            api_key: API key for services that require it
+        
+        Returns:
+            List of generated variations
         """
-        # Load data
-        data = self._load_data(data)
+        # Validate template
+        is_valid, errors = self.template_parser.validate_template(template)
+        if not is_valid:
+            raise ValueError(f"Invalid template: {', '.join(errors)}")
         
-        # Parse template format
-        instruction_template, processing_template = self._parse_template_format(template)
+        # Load data if needed
+        if isinstance(data, str):
+            data = self._load_data(data)
         
-        if not instruction_template:
-            raise ValueError("No instruction template found")
-        
-        # Parse processing template to check for paraphrase and few-shot
-        fields = self.template_parser.parse(processing_template)
+        # Parse template
+        fields = self.template_parser.parse(template)
         variation_fields = self.template_parser.get_variation_fields()
         few_shot_fields = self.template_parser.get_few_shot_fields()
+        
+        # Get instruction template from user or create default
+        instruction_template = self.template_parser.get_instruction_template()
+        if not instruction_template:
+            instruction_template = self._create_default_instruction_template(data, fields)
         
         # Generate instruction variations if needed
         instruction_variations = self._generate_instruction_variations(
@@ -80,7 +99,7 @@ class MultiPromptify:
                 if len(all_variations) >= self.max_variations:
                     break
                 
-                # Generate few-shot examples (with answers)
+                # Generate few-shot examples if configured
                 few_shot_content = ""
                 if few_shot_fields:
                     few_shot_content = self._generate_few_shot_examples(
@@ -103,7 +122,11 @@ class MultiPromptify:
                     'prompt': final_prompt,
                     'original_row_index': row_idx,
                     'variation_count': len(all_variations) + 1,
-                    'field_values': {'instruction': instruction_variant, 'few_shot': few_shot_content},
+                    'template_config': template,
+                    'field_values': {
+                        'instruction': instruction_variant, 
+                        'few_shot': few_shot_content
+                    },
                 })
                 
                 if len(all_variations) >= self.max_variations:
@@ -111,108 +134,131 @@ class MultiPromptify:
         
         return all_variations
     
-    def _load_data(self, data: Union[pd.DataFrame, str, dict]) -> pd.DataFrame:
-        """Load data from various formats into DataFrame."""
-        if isinstance(data, str):
-            if data.endswith('.csv'):
-                return pd.read_csv(data)
-            elif data.endswith('.json'):
-                with open(data, 'r') as f:
-                    json_data = json.load(f)
-                return pd.DataFrame(json_data)
-        elif isinstance(data, dict):
-            return pd.DataFrame(data)
-        elif isinstance(data, pd.DataFrame):
-            return data
+    def _load_data(self, data_path: str) -> pd.DataFrame:
+        """Load data from file path."""
+        if data_path.endswith('.csv'):
+            return pd.read_csv(data_path)
+        elif data_path.endswith('.json'):
+            with open(data_path, 'r') as f:
+                json_data = json.load(f)
+            return pd.DataFrame(json_data)
         else:
-            raise ValueError(f"Unsupported data format: {type(data)}")
+            raise ValueError(f"Unsupported file format: {data_path}")
     
-    def _parse_template_format(self, template: Union[str, Dict[str, str]]) -> tuple:
-        """
-        Parse template format and return instruction template and processing template.
+    def _create_default_instruction_template(self, data: pd.DataFrame, fields: List) -> str:
+        """Create default instruction template when user doesn't provide one."""
+        available_columns = data.columns.tolist()
         
-        Returns:
-            Tuple of (instruction_template, processing_template)
-        """
-        if isinstance(template, dict):
-            if 'instruction' in template and 'template' in template:
-                # New format: {'instruction': 'Question: {question}', 'template': '{instruction:paraphrase}'}
-                return template['instruction'], template['template']
-            elif 'combined' in template:
-                # Fallback combined format
-                return None, template['combined']
+        # Filter out special fields to get data fields
+        data_fields = [f.name for f in fields if f.name not in ['instruction', 'few_shot']]
         
-        # Simple string template - no separate instruction
-        return None, template
-    
-    def _validate_required_columns(self, instruction_template: str, data: pd.DataFrame):
-        """Validate that all required columns exist in data."""
-        if not instruction_template:
-            return
-            
-        # Extract field names from instruction template
-        required_fields = set(re.findall(r'\{([^}:]+)(?::[^}]+)?\}', instruction_template))
-        required_fields.discard('instruction')  # Instruction is generated, not from data
-        required_fields.discard('few_shot')     # Few-shot is generated, not from data
-        
-        missing_fields = required_fields - set(data.columns)
-        if missing_fields:
-            raise ValueError(f"Missing required columns in data: {missing_fields}")
+        # Create instruction template based on available data
+        if 'question' in available_columns and 'answer' in available_columns:
+            if 'options' in available_columns:
+                return "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}"
+            else:
+                return "Answer the following question:\nQuestion: {question}\nAnswer: {answer}"
+        elif 'text' in available_columns and 'label' in available_columns:
+            return "Classify the following text:\nText: \"{text}\"\nLabel: {label}"
+        elif len(data_fields) >= 2:
+            # Use the first two data fields
+            field1, field2 = data_fields[:2]
+            return f"Process the following:\n{field1.title()}: {{{field1}}}\nOutput: {{{field2}}}"
+        elif len(data_fields) == 1:
+            field = data_fields[0]
+            return f"Process: {{{field}}}"
+        else:
+            # Fallback to available columns
+            if len(available_columns) >= 2:
+                col1, col2 = available_columns[:2]
+                return f"Process:\n{col1.title()}: {{{col1}}}\nOutput: {{{col2}}}"
+            else:
+                return f"Process: {{{available_columns[0]}}}"
     
     def _generate_instruction_variations(
         self, 
         instruction_template: str, 
-        variation_fields: Dict[str, str], 
+        variation_fields: Dict[str, List[str]], 
         variations_per_field: int, 
         api_key: str
     ) -> List[str]:
-        """Generate variations of the instruction template (before filling with data)."""
+        """Generate variations of the instruction template."""
         
-        if 'instruction' not in variation_fields:
+        if 'instruction' not in variation_fields or not variation_fields['instruction']:
             return [instruction_template]
         
-        variation_type = variation_fields['instruction']
+        variation_types = variation_fields['instruction']
+        all_variations = []
         
-        try:
-            augmenter_class = self.VARIATION_TYPE_TO_AUGMENTER.get(variation_type, TextSurfaceAugmenter)
-            
-            if augmenter_class == Paraphrase and api_key:
-                augmenter = augmenter_class(n_augments=variations_per_field, api_key=api_key)
-            else:
-                augmenter = augmenter_class(n_augments=variations_per_field)
-            
-            variations = augmenter.augment(instruction_template)
-            
-            if not variations or not isinstance(variations, list):
-                return [instruction_template]
-            
-            # Ensure original is included
-            if instruction_template not in variations:
-                variations = [instruction_template] + variations[:variations_per_field]
-            
-            return variations[:variations_per_field + 1]
-            
-        except Exception as e:
-            print(f"⚠️ Error generating instruction variations: {e}")
-            return [instruction_template]
+        # Generate variations for each type
+        for variation_type in variation_types:
+            try:
+                augmenter_class = self.VARIATION_TYPE_TO_AUGMENTER.get(
+                    variation_type, TextSurfaceAugmenter
+                )
+                
+                if augmenter_class == Paraphrase and api_key:
+                    augmenter = augmenter_class(n_augments=variations_per_field, api_key=api_key)
+                else:
+                    augmenter = augmenter_class(n_augments=variations_per_field)
+                
+                variations = augmenter.augment(instruction_template)
+                
+                if variations and isinstance(variations, list):
+                    all_variations.extend(variations[:variations_per_field])
+                    
+            except Exception as e:
+                print(f"⚠️ Error generating {variation_type} variations: {e}")
+                continue
+        
+        # Remove duplicates while preserving order
+        unique_variations = []
+        seen = set()
+        for var in all_variations:
+            if var not in seen:
+                unique_variations.append(var)
+                seen.add(var)
+        
+        # Ensure original is included first
+        if instruction_template not in unique_variations:
+            unique_variations.insert(0, instruction_template)
+        
+        return unique_variations[:variations_per_field + 1]
     
     def _generate_few_shot_examples(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int) -> str:
-        """Generate few-shot examples by filling instruction_variant with example data (including answers)."""
+        """Generate few-shot examples using the configured parameters."""
         
         num_examples = few_shot_field.few_shot_count
         
-        # Get example data (excluding current row)
-        available_data = data.drop(index=current_row_idx, errors='ignore')
+        # Filter data based on split configuration
+        if few_shot_field.few_shot_split == 'train' and 'split' in data.columns:
+            available_data = data[data['split'] == 'train']
+        elif few_shot_field.few_shot_split == 'test' and 'split' in data.columns:
+            available_data = data[data['split'] == 'test']
+        else:
+            available_data = data.copy()
+        
+        # Exclude current row
+        available_data = available_data.drop(index=current_row_idx, errors='ignore')
+        
         if len(available_data) == 0:
             return ""
         
-        # Sample examples
-        if few_shot_field.few_shot_format == 'tuple':
-            sampled_data = available_data.sample(n=min(num_examples, len(available_data)), random_state=42)
+        # Sample examples based on format
+        if few_shot_field.few_shot_format == 'fixed':
+            # Same examples for all rows
+            sampled_data = available_data.sample(
+                n=min(num_examples, len(available_data)), 
+                random_state=42
+            )
         else:
-            sampled_data = available_data.sample(n=min(num_examples, len(available_data)), random_state=current_row_idx)
+            # Different examples per row (rotating)
+            sampled_data = available_data.sample(
+                n=min(num_examples, len(available_data)), 
+                random_state=current_row_idx
+            )
         
-        # Create examples by filling instruction_variant with ALL data (including answers)
+        # Create examples by filling instruction with complete data (including answers)
         examples = []
         for _, example_row in sampled_data.iterrows():
             example_values = {}
@@ -226,7 +272,7 @@ class MultiPromptify:
         return "\n\n".join(examples)
     
     def _create_main_question(self, instruction_variant: str, row: pd.Series) -> str:
-        """Create main question by filling instruction_variant with row data (excluding answer)."""
+        """Create main question by filling instruction with row data (excluding answers)."""
         
         row_values = {}
         for col in row.index:
@@ -234,9 +280,6 @@ class MultiPromptify:
                 # Skip answer fields for the main question
                 if col.lower() not in ['answer', 'label', 'response', 'output']:
                     row_values[col] = str(row[col])
-                else:
-                    row_values[col] = ''
-
         
         return self._fill_template_placeholders(instruction_variant, row_values)
     
@@ -263,35 +306,27 @@ class MultiPromptify:
             row_idx = var.get('original_row_index', 0)
             row_counts[row_idx] = row_counts.get(row_idx, 0) + 1
         
-        all_fields = set()
-        for var in variations:
-            all_fields.update(var.get('field_values', {}).keys())
+        # Get field info from template config
+        template_config = variations[0].get('template_config', {})
+        field_count = len([k for k in template_config.keys() if k not in ['few_shot', 'instruction_template']])
+        has_few_shot = 'few_shot' in template_config
+        has_custom_instruction = 'instruction_template' in template_config
         
         return {
             'total_variations': len(variations),
             'original_rows': len(row_counts),
             'avg_variations_per_row': sum(row_counts.values()) / len(row_counts) if row_counts else 0,
-            'unique_fields': len(all_fields),
-            'field_names': list(all_fields),
+            'template_fields': field_count,
+            'has_few_shot': has_few_shot,
+            'has_custom_instruction': has_custom_instruction,
             'min_variations_per_row': min(row_counts.values()) if row_counts else 0,
             'max_variations_per_row': max(row_counts.values()) if row_counts else 0,
         }
     
-    def parse_template(self, template: Union[str, dict]) -> Dict[str, str]:
+    def parse_template(self, template: dict) -> Dict[str, List[str]]:
         """Parse template to extract fields and their variation types."""
-        try:
-            if isinstance(template, dict) and 'template' in template:
-                # Use processing template part
-                template_to_parse = template['template']
-            elif isinstance(template, dict) and 'combined' in template:
-                template_to_parse = template['combined']
-            else:
-                template_to_parse = template
-                
-            self.template_parser.parse(template_to_parse)
-            return self.template_parser.get_variation_fields()
-        except Exception as e:
-            raise ValueError(f"Template parsing error: {str(e)}")
+        self.template_parser.parse(template)
+        return self.template_parser.get_variation_fields()
     
     def save_variations(self, variations: List[Dict[str, Any]], output_path: str, format: str = "json"):
         """Save variations to file."""

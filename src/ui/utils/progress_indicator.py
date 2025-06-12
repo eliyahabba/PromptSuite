@@ -2,16 +2,12 @@ import streamlit as st
 
 # Page descriptions for the progress indicator
 PAGE_DESCRIPTIONS = {
-    1: "Upload CSV",
-    2: "Annotate Prompt Parts",
-    3: "Define Dimensions",
-    4: "Assign Dimensions to Parts",
-    5: "Predict Prompt Parts",
-    6: "Run Augmentations",
-    7: "Show Variants"
+    1: "Upload Data",
+    2: "Build Template", 
+    3: "Generate Variations"
 }
 
-def show_progress_indicator(current_page, total_pages=7):
+def show_progress_indicator(current_page, total_pages=3):
     """
     Display a progress indicator showing which page the user is on and how many remain.
     

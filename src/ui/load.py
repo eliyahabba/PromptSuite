@@ -8,8 +8,7 @@ sys.path.insert(0, str(base_dir))
 from src.ui import (
     upload_data,
     template_builder,
-    generate_variations,
-    show_results
+    generate_variations
 )
 from src.ui.utils.debug_helpers import (
     initialize_debug_mode,
@@ -75,7 +74,7 @@ def main():
         initialize_debug_mode()
     
     # Total number of pages in the simplified application
-    total_pages = 4
+    total_pages = 3
     
     # Display the progress indicator
     current_page = st.session_state.page
@@ -100,48 +99,31 @@ def initialize_session_state(start_step=1, debug_mode=False):
                 'description': 'Templates for text sentiment classification tasks',
                 'templates': [
                     {
-                        'name': 'Basic Sentiment',
+                        'name': 'Basic Sentiment Analysis',
                         'template': {
-                            'instruction': 'Classify the sentiment of the following text: "{text}"\nSentiment: {label}',
-                            'template': '{instruction:paraphrase}'
+                            'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
+                            'instruction': ['paraphrase'],
+                            'text': ['surface']
                         },
-                        'description': 'Simple sentiment classification with paraphrase instructions',
+                        'description': 'Simple sentiment classification with instruction paraphrases and text surface variations',
                         'sample_data': {
                             'text': ['I love this movie!', 'This book is terrible.', 'The weather is nice today.'],
                             'label': ['positive', 'negative', 'neutral']
                         }
                     },
                     {
-                        'name': 'Sentiment with Surface Variations',
+                        'name': 'Advanced Sentiment with Few-shot',
                         'template': {
-                            'instruction': 'Classify the sentiment: "{text}"\nSentiment: {label}',
-                            'template': '{instruction:paraphrase}\n{text:surface}'
+                            'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
+                            'instruction': ['paraphrase', 'surface'],
+                            'text': ['surface', 'context'],
+                            'few_shot': {
+                                'count': 2,
+                                'format': 'rotating',
+                                'split': 'all'
+                            }
                         },
-                        'description': 'Sentiment classification with instruction paraphrase and text surface variations',
-                        'sample_data': {
-                            'text': ['I love this movie!', 'This book is terrible.', 'The weather is nice today.'],
-                            'label': ['positive', 'negative', 'neutral']
-                        }
-                    },
-                    {
-                        'name': 'Sentiment with Few-shot (Different Examples)',
-                        'template': {
-                            'instruction': 'Classify the sentiment of the following text: "{text}"\nSentiment: {label}',
-                            'template': '{instruction:paraphrase}\n{few_shot:[2]}'
-                        },
-                        'description': 'Sentiment classification with 2 different few-shot examples per row',
-                        'sample_data': {
-                            'text': ['I absolutely love this product!', 'This is the worst service ever!', 'It\'s okay, nothing special', 'Amazing quality!'],
-                            'label': ['positive', 'negative', 'neutral', 'positive']
-                        }
-                    },
-                    {
-                        'name': 'Sentiment with Same Few-shot Examples',
-                        'template': {
-                            'instruction': 'Classify the sentiment of the following text: "{text}"\nSentiment: {label}',
-                            'template': '{instruction:paraphrase}\n{few_shot:(2)}'
-                        },
-                        'description': 'Sentiment classification with 2 same few-shot examples for all rows',
+                        'description': 'Sentiment analysis with multiple variations and rotating few-shot examples',
                         'sample_data': {
                             'text': ['I absolutely love this product!', 'This is the worst service ever!', 'It\'s okay, nothing special', 'Amazing quality!'],
                             'label': ['positive', 'negative', 'neutral', 'positive']
@@ -158,52 +140,36 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Q&A',
                         'template': {
-                            'instruction': 'Answer the following question: {question}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}'
+                            'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
+                            'instruction': ['paraphrase'],
+                            'question': ['surface']
                         },
-                        'description': 'Simple Q&A with paraphrase instructions',
+                        'description': 'Q&A with instruction paraphrases and question surface variations',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'How many days in a week?', 'Who wrote Romeo and Juliet?'],
                             'answer': ['Paris', '7', 'Shakespeare']
                         }
                     },
                     {
-                        'name': 'Q&A with Surface Question Variations',
+                        'name': 'Q&A with Context and Few-shot',
                         'template': {
-                            'instruction': 'Answer the following question: {question}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}\n{question:surface}'
+                            'instruction_template': 'Based on the context, answer the question:\nContext: {context}\nQuestion: {question}\nAnswer: {answer}',
+                            'instruction': ['paraphrase'],
+                            'question': ['surface', 'paraphrase'],
+                            'context': ['context'],
+                            'few_shot': {
+                                'count': 3,
+                                'format': 'fixed',
+                                'split': 'all'
+                            }
                         },
-                        'description': 'Q&A with instruction paraphrase and surface question variations',
-                        'sample_data': {
-                            'question': ['What is the capital of France?', 'How many days in a week?', 'Who wrote Romeo and Juliet?'],
-                            'answer': ['Paris', '7', 'Shakespeare']
-                        }
-                    },
-                    {
-                        'name': 'Q&A with Context',
-                        'template': {
-                            'instruction': 'Based on the context, answer the question: Context: {context}\nQuestion: {question}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}\n{context:context}'
-                        },
-                        'description': 'Q&A with context variations and paraphrase instructions',
-                        'sample_data': {
-                            'question': ['What is the capital of France?', 'How many days in a week?', 'Who wrote Romeo and Juliet?'],
-                            'answer': ['Paris', '7', 'Shakespeare'],
-                            'context': ['Geography', 'Time and calendar', 'Literature']
-                        }
-                    },
-                    {
-                        'name': 'Q&A with Few-shot Examples',
-                        'template': {
-                            'instruction': 'Answer the following question: {question}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}\n{few_shot:[3]}'
-                        },
-                        'description': 'Q&A with 3 different few-shot examples per row',
+                        'description': 'Q&A with context variations and fixed few-shot examples',
                         'sample_data': {
                             'question': ['What is 12+8?', 'What is 15-7?', 'What is 6*4?', 'What is 20/5?', 'What is 9*3?'],
-                            'answer': ['20', '8', '24', '4', '27']
+                            'answer': ['20', '8', '24', '4', '27'],
+                            'context': ['Mathematics', 'Arithmetic', 'Basic math', 'Numbers', 'Calculation']
                         }
-                    },
+                    }
                 ]
             },
             
@@ -215,10 +181,12 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Multiple Choice',
                         'template': {
-                            'instruction': 'Answer the following multiple choice question: Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}'
+                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
+                            'instruction': ['paraphrase'],
+                            'question': ['surface'],
+                            'options': ['multiple-choice']
                         },
-                        'description': 'Multiple choice with paraphrase instructions',
+                        'description': 'Multiple choice with instruction paraphrases, question variations, and option formatting',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
                             'options': ['A) Earth B) Jupiter C) Mars', 'A) Oxygen B) Gold C) Silver', 'A) Lion B) Cheetah C) Horse'],
@@ -226,39 +194,19 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         }
                     },
                     {
-                        'name': 'Multiple Choice with Surface Variations',
+                        'name': 'Complex Multiple Choice with Few-shot',
                         'template': {
-                            'instruction': 'Answer the following multiple choice question: Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}\n{question:surface}\n{options:multiple-choice}'
+                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
+                            'instruction': ['paraphrase'],
+                            'question': ['surface'],
+                            'options': ['multiple-choice', 'surface'],
+                            'few_shot': {
+                                'count': 2,
+                                'format': 'fixed',
+                                'split': 'all'
+                            }
                         },
-                        'description': 'Multiple choice with instruction paraphrase, surface question variations, and choice formatting',
-                        'sample_data': {
-                            'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
-                            'options': ['A) Earth B) Jupiter C) Mars', 'A) Oxygen B) Gold C) Silver', 'A) Lion B) Cheetah C) Horse'],
-                            'answer': ['B', 'A', 'B']
-                        }
-                    },
-                    {
-                        'name': 'Multiple Choice with Subject',
-                        'template': {
-                            'instruction': 'Answer the multiple choice question in the following subject: Subject: {subject}\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}\n{question:surface}'
-                        },
-                        'description': 'Multiple choice with subject context and surface question variations',
-                        'sample_data': {
-                            'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
-                            'options': ['A) Earth B) Jupiter C) Mars', 'A) Oxygen B) Gold C) Silver', 'A) Lion B) Cheetah C) Horse'],
-                            'answer': ['B', 'A', 'B'],
-                            'subject': ['Astronomy', 'Chemistry', 'Biology']
-                        }
-                    },
-                    {
-                        'name': 'Multiple Choice with Few-shot',
-                        'template': {
-                            'instruction': 'Answer the following multiple choice question: Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'template': '{instruction:paraphrase}\n{few_shot:(2)}'
-                        },
-                        'description': 'Multiple choice with 2 same few-shot examples for all rows',
+                        'description': 'Multiple choice with variations and fixed few-shot examples',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?', 'What is the smallest prime number?'],
                             'options': ['A) Earth B) Jupiter C) Mars', 'A) Oxygen B) Gold C) Silver', 'A) Lion B) Cheetah C) Horse', 'A) 1 B) 2 C) 3'],
@@ -276,63 +224,92 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Text Classification',
                         'template': {
-                            'instruction': 'Classify the following text into a category: Text: "{text}"\nCategory: {category}',
-                            'template': '{instruction:paraphrase}'
+                            'instruction_template': 'Classify the following text into a category:\nText: "{text}"\nCategory: {category}',
+                            'instruction': ['paraphrase'],
+                            'text': ['surface']
                         },
-                        'description': 'Simple text classification with paraphrase instructions',
+                        'description': 'Simple text classification with instruction and text variations',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?'],
                             'category': ['travel', 'service', 'information']
                         }
                     },
                     {
-                        'name': 'Text Classification with Surface Variations',
+                        'name': 'Multi-field Text Classification',
                         'template': {
-                            'instruction': 'Classify the following text: Text: "{text}"\nCategory: {category}',
-                            'template': '{instruction:paraphrase}\n{text:surface}'
+                            'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
+                            'instruction': ['paraphrase', 'surface'],
+                            'text': ['surface', 'context'],
+                            'category': []  # No variations for output
                         },
-                        'description': 'Text classification with instruction paraphrase and surface text variations',
+                        'description': 'Text classification with multiple variation types on instruction and text',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?'],
                             'category': ['travel', 'service', 'information']
-                        }
-                    },
-                    {
-                        'name': 'Text Classification with Intent',
-                        'template': {
-                            'instruction': 'Classify the text and identify its intent: Text: "{text}"\nCategory: {category}\nIntent: {intent}',
-                            'template': '{instruction:paraphrase}\n{text:surface}'
-                        },
-                        'description': 'Text classification with both category and intent fields',
-                        'sample_data': {
-                            'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?', 'Set a reminder for 3pm'],
-                            'category': ['travel', 'service', 'information', 'productivity'],
-                            'intent': ['booking', 'cancellation', 'query', 'scheduling']
-                        }
-                    },
-                    {
-                        'name': 'Text Classification with Context',
-                        'template': {
-                            'instruction': 'Classify the text based on the context: Text: "{text}"\nContext: {context}\nCategory: {category}',
-                            'template': '{instruction:paraphrase}\n{context:context}'
-                        },
-                        'description': 'Text classification with context variations and paraphrase instructions',
-                        'sample_data': {
-                            'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?'],
-                            'category': ['travel', 'service', 'information'],
-                            'context': ['Travel booking', 'Customer service', 'Weather inquiry']
                         }
                     },
                     {
                         'name': 'Text Classification with Few-shot',
                         'template': {
-                            'instruction': 'Classify the following text: Text: "{text}"\nCategory: {category}',
-                            'template': '{instruction:paraphrase}\n{few_shot:[3]}'
+                            'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
+                            'instruction': ['paraphrase'],
+                            'text': ['surface'],
+                            'few_shot': {
+                                'count': 3,
+                                'format': 'rotating',
+                                'split': 'all'
+                            }
                         },
-                        'description': 'Text classification with 3 different few-shot examples per row',
+                        'description': 'Text classification with rotating few-shot examples',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?', 'Order pizza for dinner', 'Check my account balance'],
                             'category': ['travel', 'service', 'information', 'food', 'banking']
+                        }
+                    }
+                ]
+            },
+            
+            # Advanced Templates
+            'advanced_examples': {
+                'category_name': 'Advanced Examples',
+                'description': 'Complex templates showcasing advanced features',
+                'templates': [
+                    {
+                        'name': 'Multi-Variation Classification',
+                        'template': {
+                            'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nLabel: {label}',
+                            'instruction': ['paraphrase', 'surface'],
+                            'text': ['surface', 'context'],
+                            'label': [],
+                            'few_shot': {
+                                'count': 2,
+                                'format': 'rotating',
+                                'split': 'all'
+                            }
+                        },
+                        'description': 'Multiple variations per field with few-shot examples',
+                        'sample_data': {
+                            'text': ['I love this movie!', 'This book is terrible.', 'The weather is nice today.'],
+                            'label': ['positive', 'negative', 'neutral']
+                        }
+                    },
+                    {
+                        'name': 'Complex Q&A with Fixed Examples',
+                        'template': {
+                            'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
+                            'instruction': ['paraphrase'],
+                            'question': ['surface', 'paraphrase'],
+                            'answer': [],
+                            'few_shot': {
+                                'count': 3,
+                                'format': 'fixed',
+                                'split': 'train'
+                            }
+                        },
+                        'description': 'Q&A with multiple question variations and fixed training examples',
+                        'sample_data': {
+                            'question': ['What is the capital of France?', 'How many days in a week?', 'Who wrote Romeo and Juliet?'],
+                            'answer': ['Paris', '7', 'Shakespeare']
                         }
                     }
                 ]
@@ -355,8 +332,7 @@ def render_current_page(current_page):
     pages = {
         1: upload_data.render,
         2: template_builder.render,
-        3: generate_variations.render,
-        4: show_results.render
+        3: generate_variations.render
     }
     
     # Add navigation helper
@@ -376,7 +352,7 @@ def render_current_page(current_page):
             elif current_page == 3 and st.session_state.get('variations_generated', False):
                 show_next = True
             
-            if show_next and current_page < 4:
+            if show_next and current_page < 3:
                 if st.button("Next Step →"):
                     st.session_state.page = current_page + 1
                     st.rerun()

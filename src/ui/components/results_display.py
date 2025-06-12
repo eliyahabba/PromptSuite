@@ -1,5 +1,6 @@
 """
-Step 4: Show Results for MultiPromptify 2.0
+Shared Results Display Module for MultiPromptify 2.0
+Contains all the display functions for generated variations
 """
 
 import streamlit as st
@@ -16,43 +17,49 @@ HIGHLIGHT_COLORS = {
 }
 
 
-def render():
-    """Render the enhanced results display interface"""
-    if not st.session_state.get('variations_generated', False):
-        st.error("⚠️ Please generate variations first (Step 3)")
-        if st.button("← Go to Step 3"):
-            st.session_state.page = 3
-            st.rerun()
+def display_full_results(variations, original_data, stats, generation_time, show_export=True, show_header=True):
+    """
+    Main function to display the complete results with all features
+    
+    Args:
+        variations: List of generated variations
+        original_data: Original DataFrame
+        stats: Generation statistics
+        generation_time: Time taken for generation
+        show_export: Whether to show export functionality
+        show_header: Whether to show the success header
+    """
+    if not variations:
+        st.warning("No variations to display")
         return
 
-    # Enhanced header
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
-                padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
-        <h1 style="color: white; margin: 0; text-align: center;">🎉 Step 4: View Results</h1>
-        <p style="color: rgba(255,255,255,0.9); text-align: center; margin: 0.5rem 0 0 0;">
-            Explore your generated prompt variations with enhanced visualization
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Get results data
-    variations = st.session_state.generated_variations
-    stats = st.session_state.generation_stats
-    generation_time = st.session_state.generation_time
-    original_data = st.session_state.uploaded_data
+    if show_header:
+        # Success header
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
+                    padding: 2rem; border-radius: 10px; margin: 2rem 0;">
+            <h2 style="color: white; margin: 0; text-align: center;">🎉 Generation Complete!</h2>
+            <p style="color: rgba(255,255,255,0.9); text-align: center; margin: 0.5rem 0 0 0;">
+                Your prompt variations have been successfully generated
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
     # Display summary metrics
     display_enhanced_summary_metrics(variations, stats, generation_time)
 
-    # Simplified tabbed interface - only keep All Variations and Export
-    tab1, tab2 = st.tabs(["📋 All Variations", "💾 Export"])
-
-    with tab1:
+    # Tabbed interface
+    if show_export:
+        tab1, tab2 = st.tabs(["📋 All Variations", "💾 Export"])
+        
+        with tab1:
+            display_enhanced_variations(variations, original_data)
+        
+        with tab2:
+            export_interface(variations)
+    else:
+        # Just show variations without export tab
         display_enhanced_variations(variations, original_data)
-
-    with tab2:
-        export_interface(variations)
 
 
 def display_enhanced_summary_metrics(variations, stats, generation_time):
@@ -138,7 +145,7 @@ def display_enhanced_variations(variations, original_data):
         page_options = [5, 10, 20, 50]
         items_per_page = st.selectbox("Variations per page", page_options, index=1)
 
-        total_pages = (total_variations - 1) // items_per_page + 1
+        total_pages = (total_variations - 1) // items_per_page + 1 if total_variations > 0 else 1
         page = st.number_input(f"Page (1-{total_pages})", min_value=1, max_value=total_pages, value=1)
         if page is None:
             page = 1
@@ -161,28 +168,9 @@ def display_enhanced_variations(variations, original_data):
 
 def display_color_legend():
     """Display a color legend for the highlighting"""
+    # Commenting out for now as mentioned in original code
     pass
-    # st.markdown("### 🎨 Color Legend")
-    # legend_html = '<div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding: 1rem; background: #f8f9fa; border-radius: 8px;">'
-    #
-    # legend_items = {
-    #     "Original Data": HIGHLIGHT_COLORS["original"],
-    #     "Generated Variations": HIGHLIGHT_COLORS["variation"],
-    #     "Field Names": HIGHLIGHT_COLORS["field"],
-    #     "Template Structure": HIGHLIGHT_COLORS["template"]
-    # }
-    #
-    # for label, color in legend_items.items():
-    #     legend_html += f'''
-    #     <div style="display: flex; align-items: center; gap: 8px;">
-    #         <div style="width: 20px; height: 20px; background-color: {color}; border-radius: 4px; border: 1px solid #ccc;"></div>
-    #         <span style="font-weight: 500;">{label}</span>
-    #     </div>
-    #     '''
-    #
-    # legend_html += '</div>'
-    # st.markdown(legend_html, unsafe_allow_html=True)
-    #
+
 
 def display_single_variation(variation, variation_num, original_data):
     """Display a single variation with enhanced visualization"""
@@ -394,3 +382,91 @@ def export_interface(variations):
             mime="text/plain",
             use_container_width=True
         )
+
+
+def display_simple_download_options(variations):
+    """
+    Simple download options for integration into generation page
+    """
+    if not variations:
+        return
+        
+    st.markdown("---")
+    st.markdown("""
+    <div style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2196f3; margin: 2rem 0;">
+        <h3 style="color: #1976d2; margin-top: 0;">💾 Download Your Results</h3>
+        <p style="margin-bottom: 0; color: #0d47a1;">Choose your preferred format to download the generated variations</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        # JSON download with enhanced styling
+        st.markdown("""
+        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+            <h4 style="color: #ff9800; margin: 0;">📋 JSON Format</h4>
+            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Complete data with metadata</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        json_data = json.dumps(variations, indent=2, ensure_ascii=False)
+        st.download_button(
+            label="📥 Download JSON",
+            data=json_data,
+            file_name="prompt_variations.json",
+            mime="application/json",
+            use_container_width=True
+        )
+    
+    with col2:
+        # CSV download with enhanced styling
+        st.markdown("""
+        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+            <h4 style="color: #4caf50; margin: 0;">📊 CSV Format</h4>
+            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Spreadsheet compatible</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Flatten for CSV
+        flattened = []
+        for var in variations:
+            flat_var = {
+                'prompt': var['prompt'],
+                'original_row_index': var.get('original_row_index', ''),
+                'variation_count': var.get('variation_count', ''),
+            }
+            # Add field values
+            for key, value in var.get('field_values', {}).items():
+                flat_var[f'field_{key}'] = value
+            flattened.append(flat_var)
+        
+        csv_df = pd.DataFrame(flattened)
+        csv_data = csv_df.to_csv(index=False)
+        
+        st.download_button(
+            label="📥 Download CSV",
+            data=csv_data,
+            file_name="prompt_variations.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    
+    with col3:
+        # Text download with enhanced styling
+        st.markdown("""
+        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
+            <h4 style="color: #9c27b0; margin: 0;">📝 Text Format</h4>
+            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Plain text prompts only</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        text_data = "\n\n--- VARIATION ---\n\n".join([var['prompt'] for var in variations])
+        
+        st.download_button(
+            label="📥 Download TXT",
+            data=text_data,
+            file_name="prompt_variations.txt",
+            mime="text/plain",
+            use_container_width=True
+        ) 

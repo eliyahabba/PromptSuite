@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 from src.multipromptify import MultiPromptify
 from src.utils.constants import DEFAULT_MODEL
+from src.ui.components.results_display import display_full_results
 
 # Load environment variables
 load_dotenv()
@@ -392,186 +393,49 @@ def generate_all_variations():
 
 
 def display_generation_results():
-    """Enhanced display of variation generation results"""
+    """Display the full results using the shared display module"""
     if not st.session_state.get('variations_generated', False):
         return
-    
-    # Success header
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
-                padding: 2rem; border-radius: 10px; margin: 2rem 0;">
-        <h2 style="color: white; margin: 0; text-align: center;">🎉 Generation Complete!</h2>
-        <p style="color: rgba(255,255,255,0.9); text-align: center; margin: 0.5rem 0 0 0;">
-            Your prompt variations have been successfully generated
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
     
     variations = st.session_state.generated_variations
     stats = st.session_state.generation_stats
     generation_time = st.session_state.generation_time
+    original_data = st.session_state.uploaded_data
     
-    # Enhanced summary metrics with cards
-    st.markdown("### 📊 Generation Summary")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    padding: 1.5rem; border-radius: 10px; text-align: center; color: white;">
-            <h2 style="margin: 0; font-size: 2rem;">{}</h2>
-            <p style="margin: 0; opacity: 0.8;">Total Variations</p>
-        </div>
-        """.format(len(variations)), unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
-                    padding: 1.5rem; border-radius: 10px; text-align: center; color: white;">
-            <h2 style="margin: 0; font-size: 2rem;">{}</h2>
-            <p style="margin: 0; opacity: 0.8;">Original Rows</p>
-        </div>
-        """.format(stats.get('original_rows', 0)), unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
-                    padding: 1.5rem; border-radius: 10px; text-align: center; color: white;">
-            <h2 style="margin: 0; font-size: 2rem;">{:.1f}</h2>
-            <p style="margin: 0; opacity: 0.8;">Avg per Row</p>
-        </div>
-        """.format(stats.get('avg_variations_per_row', 0)), unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
-                    padding: 1.5rem; border-radius: 10px; text-align: center; color: #333;">
-            <h2 style="margin: 0; font-size: 2rem;">{:.1f}s</h2>
-            <p style="margin: 0; opacity: 0.7;">Generation Time</p>
-        </div>
-        """.format(generation_time), unsafe_allow_html=True)
-    
-    # Detailed statistics in an expandable card
-
-    # Sample variations preview with enhanced cards
-    st.markdown("---")
-    st.markdown("### 👀 Sample Variations Preview")
-    num_preview = min(5, len(variations))
-    
-    for i in range(num_preview):
-        with st.expander(f"🔍 Sample Variation {i+1}", expanded=(i == 0)):
-            variation = variations[i]
-            
-            # Prompt display
-            st.markdown("**Generated Prompt:**")
-            st.markdown("""
-            <div style="background: #f1f3f4; padding: 1rem; border-radius: 8px; border-left: 4px solid #4285f4;">
+    # Use the shared display function with collapsible option
+    with st.container():
+        # Add collapsible container for the results
+        show_results = st.checkbox("🎯 Show Full Results", value=True)
+        
+        if show_results:
+            display_full_results(
+                variations=variations,
+                original_data=original_data,
+                stats=stats,
+                generation_time=generation_time,
+                show_export=True,
+                show_header=True
+            )
+        else:
+            # Show just a summary when collapsed
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
+                        padding: 1.5rem; border-radius: 10px; margin: 1rem 0; text-align: center;">
+                <h3 style="color: white; margin: 0;">🎉 {len(variations)} variations generated successfully!</h3>
+                <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;">
+                    Check the box above to view all results
+                </p>
+            </div>
             """, unsafe_allow_html=True)
-            st.code(variation['prompt'], language="text")
-            st.markdown("</div>", unsafe_allow_html=True)
-            
-            # Metadata display
-            st.markdown("**📋 Metadata:**")
-            metadata = {
-                'original_row_index': variation.get('original_row_index'),
-                'field_values': variation.get('field_values'),
-                'template': variation.get('template')
-            }
-            st.json(metadata)
     
-    if len(variations) > num_preview:
-        st.info(f"💡 ... and {len(variations) - num_preview} more variations (view all in Step 4)")
-    
-    # Enhanced download section
+    # Generation complete - no more navigation needed
     st.markdown("---")
     st.markdown("""
-    <div style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2196f3; margin: 2rem 0;">
-        <h3 style="color: #1976d2; margin-top: 0;">💾 Download Your Results</h3>
-        <p style="margin-bottom: 0; color: #0d47a1;">Choose your preferred format to download the generated variations</p>
+    <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+                padding: 1.5rem; border-radius: 10px; text-align: center; color: white; margin: 2rem 0;">
+        <h3 style="margin: 0;">🎉 Generation Complete!</h3>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">
+            Your prompt variations are ready above. You can download them using the export options.
+        </p>
     </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        # JSON download with enhanced styling
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #ff9800; margin: 0;">📋 JSON Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Complete data with metadata</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        json_data = json.dumps(variations, indent=2, ensure_ascii=False)
-        st.download_button(
-            label="📥 Download JSON",
-            data=json_data,
-            file_name="prompt_variations.json",
-            mime="application/json",
-            use_container_width=True
-        )
-    
-    with col2:
-        # CSV download with enhanced styling
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #4caf50; margin: 0;">📊 CSV Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Spreadsheet compatible</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Flatten for CSV
-        flattened = []
-        for var in variations:
-            flat_var = {
-                'prompt': var['prompt'],
-                'original_row_index': var.get('original_row_index', ''),
-                'variation_count': var.get('variation_count', ''),
-            }
-            # Add field values
-            for key, value in var.get('field_values', {}).items():
-                flat_var[f'field_{key}'] = value
-            flattened.append(flat_var)
-        
-        csv_df = pd.DataFrame(flattened)
-        csv_data = csv_df.to_csv(index=False)
-        
-        st.download_button(
-            label="📥 Download CSV",
-            data=csv_data,
-            file_name="prompt_variations.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
-    
-    with col3:
-        # Text download with enhanced styling
-        st.markdown("""
-        <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-            <h4 style="color: #9c27b0; margin: 0;">📝 Text Format</h4>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Plain text prompts only</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        text_data = "\n\n--- VARIATION ---\n\n".join([var['prompt'] for var in variations])
-        
-        st.download_button(
-            label="📥 Download TXT",
-            data=text_data,
-            file_name="prompt_variations.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
-    
-    # Enhanced continue button
-    st.markdown("---")
-    st.markdown("""
-    <div style="text-align: center; padding: 2rem 0;">
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("Continue to View Results →", type="primary", use_container_width=True):
-            st.session_state.page = 4
-            st.rerun() 
+    """, unsafe_allow_html=True) 
