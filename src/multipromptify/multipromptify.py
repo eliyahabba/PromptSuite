@@ -123,7 +123,7 @@ class MultiPromptify:
                 gold_field, gold_type, options_field
             )
             
-            # במקום לייצר את few_shot_examples כאן, נעביר את few_shot_fields[0] וה-data הלאה
+            # Instead of generating few_shot_examples here, pass few_shot_fields[0] and data to the next function
             row_variations = self._create_row_variations(
                 field_variations, row, gold_field, few_shot_fields[0] if few_shot_fields else None, template, row_idx, gold_type, data, options_field
             )
@@ -563,11 +563,11 @@ class MultiPromptify:
         field_variations: Dict[str, List[Dict[str, Any]]], 
         row: pd.Series, 
         gold_field: str,
-        few_shot_field,  # במקום few_shot_examples
+        few_shot_field,  # instead of few_shot_examples
         template: dict,
         row_idx: int,
         gold_type: str = 'value',
-        data: pd.DataFrame = None,  # תעביר גם את הדאטה
+        data: pd.DataFrame = None,  # also pass the data
         options_field: str = None
     ) -> List[Dict[str, Any]]:
         import itertools
@@ -593,7 +593,7 @@ class MultiPromptify:
                             continue
                         else:
                             row_values[col] = str(row[col])
-                # כאן תייצר את הדוגמאות few-shot עבור כל instruction_variant
+                # Generate few-shot examples for each instruction_variant
                 few_shot_examples = []
                 if few_shot_field and data is not None:
                     few_shot_examples = self._generate_few_shot_examples_structured(
