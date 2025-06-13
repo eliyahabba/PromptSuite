@@ -123,17 +123,9 @@ class MultiPromptify:
                 gold_field, gold_type, options_field
             )
             
-            # Generate few-shot examples if configured (using original instruction template)
-            few_shot_examples = []
-            if few_shot_fields:
-                few_shot_examples = self._generate_few_shot_examples_structured(
-                    few_shot_fields[0], instruction_template, data, row_idx, 
-                    gold_field, gold_type, options_field
-                )
-            
-            # Create variations by combining all field variations
+            # במקום לייצר את few_shot_examples כאן, נעביר את few_shot_fields[0] וה-data הלאה
             row_variations = self._create_row_variations(
-                field_variations, row, gold_field, few_shot_examples, template, row_idx, gold_type
+                field_variations, row, gold_field, few_shot_fields[0] if few_shot_fields else None, template, row_idx, gold_type, data, options_field
             )
             
             all_variations.extend(row_variations)
@@ -571,66 +563,48 @@ class MultiPromptify:
         field_variations: Dict[str, List[Dict[str, Any]]], 
         row: pd.Series, 
         gold_field: str,
-        few_shot_examples: List[Dict[str, str]],
+        few_shot_field,  # במקום few_shot_examples
         template: dict,
         row_idx: int,
-        gold_type: str = 'value'
+        gold_type: str = 'value',
+        data: pd.DataFrame = None,  # תעביר גם את הדאטה
+        options_field: str = None
     ) -> List[Dict[str, Any]]:
-        """Create all combinations of field variations for a single row."""
-        
         import itertools
-        
         variations = []
-        
-        # Get all field names that have variations
         varying_fields = list(field_variations.keys())
-        
-        # Create all combinations of variations
         if varying_fields:
-            # Get all possible combinations
             variation_combinations = list(itertools.product(*[field_variations[field] for field in varying_fields]))
-            
             for combination in variation_combinations:
                 if len(variations) >= self.max_variations:
                     break
-                
-                # Create field values dict for this combination
                 field_values = dict(zip(varying_fields, combination))
-                
-                # Get the instruction for this combination
                 instruction_variant = field_values.get('instruction', field_variations.get('instruction', [{'data': '', 'gold_update': None}])[0])['data']
-                
-                # Create row values with variations applied and collect gold updates
                 row_values = {}
                 gold_updates = {}
-                
                 for col in row.index:
                     if pd.notna(row[col]):
                         if col in field_values:
-                            # Use the varied value
                             field_data = field_values[col]
                             row_values[col] = field_data['data']
-                            
-                            # Check for gold updates
                             if field_data['gold_update']:
                                 gold_updates.update(field_data['gold_update'])
                         elif gold_field and col == gold_field:
-                            # Skip gold field for main question (will be handled separately)
                             continue
                         else:
-                            # Use original value
                             row_values[col] = str(row[col])
-                
-                # Create main question - exclude gold field from main question
+                # כאן תייצר את הדוגמאות few-shot עבור כל instruction_variant
+                few_shot_examples = []
+                if few_shot_field and data is not None:
+                    few_shot_examples = self._generate_few_shot_examples_structured(
+                        few_shot_field, instruction_variant, data, row_idx, 
+                        gold_field, gold_type, options_field
+                    )
                 main_question = self._fill_template_placeholders(instruction_variant, row_values)
                 if gold_field:
                     main_question = main_question.replace(f'{{{gold_field}}}', '')
                 main_question = main_question.strip()
-                
-                # Build conversation structure
                 conversation_messages = []
-                
-                # Add few-shot examples as conversation history
                 for example in few_shot_examples:
                     conversation_messages.append({
                         "role": "user",
@@ -640,29 +614,21 @@ class MultiPromptify:
                         "role": "assistant", 
                         "content": example["answer"]
                     })
-                
-                # Add main question as final user message
                 if main_question:
                     conversation_messages.append({
                         "role": "user",
                         "content": main_question
                     })
-                
-                # Build traditional prompt format for backward compatibility
                 prompt_parts = []
                 if few_shot_examples:
                     few_shot_content = self._format_few_shot_as_string(few_shot_examples)
                     prompt_parts.append(few_shot_content)
                 if main_question:
                     prompt_parts.append(main_question)
-                
                 final_prompt = '\n\n'.join(prompt_parts)
-                
-                # Prepare field values for output (extract just the data part)
                 output_field_values = {}
                 for field_name, field_data in field_values.items():
                     output_field_values[field_name] = field_data['data']
-                
                 variations.append({
                     'prompt': final_prompt,
                     'conversation': conversation_messages,
@@ -672,5 +638,4 @@ class MultiPromptify:
                     'field_values': output_field_values,
                     'gold_updates': gold_updates if gold_updates else None,
                 })
-        
         return variations 
