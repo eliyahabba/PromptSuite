@@ -172,16 +172,16 @@ def get_sample_datasets():
                     'Which continent is known as the "Dark Continent"?'
                 ],
                 'options': [
-                    'A) Earth B) Jupiter C) Mars D) Venus',
-                    'A) Oxygen B) Gold C) Silver D) Iron', 
-                    'A) Lion B) Cheetah C) Horse D) Leopard',
-                    'A) 1 B) 2 C) 3 D) 0',
-                    'A) Asia B) Africa C) Europe D) Australia'
+                    'Earth, Jupiter, Mars, Venus',
+                    'Oxygen, Gold, Silver, Iron', 
+                    'Lion, Cheetah, Horse, Leopard',
+                    '1, 2, 3, 0',
+                    'Asia, Africa, Europe, Australia'
                 ],
-                'answer': ['B', 'A', 'B', 'B', 'B'],
+                'answer': [1, 0, 1, 1, 1],  # Indices: Jupiter=1, Oxygen=0, Cheetah=1, 2=1, Africa=1
                 'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
             }),
-            'description': 'Multiple choice questions with options, answers, and subject categories'
+            'description': 'Multiple choice questions with options in comma-separated format, numeric answer indices, and subject categories'
         },
         "Text Classification": {
             'data': pd.DataFrame({

@@ -10,7 +10,7 @@ from .template_parser import TemplateParser
 from src.augmentations.context_augmenter import ContextAugmenter
 from src.augmentations.fewshot_augmenter import FewShotAugmenter
 from src.augmentations.multidoc_augmenter import MultiDocAugmenter
-from src.augmentations.multiple_choice_augmenter import MultipleChoiceAugmenter
+from src.augmentations.shuffle_augmenter import ShuffleAugmenter
 from src.augmentations.paraphrase_instruct import Paraphrase
 from src.augmentations.text_surface_augmenter import TextSurfaceAugmenter
 
@@ -37,7 +37,7 @@ class MultiPromptify:
         "paraphrase": Paraphrase,
         "surface": TextSurfaceAugmenter,
         "context": ContextAugmenter,
-        "multiple-choice": MultipleChoiceAugmenter,
+        "shuffle": ShuffleAugmenter,
         "multidoc": MultiDocAugmenter,
     }
     
@@ -81,7 +81,23 @@ class MultiPromptify:
         few_shot_fields = self.template_parser.get_few_shot_fields()
         
         # Get gold field (answer column name) from template
-        gold_field = template.get('gold', None)
+        gold_config = template.get('gold', None)
+        
+        # Handle both old format (string) and new format (dict)
+        if isinstance(gold_config, str):
+            # Backward compatibility: old format
+            gold_field = gold_config
+            gold_type = 'value'
+            options_field = None
+        elif isinstance(gold_config, dict):
+            # New format
+            gold_field = gold_config.get('field')
+            gold_type = gold_config.get('type', 'value')
+            options_field = gold_config.get('options_field')
+        else:
+            gold_field = None
+            gold_type = 'value'
+            options_field = None
         
         # Get instruction template from user - required
         instruction_template = self.template_parser.get_instruction_template()
@@ -94,78 +110,38 @@ class MultiPromptify:
         # Validate gold field requirement
         self._validate_gold_field_requirement(instruction_template, gold_field, few_shot_fields)
         
-        # Generate instruction variations if needed
-        instruction_variations = self._generate_instruction_variations(
-            instruction_template, variation_fields, variations_per_field, api_key
-        )
-        
         all_variations = []
         
-        # For each instruction variation
-        for instruction_variant in instruction_variations:
+        # For each data row
+        for row_idx, row in data.iterrows():
+            if len(all_variations) >= self.max_variations:
+                break
             
-            # For each data row
-            for row_idx, row in data.iterrows():
-                if len(all_variations) >= self.max_variations:
-                    break
-                
-                # Generate few-shot examples if configured
-                few_shot_examples = []
-                if few_shot_fields:
-                    few_shot_examples = self._generate_few_shot_examples_structured(
-                        few_shot_fields[0], instruction_variant, data, row_idx, gold_field
-                    )
-                
-                # Create main question (without answer)
-                main_question = self._create_main_question(instruction_variant, row, gold_field)
-                
-                # Build conversation structure
-                conversation_messages = []
-                
-                # Add few-shot examples as conversation history
-                for example in few_shot_examples:
-                    conversation_messages.append({
-                        "role": "user",
-                        "content": example
-                    })
-                    conversation_messages.append({
-                        "role": "assistant", 
-                        "content": ""  # Empty response for few-shot examples
-                    })
-                
-                # Add main question as final user message
-                if main_question:
-                    conversation_messages.append({
-                        "role": "user",
-                        "content": main_question
-                    })
-                
-                # Build traditional prompt format for backward compatibility
-                prompt_parts = []
-                if few_shot_examples:
-                    few_shot_content = self._format_few_shot_as_string(few_shot_examples)
-                    prompt_parts.append(few_shot_content)
-                if main_question:
-                    prompt_parts.append(main_question)
-                
-                final_prompt = '\n\n'.join(prompt_parts)
-                
-                all_variations.append({
-                    'prompt': final_prompt,
-                    'conversation': conversation_messages,
-                    'original_row_index': row_idx,
-                    'variation_count': len(all_variations) + 1,
-                    'template_config': template,
-                    'field_values': {
-                        'instruction': instruction_variant, 
-                        'few_shot': few_shot_examples
-                    },
-                })
-                
-                if len(all_variations) >= self.max_variations:
-                    break
+            # Generate variations for all fields
+            field_variations = self._generate_all_field_variations(
+                instruction_template, variation_fields, row, variations_per_field, api_key, 
+                gold_field, gold_type, options_field
+            )
+            
+            # Generate few-shot examples if configured (using original instruction template)
+            few_shot_examples = []
+            if few_shot_fields:
+                few_shot_examples = self._generate_few_shot_examples_structured(
+                    few_shot_fields[0], instruction_template, data, row_idx, 
+                    gold_field, gold_type, options_field
+                )
+            
+            # Create variations by combining all field variations
+            row_variations = self._create_row_variations(
+                field_variations, row, gold_field, few_shot_examples, template, row_idx, gold_type
+            )
+            
+            all_variations.extend(row_variations)
+            
+            if len(all_variations) >= self.max_variations:
+                break
         
-        return all_variations
+        return all_variations[:self.max_variations]
     
     def _load_data(self, data_path: str) -> pd.DataFrame:
         """Load data from file path."""
@@ -177,8 +153,6 @@ class MultiPromptify:
             return pd.DataFrame(json_data)
         else:
             raise ValueError(f"Unsupported file format: {data_path}")
-    
-
     
     def _generate_instruction_variations(
         self, 
@@ -241,62 +215,113 @@ class MultiPromptify:
                 "Example: \"gold\": \"answer\" or \"gold\": \"label\""
             )
     
-    def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> List[str]:
-        """Generate few-shot examples as list of complete prompts."""
+    def _generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None, gold_type: str = 'value', options_field: str = None) -> List[Dict[str, str]]:
+        """Generate few-shot examples using the configured parameters with structured output."""
         
-        num_examples = few_shot_field.few_shot_count
-        
-        # Filter data based on split configuration
-        if few_shot_field.few_shot_split == 'train' and 'split' in data.columns:
-            available_data = data[data['split'] == 'train']
-        elif few_shot_field.few_shot_split == 'test' and 'split' in data.columns:
-            available_data = data[data['split'] == 'test']
-        else:
-            available_data = data.copy()
-        
-        # Exclude current row
-        available_data = available_data.drop(index=current_row_idx, errors='ignore')
-        
-        if len(available_data) == 0:
+        if not few_shot_field:
             return []
         
-        # Sample examples based on format
-        if few_shot_field.few_shot_format == 'fixed':
-            # Same examples for all rows
-            sampled_data = available_data.sample(
-                n=min(num_examples, len(available_data)), 
-                random_state=42
-            )
-        else:
-            # Different examples per row (rotating)
-            sampled_data = available_data.sample(
-                n=min(num_examples, len(available_data)), 
-                random_state=current_row_idx
-            )
+        count = few_shot_field.few_shot_count or 2
+        few_shot_format = few_shot_field.few_shot_format or "rotating"
+        split = few_shot_field.few_shot_split or "all"
         
-        # Create examples
+        # Get available data for few-shot examples
+        if split == "train":
+            # Use only training data
+            available_data = data[data.get('split', 'train') == 'train']
+        elif split == "test":
+            # Use only test data
+            available_data = data[data.get('split', 'train') == 'test']
+        else:
+            # Use all data
+            available_data = data
+        
+        # Remove current row to avoid data leakage
+        available_data = available_data.drop(current_row_idx, errors='ignore')
+        
+        if len(available_data) < count:
+            # Not enough data for few-shot examples
+            return []
+        
+        # Sample examples
+        if few_shot_format == "fixed":
+            # Use the same first N examples for all questions
+            sampled_data = available_data.head(count)
+        else:
+            # Randomly sample different examples for each question
+            sampled_data = available_data.sample(n=count, random_state=current_row_idx)
+        
         examples = []
+        
         for _, example_row in sampled_data.iterrows():
-            # Fill all placeholders including the gold field with real values
-            all_values = {}
+            # Create row values for few-shot examples (including extracting real answer)
+            row_values = {}
             for col in example_row.index:
                 if pd.notna(example_row[col]):
-                    all_values[col] = str(example_row[col])
-            
-            # For few-shot examples, fill everything including the gold field
-            complete_example = self._fill_template_placeholders(instruction_variant, all_values)
-            
-            if complete_example:
-                examples.append(complete_example)
+                    if gold_field and col == gold_field:
+                        # For few-shot examples, extract the actual answer value from options
+                        answer_value = self._extract_answer_from_options(
+                            example_row, gold_field, gold_type, options_field
+                        )
+                        row_values[col] = answer_value
+                    else:
+                        row_values[col] = str(example_row[col])
+
+            # Fill template with all placeholders (including extracted answer)
+            question = self._fill_template_placeholders(instruction_variant, row_values)
+
+            if question:
+                examples.append({
+                    "question": question.strip(),
+                    "answer": ""
+                })
         
         return examples
     
-    def _format_few_shot_as_string(self, few_shot_examples: List[str]) -> str:
+    def _extract_answer_from_options(self, row: pd.Series, gold_field: str, gold_type: str, options_field: str = None) -> str:
+        """Extract the actual answer text from options based on the gold field."""
+        
+        if not gold_field or gold_field not in row.index:
+            return str(row.get(gold_field, ''))
+        
+        gold_value = row[gold_field]
+        
+        # If gold_type is 'value', return as is
+        if gold_type == 'value':
+            return str(gold_value)
+        
+        # If gold_type is 'index', try to extract from options
+        if gold_type == 'index' and options_field and options_field in row.index:
+            try:
+                from src.augmentations.shuffle_augmenter import ShuffleAugmenter
+                shuffle_augmenter = ShuffleAugmenter()
+                
+                options_text = str(row[options_field])
+                options_list = shuffle_augmenter._parse_input_to_list(options_text)
+                
+                index = int(gold_value)
+                if 0 <= index < len(options_list):
+                    # Return the actual option text, cleaned up
+                    return options_list[index].strip()
+                    
+            except (ValueError, IndexError, Exception):
+                pass
+        
+        # Fallback: return the gold value as string
+        return str(gold_value)
+    
+    def _format_few_shot_as_string(self, few_shot_examples: List[Dict[str, str]]) -> str:
         """Format few-shot examples as string."""
         if not few_shot_examples:
             return ""
         
-        return "\n\n".join(few_shot_examples)
+        formatted_examples = []
+        for example in few_shot_examples:
+            # Combine question and answer for the traditional prompt format
+            formatted_example = f"{example['question']}\n{example['answer']}"
+            formatted_examples.append(formatted_example)
+        
+        return "\n\n".join(formatted_examples)
     
     def _generate_few_shot_examples(self, few_shot_field, instruction_variant: str, data: pd.DataFrame, current_row_idx: int, gold_field: str = None) -> str:
         """Generate few-shot examples using the configured parameters. (Legacy method for backward compatibility)"""
@@ -319,16 +344,11 @@ class MultiPromptify:
         
         # Fill template and remove the gold field placeholder completely
         question = self._fill_template_placeholders(instruction_variant, row_values)
-        
-        # Remove the gold field placeholder completely (including its text/formatting)  
+
+        # Remove any remaining gold field placeholder
         if gold_field:
-            import re
-            # Remove {gold_field} placeholder and any text that comes before it on the same line
-            gold_placeholder_pattern = f'[^\\n]*\\{{{gold_field}\\}}[^\\n]*'
-            question = re.sub(gold_placeholder_pattern, '', question)
-            # Clean up any trailing newlines or whitespace
-            question = re.sub(r'\n+$', '', question)
-        
+            question = question.replace(f'{{{gold_field}}}', '')
+
         return question.strip()
     
     def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
@@ -405,4 +425,252 @@ class MultiPromptify:
                     f.write("\n\n")
         
         else:
-            raise ValueError(f"Unsupported format: {format}") 
+            raise ValueError(f"Unsupported format: {format}")
+    
+    def _generate_all_field_variations(
+        self, 
+        instruction_template: str, 
+        variation_fields: Dict[str, List[str]], 
+        row: pd.Series,
+        variations_per_field: int, 
+        api_key: str,
+        gold_field: str = None,
+        gold_type: str = 'value',
+        options_field: str = None
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Generate variations for all fields that have variation types specified."""
+        
+        field_variations = {}
+        
+        # Generate instruction variations
+        if 'instruction' in variation_fields and variation_fields['instruction']:
+            instruction_vars = self._generate_instruction_variations(
+                instruction_template, variation_fields, variations_per_field, api_key
+            )
+            # Convert to new format
+            field_variations['instruction'] = [{'data': var, 'gold_update': None} for var in instruction_vars]
+        else:
+            field_variations['instruction'] = [{'data': instruction_template, 'gold_update': None}]
+        
+        # Generate variations for other fields
+        for field_name, variation_types in variation_fields.items():
+            if field_name == 'instruction':
+                continue  # Already handled above
+            
+            if field_name in row.index and pd.notna(row[field_name]):
+                field_value = str(row[field_name])
+                field_variations[field_name] = self._generate_field_variations(
+                    field_name, field_value, variation_types, variations_per_field, api_key, row, gold_field, gold_type, options_field
+                )
+            else:
+                # If field not in data, use empty variations
+                field_variations[field_name] = [{'data': '', 'gold_update': None}]
+        
+        return field_variations
+    
+    def _generate_field_variations(
+        self, 
+        field_name: str, 
+        field_value: str, 
+        variation_types: List[str], 
+        variations_per_field: int,
+        api_key: str,
+        row: pd.Series = None,
+        gold_field: str = None,
+        gold_type: str = 'value',
+        options_field: str = None
+    ) -> List[Dict[str, Any]]:
+        """Generate variations for a specific field."""
+        
+        all_variations = [{'data': field_value, 'gold_update': None}]  # Start with original
+        
+        for variation_type in variation_types:
+            try:
+                augmenter_class = self.VARIATION_TYPE_TO_AUGMENTER.get(
+                    variation_type, TextSurfaceAugmenter
+                )
+                
+                if augmenter_class == Paraphrase and api_key:
+                    augmenter = augmenter_class(n_augments=variations_per_field, api_key=api_key)
+                else:
+                    augmenter = augmenter_class(n_augments=variations_per_field)
+                
+                # Special handling for shuffle augmenter
+                if variation_type == 'shuffle':
+                    if not gold_field or not row.index.tolist() or gold_field not in row.index:
+                        print(f"⚠️ Shuffle augmenter requires gold field '{gold_field}' to be present in data")
+                        continue
+                    
+                    # Prepare identification data based on gold type
+                    if gold_type == 'index':
+                        # For index-based gold, pass the index directly
+                        try:
+                            gold_index = int(row[gold_field])
+                            identification_data = {
+                                'gold_field': gold_field,
+                                'gold_value': str(gold_index)
+                            }
+                        except (ValueError, TypeError):
+                            print(f"⚠️ Gold field '{gold_field}' must contain valid integer indices for shuffle operation")
+                            continue
+                    else:
+                        # For value-based gold, pass the value and let augmenter find the index
+                        identification_data = {
+                            'gold_field': gold_field,
+                            'gold_value': str(row[gold_field])
+                        }
+                    
+                    variations = augmenter.augment(field_value, identification_data)
+                    
+                    if variations and isinstance(variations, list):
+                        for var in variations:
+                            if isinstance(var, dict) and 'shuffled_data' in var and 'new_gold_index' in var:
+                                # For index-based gold, update with new index
+                                # For value-based gold, convert index back to value if needed
+                                if gold_type == 'index':
+                                    gold_update_value = var['new_gold_index']
+                                else:
+                                    # For value-based, we might need to extract the actual value
+                                    # from the shuffled options, but for now keep the index
+                                    gold_update_value = var['new_gold_index']
+                                
+                                variation_data = {
+                                    'data': var['shuffled_data'],
+                                    'gold_update': {gold_field: gold_update_value}
+                                }
+                                if variation_data not in all_variations:
+                                    all_variations.append(variation_data)
+                else:
+                    # Regular augmenters
+                    variations = augmenter.augment(field_value)
+                    
+                    if variations and isinstance(variations, list):
+                        # Add new variations (excluding original if already present)
+                        for var in variations:
+                            variation_data = {'data': var, 'gold_update': None}
+                            if variation_data not in all_variations:
+                                all_variations.append(variation_data)
+                            
+            except Exception as e:
+                print(f"⚠️ Error generating {variation_type} variations for field {field_name}: {e}")
+                continue
+        
+        # Remove duplicates while preserving order and limit to variations_per_field + 1 (original)
+        unique_variations = []
+        seen = set()
+        for var in all_variations:
+            var_key = (var['data'], str(var['gold_update']))
+            if var_key not in seen:
+                unique_variations.append(var)
+                seen.add(var_key)
+        
+        return unique_variations[:variations_per_field + 1]
+    
+    def _create_row_variations(
+        self, 
+        field_variations: Dict[str, List[Dict[str, Any]]], 
+        row: pd.Series, 
+        gold_field: str,
+        few_shot_examples: List[Dict[str, str]],
+        template: dict,
+        row_idx: int,
+        gold_type: str = 'value'
+    ) -> List[Dict[str, Any]]:
+        """Create all combinations of field variations for a single row."""
+        
+        import itertools
+        
+        variations = []
+        
+        # Get all field names that have variations
+        varying_fields = list(field_variations.keys())
+        
+        # Create all combinations of variations
+        if varying_fields:
+            # Get all possible combinations
+            variation_combinations = list(itertools.product(*[field_variations[field] for field in varying_fields]))
+            
+            for combination in variation_combinations:
+                if len(variations) >= self.max_variations:
+                    break
+                
+                # Create field values dict for this combination
+                field_values = dict(zip(varying_fields, combination))
+                
+                # Get the instruction for this combination
+                instruction_variant = field_values.get('instruction', field_variations.get('instruction', [{'data': '', 'gold_update': None}])[0])['data']
+                
+                # Create row values with variations applied and collect gold updates
+                row_values = {}
+                gold_updates = {}
+                
+                for col in row.index:
+                    if pd.notna(row[col]):
+                        if col in field_values:
+                            # Use the varied value
+                            field_data = field_values[col]
+                            row_values[col] = field_data['data']
+                            
+                            # Check for gold updates
+                            if field_data['gold_update']:
+                                gold_updates.update(field_data['gold_update'])
+                        elif gold_field and col == gold_field:
+                            # Skip gold field for main question (will be handled separately)
+                            continue
+                        else:
+                            # Use original value
+                            row_values[col] = str(row[col])
+                
+                # Create main question - exclude gold field from main question
+                main_question = self._fill_template_placeholders(instruction_variant, row_values)
+                if gold_field:
+                    main_question = main_question.replace(f'{{{gold_field}}}', '')
+                main_question = main_question.strip()
+                
+                # Build conversation structure
+                conversation_messages = []
+                
+                # Add few-shot examples as conversation history
+                for example in few_shot_examples:
+                    conversation_messages.append({
+                        "role": "user",
+                        "content": example["question"]
+                    })
+                    conversation_messages.append({
+                        "role": "assistant", 
+                        "content": example["answer"]
+                    })
+                
+                # Add main question as final user message
+                if main_question:
+                    conversation_messages.append({
+                        "role": "user",
+                        "content": main_question
+                    })
+                
+                # Build traditional prompt format for backward compatibility
+                prompt_parts = []
+                if few_shot_examples:
+                    few_shot_content = self._format_few_shot_as_string(few_shot_examples)
+                    prompt_parts.append(few_shot_content)
+                if main_question:
+                    prompt_parts.append(main_question)
+                
+                final_prompt = '\n\n'.join(prompt_parts)
+                
+                # Prepare field values for output (extract just the data part)
+                output_field_values = {}
+                for field_name, field_data in field_values.items():
+                    output_field_values[field_name] = field_data['data']
+                
+                variations.append({
+                    'prompt': final_prompt,
+                    'conversation': conversation_messages,
+                    'original_row_index': row_idx,
+                    'variation_count': len(variations) + 1,
+                    'template_config': template,
+                    'field_values': output_field_values,
+                    'gold_updates': gold_updates if gold_updates else None,
+                })
+        
+        return variations 

@@ -392,10 +392,27 @@ def display_single_variation(variation, variation_num, original_data):
                             </div>
                             """, unsafe_allow_html=True)
 
+            # Show gold field updates (when fields like options are shuffled)
+            gold_updates = variation.get('gold_updates', {})
+            if gold_updates is None:
+                gold_updates = {}
+            
+            if gold_updates:
+                for gold_field, new_value in gold_updates.items():
+                    if original_row is not None and gold_field in original_row.index:
+                        original_val = str(original_row[gold_field]) if pd.notna(original_row[gold_field]) else ""
+                        st.markdown(f"""
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #e74c3c;">
+                            <strong style="color: #c0392b;">{gold_field} (updated):</strong><br>
+                            <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
+                            <span style="background: #ffebee; padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #e74c3c;">→ {new_value}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+
             # Show any additional fields from original data that weren't used in field_values
             if original_row is not None:
                 for col in original_row.index:
-                    if col not in field_values and pd.notna(original_row[col]) and str(original_row[col]).strip():
+                    if col not in field_values and col not in gold_updates and pd.notna(original_row[col]) and str(original_row[col]).strip():
                         original_val = str(original_row[col])
                         st.markdown(f"""
                         <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">

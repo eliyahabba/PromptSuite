@@ -99,9 +99,21 @@ def template_suggestions_interface(available_columns):
 
                 # Check if gold field value exists in columns
                 if 'gold' in template_dict:
-                    gold_column = template_dict['gold']
-                    if gold_column not in available_columns:
-                        required_fields.append(gold_column)
+                    gold_config = template_dict['gold']
+                    if isinstance(gold_config, str):
+                        # Old format: gold field is just the column name
+                        if gold_config not in available_columns:
+                            required_fields.append(gold_config)
+                    elif isinstance(gold_config, dict) and 'field' in gold_config:
+                        # New format: gold field is a dict with 'field' key
+                        gold_field = gold_config['field']
+                        if gold_field not in available_columns:
+                            required_fields.append(gold_field)
+                        # If there's an options_field specified, check it too
+                        if 'options_field' in gold_config:
+                            options_field = gold_config['options_field']
+                            if options_field not in available_columns:
+                                required_fields.append(options_field)
 
                 # Check if we have the required columns
                 missing_fields = set(required_fields) - set(available_columns)
@@ -209,7 +221,7 @@ def template_builder_interface(available_columns):
         """, unsafe_allow_html=True)
 
     # Available variation types
-    variation_types = ["paraphrase", "surface", "context", "multiple-choice", "multidoc"]
+    variation_types = ["paraphrase", "surface", "context", "shuffle", "multidoc"]
 
     # Initialize template state
     if 'template_config' not in st.session_state:

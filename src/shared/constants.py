@@ -21,16 +21,31 @@ class AugmentationPipelineConstants:
     # Default maximum number of variations to generate
     DEFAULT_MAX_VARIATIONS = 100
 
-# Constants for MultipleChoiceAugmenter
-class MultipleChoiceConstants:
-    # Enumeration styles for multiple choice options
-    ENUMERATION_STYLES = [
-        ["A", "B", "C", "D"],  # uppercase letters
-        ["a", "b", "c", "d"],  # lowercase letters
-        ["1", "2", "3", "4"],  # numbers
-        ["A)", "B)", "C)", "D)"],  # uppercase with bracket
-        ["a)", "b)", "c)", "d)"],  # lowercase with bracket
-        ["1)", "2)", "3)", "4)"],  # numbers with bracket
+# Constants for the web app generation interface
+class GenerationInterfaceConstants:
+    # Default generation settings
+    DEFAULT_MAX_VARIATIONS = 50
+    DEFAULT_MAX_ROWS = 1  # Changed from 5 to 1 as requested
+    DEFAULT_VARIATIONS_PER_FIELD = 3
+    DEFAULT_RANDOM_SEED = 42
+    
+    # Generation limits
+    MIN_VARIATIONS = 1
+    MAX_VARIATIONS = 1000
+    MIN_VARIATIONS_PER_FIELD = 1
+    MAX_VARIATIONS_PER_FIELD = 10
+
+# Constants for ShuffleAugmenter
+class ShuffleConstants:
+    # Default number of shuffle variations to generate
+    DEFAULT_N_SHUFFLES = 3
+    
+    # Supported list formats for parsing
+    SUPPORTED_FORMATS = [
+        "json",           # ["item1", "item2", "item3"]
+        "multiple_choice", # "A) item1 B) item2 C) item3"
+        "comma_separated", # "item1, item2, item3"
+        "newline_separated" # "item1\nitem2\nitem3"
     ]
 
 # Constants for MultiDocAugmenter

@@ -8,7 +8,7 @@ import time
 import os
 from dotenv import load_dotenv
 from src.multipromptify import MultiPromptify
-from src.shared.constants import DEFAULT_MODEL
+from src.shared.constants import DEFAULT_MODEL, GenerationInterfaceConstants
 from src.app.components.results_display import display_full_results
 
 # Load environment variables
@@ -109,12 +109,12 @@ def configure_generation():
         
         # Max variations setting
         if 'max_variations' not in st.session_state:
-            st.session_state.max_variations = 50
+            st.session_state.max_variations = GenerationInterfaceConstants.DEFAULT_MAX_VARIATIONS
             
         max_variations = st.number_input(
             "🎯 Maximum variations to generate",
-            min_value=1,
-            max_value=1000,
+            min_value=GenerationInterfaceConstants.MIN_VARIATIONS,
+            max_value=GenerationInterfaceConstants.MAX_VARIATIONS,
             key='max_variations',
             help="Total number of prompt variations to generate across all data rows"
         )
@@ -122,7 +122,7 @@ def configure_generation():
         # Max rows setting
         df = st.session_state.uploaded_data
         if 'max_rows' not in st.session_state:
-            st.session_state.max_rows = len(df)
+            st.session_state.max_rows = min(GenerationInterfaceConstants.DEFAULT_MAX_ROWS, len(df))
             
         max_rows = st.number_input(
             "📊 Maximum rows from data to use",
@@ -137,12 +137,12 @@ def configure_generation():
         
         # Variations per field
         if 'variations_per_field' not in st.session_state:
-            st.session_state.variations_per_field = 3
+            st.session_state.variations_per_field = GenerationInterfaceConstants.DEFAULT_VARIATIONS_PER_FIELD
             
         variations_per_field = st.number_input(
             "🔄 Variations per field",
-            min_value=1,
-            max_value=10,
+            min_value=GenerationInterfaceConstants.MIN_VARIATIONS_PER_FIELD,
+            max_value=GenerationInterfaceConstants.MAX_VARIATIONS_PER_FIELD,
             key='variations_per_field',
             help="Number of variations to generate for each field with variation annotations"
         )
@@ -152,7 +152,7 @@ def configure_generation():
         use_seed = st.checkbox("🔒 Use random seed for reproducible results")
         if use_seed:
             if 'random_seed' not in st.session_state:
-                st.session_state.random_seed = 42
+                st.session_state.random_seed = GenerationInterfaceConstants.DEFAULT_RANDOM_SEED
             seed = st.number_input("🌱 Random seed", min_value=0, key='random_seed')
         else:
             st.session_state.random_seed = None

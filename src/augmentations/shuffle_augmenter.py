@@ -14,6 +14,11 @@ class ShuffleAugmenter(BaseAxisAugmenter):
     1. Takes a list (or list-like string) as input
     2. Shuffles the order of items
     3. Returns the shuffled list and the new index of the correct answer
+    
+    Supported formats:
+    - JSON list: ["item1", "item2", "item3"]
+    - Comma-separated: "item1, item2, item3"
+    - Newline-separated: "item1\nitem2\nitem3"
     """
 
     def __init__(self, n_augments=ShuffleConstants.DEFAULT_N_SHUFFLES):
@@ -108,8 +113,8 @@ class ShuffleAugmenter(BaseAxisAugmenter):
         
         Supports multiple formats:
         - JSON list: ["item1", "item2", "item3"]
-        - Multiple choice: "A) item1 B) item2 C) item3"
-        - Simple separated: "item1, item2, item3"
+        - Comma-separated: "item1, item2, item3"
+        - Newline-separated: "item1\nitem2\nitem3"
         """
         input_data = input_data.strip()
         
@@ -121,13 +126,6 @@ class ShuffleAugmenter(BaseAxisAugmenter):
         except json.JSONDecodeError:
             pass
         
-        # Try multiple choice format: "A) item1 B) item2 C) item3"
-        import re
-        mc_pattern = r'[A-Za-z0-9]+[\)\.]?\s*([^A-Za-z0-9\)\.].*?)(?=\s*[A-Za-z0-9]+[\)\.]|$)'
-        mc_matches = re.findall(mc_pattern, input_data)
-        if mc_matches:
-            return [match.strip() for match in mc_matches]
-        
         # Try comma-separated format
         if ',' in input_data:
             return [item.strip() for item in input_data.split(',') if item.strip()]
@@ -137,7 +135,7 @@ class ShuffleAugmenter(BaseAxisAugmenter):
             return [item.strip() for item in input_data.split('\n') if item.strip()]
         
         # If none of the above work, raise an error
-        raise ValueError(f"Could not parse '{input_data}' as a list. Supported formats: JSON list, multiple choice (A) item1 B) item2), comma-separated, or newline-separated.")
+        raise ValueError(f"Could not parse '{input_data}' as a list. Supported formats: JSON list, comma-separated, or newline-separated.")
     
     def _list_to_string(self, data_list: List[str], original_format: str) -> str:
         """
@@ -151,21 +149,6 @@ class ShuffleAugmenter(BaseAxisAugmenter):
             return json.dumps(data_list)
         except json.JSONDecodeError:
             pass
-        
-        # If original was multiple choice format, preserve the style
-        import re
-        mc_pattern = r'([A-Za-z0-9]+[\)\.]?)\s*'
-        mc_markers = re.findall(mc_pattern, original_format)
-        if mc_markers and len(mc_markers) == len(data_list):
-            result = []
-            for i, item in enumerate(data_list):
-                if i < len(mc_markers):
-                    result.append(f"{mc_markers[i]} {item}")
-                else:
-                    # Fallback to A, B, C... if we run out of original markers
-                    marker = chr(ord('A') + i)
-                    result.append(f"{marker}) {item}")
-            return ' '.join(result)
         
         # If original was comma-separated, return comma-separated
         if ',' in original_format:
@@ -183,8 +166,8 @@ def main():
     """Example usage of ShuffleAugmenter."""
     augmenter = ShuffleAugmenter(n_augments=3)
     
-    # Example 1: Multiple choice format
-    options1 = "A) Paris B) London C) Berlin D) Madrid"
+    # Example 1: Comma-separated format
+    options1 = "Paris, London, Berlin, Madrid"
     identification_data1 = {
         'gold_field': 'answer',
         'gold_value': '0'  # Paris is the correct answer (index 0)
@@ -216,7 +199,7 @@ def main():
         print("New gold index:", var['new_gold_index'])
     
     # Example 3: Value-based gold field (not index)
-    options3 = "A) Paris B) London C) Berlin D) Madrid"
+    options3 = "Paris, London, Berlin, Madrid"
     identification_data3 = {
         'gold_field': 'answer',
         'gold_value': 'Paris'  # Paris is the correct answer (by value, not index)

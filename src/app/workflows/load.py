@@ -104,7 +104,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
                             'instruction': ['paraphrase'],
                             'text': ['surface'],
-                            'gold': 'label'
+                            'gold': {
+                                'field': 'label',
+                                'type': 'value'
+                            }
                         },
                         'description': 'Simple sentiment classification with instruction paraphrases and text surface variations',
                         'sample_data': {
@@ -118,7 +121,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
                             'instruction': ['paraphrase', 'surface'],
                             'text': ['surface', 'context'],
-                            'gold': 'label',
+                            'gold': {
+                                'field': 'label',
+                                'type': 'value'
+                            },
                             'few_shot': {
                                 'count': 2,
                                 'format': 'rotating',
@@ -145,7 +151,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
                             'instruction': ['paraphrase'],
                             'question': ['surface'],
-                            'gold': 'answer'
+                            'gold': {
+                                'field': 'answer',
+                                'type': 'value'
+                            }
                         },
                         'description': 'Q&A with instruction paraphrases and question surface variations',
                         'sample_data': {
@@ -160,7 +169,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase'],
                             'question': ['surface', 'paraphrase'],
                             'context': ['context'],
-                            'gold': 'answer',
+                            'gold': {
+                                'field': 'answer',
+                                'type': 'value'
+                            },
                             'few_shot': {
                                 'count': 3,
                                 'format': 'fixed',
@@ -188,14 +200,18 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
                             'instruction': ['paraphrase'],
                             'question': ['surface'],
-                            'options': ['multiple-choice'],
-                            'gold': 'answer'
+                            'options': ['shuffle'],
+                            'gold': {
+                                'field': 'answer',
+                                'type': 'index',  # 'index' or 'value'
+                                'options_field': 'options'  # Field containing the list to shuffle
+                            }
                         },
-                        'description': 'Multiple choice with instruction paraphrases, question variations, and option formatting',
+                        'description': 'Multiple choice with instruction paraphrases, question variations, and option shuffling',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
-                            'options': ['A) Earth B) Jupiter C) Mars', 'A) Oxygen B) Gold C) Silver', 'A) Lion B) Cheetah C) Horse'],
-                            'answer': ['B', 'A', 'B']
+                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse'],
+                            'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
                         }
                     },
                     {
@@ -204,19 +220,23 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
                             'instruction': ['paraphrase'],
                             'question': ['surface'],
-                            'options': ['multiple-choice', 'surface'],
-                            'gold': 'answer',
+                            'options': ['shuffle', 'surface'],
+                            'gold': {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            },
                             'few_shot': {
                                 'count': 2,
                                 'format': 'fixed',
                                 'split': 'all'
                             }
                         },
-                        'description': 'Multiple choice with variations and fixed few-shot examples',
+                        'description': 'Multiple choice with option shuffling, surface variations and fixed few-shot examples',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?', 'What is the smallest prime number?'],
-                            'options': ['A) Earth B) Jupiter C) Mars', 'A) Oxygen B) Gold C) Silver', 'A) Lion B) Cheetah C) Horse', 'A) 1 B) 2 C) 3'],
-                            'answer': ['B', 'A', 'B', 'B']
+                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse', '1, 2, 3'],
+                            'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
                         }
                     }
                 ]
@@ -233,7 +253,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Classify the following text into a category:\nText: "{text}"\nCategory: {category}',
                             'instruction': ['paraphrase'],
                             'text': ['surface'],
-                            'gold': 'category'
+                            'gold': {
+                                'field': 'category',
+                                'type': 'value'
+                            }
                         },
                         'description': 'Simple text classification with instruction and text variations',
                         'sample_data': {
@@ -248,7 +271,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase', 'surface'],
                             'text': ['surface', 'context'],
                             'category': [],  # No variations for output
-                            'gold': 'category'
+                            'gold': {
+                                'field': 'category',
+                                'type': 'value'
+                            }
                         },
                         'description': 'Text classification with multiple variation types on instruction and text',
                         'sample_data': {
@@ -262,7 +288,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
                             'instruction': ['paraphrase'],
                             'text': ['surface'],
-                            'gold': 'category',
+                            'gold': {
+                                'field': 'category',
+                                'type': 'value'
+                            },
                             'few_shot': {
                                 'count': 3,
                                 'format': 'rotating',
@@ -290,7 +319,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase', 'surface'],
                             'text': ['surface', 'context'],
                             'label': [],
-                            'gold': 'label',
+                            'gold': {
+                                'field': 'label',
+                                'type': 'value'
+                            },
                             'few_shot': {
                                 'count': 2,
                                 'format': 'rotating',
@@ -310,7 +342,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'instruction': ['paraphrase'],
                             'question': ['surface', 'paraphrase'],
                             'answer': [],
-                            'gold': 'answer',
+                            'gold': {
+                                'field': 'answer',
+                                'type': 'value'
+                            },
                             'few_shot': {
                                 'count': 3,
                                 'format': 'fixed',

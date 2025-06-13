@@ -140,8 +140,16 @@ class TemplateParser:
         
         # Check if gold field value exists in columns
         if template and 'gold' in template:
-            gold_column = template['gold']
-            required.add(gold_column)
+            gold_config = template['gold']
+            if isinstance(gold_config, str):
+                # Old format: gold field is just the column name
+                required.add(gold_config)
+            elif isinstance(gold_config, dict) and 'field' in gold_config:
+                # New format: gold field is a dict with 'field' key
+                required.add(gold_config['field'])
+                # If there's an options_field specified, add it too
+                if 'options_field' in gold_config:
+                    required.add(gold_config['options_field'])
                 
         return required
     
@@ -210,7 +218,7 @@ class TemplateParser:
                     errors.append(f"Few-shot split must be 'all', 'train', or 'test', got {field.few_shot_split}")
         
         # Check for valid variation types
-        valid_variations = {'paraphrase', 'surface', 'context', 'multiple-choice', 'multidoc'}
+        valid_variations = {'paraphrase', 'surface', 'context', 'shuffle', 'multidoc'}
         for field in fields:
             if field.name != 'few_shot':
                 for variation_type in field.variation_types:
