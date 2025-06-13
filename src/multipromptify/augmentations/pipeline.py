@@ -4,13 +4,13 @@ Augmentation pipeline that combines multiple augmentation methods.
 import random
 from typing import List, Optional, Dict, Any
 
-from src.augmentations.base_augmenter import BaseAxisAugmenter
-from src.augmentations.context_augmenter import ContextAugmenter
-from src.augmentations.fewshot_augmenter import FewShotAugmenter
-from src.augmentations.multidoc_augmenter import MultiDocAugmenter
-from src.augmentations.shuffle_augmenter import ShuffleAugmenter
-from src.augmentations.paraphrase_instruct import Paraphrase
-from src.augmentations.text_surface_augmenter import TextSurfaceAugmenter
+from src.multipromptify.augmentations.base import BaseAxisAugmenter
+from src.multipromptify.augmentations.text.context import ContextAugmenter
+from src.multipromptify.augmentations.structure.fewshot import FewShotAugmenter
+
+from src.multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
+from src.multipromptify.augmentations.text.paraphrase import Paraphrase
+from src.multipromptify.augmentations.text.surface import TextSurfaceAugmenter
 from src.shared.constants import AugmentationPipelineConstants, BaseAugmenterConstants
 
 
@@ -57,25 +57,14 @@ class AugmentationPipeline:
         if isinstance(augmenter, Paraphrase):
             return augmenter.augment(text)
         elif isinstance(augmenter, ShuffleAugmenter) and identification_data:
-            return augmenter.augment(text, identification_data)
+            # ShuffleAugmenter returns List[Dict[str, Any]], extract the shuffled_data strings
+            shuffle_results = augmenter.augment(text, identification_data)
+            return [result['shuffled_data'] for result in shuffle_results]
         elif isinstance(augmenter, FewShotAugmenter):
             # If we have example pairs in identification_data, use them
             if identification_data:
                 return augmenter.augment(text, identification_data)
             # Otherwise return the original text
-            return [text]
-        elif isinstance(augmenter, MultiDocAugmenter):
-            # MultiDocAugmenter works with lists of documents
-            if identification_data and "docs" in identification_data:
-                # Get the documents from identification_data
-                docs = identification_data["docs"]
-                # Get the concatenation type if provided
-                concat_type = identification_data.get("concat_type", "single_doc")
-                # Generate permutations
-                permutations = augmenter.permute_docs_order(docs, n_permutations=augmenter.n_augments)
-                # Concatenate each permutation
-                return [augmenter.concatenate_docs(perm, concat_type) for perm in permutations]
-            # If no documents are provided, return the original text
             return [text]
         elif isinstance(augmenter, ContextAugmenter):
             # ContextAugmenter has a standard interface
@@ -86,11 +75,36 @@ class AugmentationPipeline:
         elif hasattr(augmenter, 'augment'):
             # Standard augmenter interface
             try:
-                return augmenter.augment(text, identification_data)
+                result = augmenter.augment(text, identification_data)
+                # Handle potential dict return from augmenters like ShuffleAugmenter
+                if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict):
+                    # If it's a list of dicts, extract the text field
+                    if 'shuffled_data' in result[0]:
+                        return [item['shuffled_data'] for item in result]
+                    else:
+                        # Try to find a text field in the dict
+                        text_keys = ['text', 'content', 'data', 'output']
+                        for key in text_keys:
+                            if key in result[0]:
+                                return [item[key] for item in result]
+                        # If no text field found, convert dict to string
+                        return [str(item) for item in result]
+                return result
             except TypeError:
                 # Try without identification_data if it fails
                 try:
-                    return augmenter.augment(text)
+                    result = augmenter.augment(text)
+                    # Handle potential dict return
+                    if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict):
+                        if 'shuffled_data' in result[0]:
+                            return [item['shuffled_data'] for item in result]
+                        else:
+                            text_keys = ['text', 'content', 'data', 'output']
+                            for key in text_keys:
+                                if key in result[0]:
+                                    return [item[key] for item in result]
+                            return [str(item) for item in result]
+                    return result
                 except:
                     # If all else fails, return the original text
                     return [text]
@@ -274,49 +288,6 @@ def run_fewshot_combined_example():
         print("-" * 50)
 
 
-def run_multidoc_combined_example():
-    """
-    Run an example that combines multi-document augmentation with other augmenters.
-    """
-    print("\n\n--- Multi-Document Combined Example ---")
-
-    # Create sample documents
-    docs = [
-        "The sun is the star at the center of the Solar System.",
-        "Earth is the third planet from the Sun and the only astronomical object known to harbor life.",
-        "The Moon is Earth's only natural satellite."
-    ]
-
-    # Create a pipeline that combines multi-document with other augmenters
-    combined_pipeline = AugmentationPipeline(
-        augmenters=[
-            MultiDocAugmenter(n_augments=2),
-            Paraphrase(n_augments=2),
-            TextSurfaceAugmenter(n_augments=2)
-        ],
-        max_variations=10
-    )
-
-    # Create identification data with the documents
-    multidoc_data = {
-        "docs": docs,
-        "concat_type": "2_newlines"
-    }
-
-    # Display the original documents
-    print(f"\nOriginal documents:")
-    for i, doc in enumerate(docs):
-        print(f"{i + 1}. {doc}")
-    print("-" * 50)
-
-    # Apply the combined pipeline
-    combined_results = combined_pipeline.augment("", multidoc_data)  # Empty string as the base text
-
-    print(f"\nGenerated {len(combined_results)} variations with multi-doc + other augmenters:")
-
-    for i, text in enumerate(combined_results):
-        print(f"\n{i + 1}. {text[:200]}...")  # Show first 200 chars
-        print("-" * 50)
 
 
 if __name__ == "__main__":
@@ -324,4 +295,3 @@ if __name__ == "__main__":
     # run_basic_augmentation_example()
     # run_shuffle_example()
     run_fewshot_combined_example()
-    # run_multidoc_combined_example()

@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 from src.multipromptify import MultiPromptify
 from src.shared.constants import DEFAULT_MODEL, GenerationInterfaceConstants
-from src.app.components.results_display import display_full_results
+from .results_display import display_full_results
 
 # Load environment variables
 load_dotenv()

@@ -2,7 +2,7 @@ from typing import Dict, List, Any
 import pandas as pd
 import random
 
-from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.multipromptify.augmentations.base import BaseAxisAugmenter
 from src.shared.constants import FewShotConstants, BaseAugmenterConstants
 
 

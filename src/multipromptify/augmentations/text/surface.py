@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 
-from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.multipromptify.augmentations.base import BaseAxisAugmenter
 from src.shared.constants import TextSurfaceAugmenterConstants
 
 

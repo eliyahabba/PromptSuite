@@ -5,16 +5,16 @@ from pathlib import Path
 base_dir = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(base_dir))
 
-from src.app.workflows import (
+from src.ui.pages import (
     upload_data,
     template_builder,
     generate_variations
 )
-from src.app.utils.debug_helpers import (
+from src.ui.utils.debug_helpers import (
     initialize_debug_mode,
     load_demo_data_for_step
 )
-from src.app.utils.progress_indicator import show_progress_indicator
+from src.ui.utils.progress_indicator import show_progress_indicator
 
 
 def main():

@@ -1,6 +1,7 @@
-from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.multipromptify.augmentations.base import BaseAxisAugmenter
 from typing import List
 import ast
+from src.shared.model_client import get_completion
 
 
 #moran's gpt3.5 templates, changes to general LLM and {k} times and the
@@ -69,10 +70,8 @@ class Paraphrase(BaseAxisAugmenter):
         Returns:
             List of paraphrased variations
         """
-        from src.shared.model_client import get_completion_with_key
-
         rephrasing_prompt = self.build_rephrasing_prompt(detailed_template, self.n_augments, prompt)
-        response = get_completion_with_key(rephrasing_prompt, self.api_key)
+        response = get_completion(rephrasing_prompt)
         return ast.literal_eval(response)
         # except Exception as e:
         #     print(f"Warning: Paraphrase API failed ({str(e)}), falling back to simple variations")

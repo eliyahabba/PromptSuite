@@ -30,10 +30,13 @@ setup(
         "datasets>=2.0.0",
         "click>=8.0.0",
         "pyyaml>=6.0",
+        "python-dotenv>=0.19.0",
+        "together>=0.2.0",
     ],
     entry_points={
         "console_scripts": [
             "multipromptify=multipromptify.cli:main",
+            "multipromptify-ui=ui.main:main",
         ],
     },
     extras_require={

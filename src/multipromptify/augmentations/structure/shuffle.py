@@ -2,7 +2,7 @@ import random
 import json
 from typing import List, Dict, Any, Tuple
 
-from src.augmentations.base_augmenter import BaseAxisAugmenter
+from src.multipromptify.augmentations.base import BaseAxisAugmenter
 from src.shared.constants import ShuffleConstants
 
 
