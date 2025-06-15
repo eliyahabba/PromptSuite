@@ -171,9 +171,13 @@ def configure_generation():
             template_text = str(template)
     else:
         template_text = template
-    
-    needs_api_key = ':paraphrase' in template_text
-    
+
+    needs_api_key = False
+    for k, v in template.items():
+        if isinstance(v, list) and ('paraphrase' in v or 'context' in v):
+            needs_api_key = True
+
+
     if needs_api_key:
         # Enhanced API Configuration in sidebar
         with st.sidebar:
