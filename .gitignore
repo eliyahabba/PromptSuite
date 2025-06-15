@@ -3,30 +3,14 @@
 **/tmp/*
 /src/ui/old/
 
-# Python build artifacts
-/src/multipromptify.egg-info/
-/src/multipromptify_dev.egg-info/
+# Python build artifacts (the main issue we had)
 *.egg-info/
 build/
 dist/
-*.egg
 
 # Python cache files
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Virtual environments
-venv/
-env/
-.venv/
-.env/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
 
 # macOS files
 .DS_Store
@@ -34,10 +18,3 @@ htmlcov/
 # IDE files
 .vscode/
 .idea/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Package manager
-pip-log.txt
-pip-delete-this-directory.txt
