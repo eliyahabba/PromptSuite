@@ -1,4 +1,4 @@
-from src.shared.constants import BaseAugmenterConstants
+from multipromptify.shared.constants import BaseAugmenterConstants
 
 class BaseAxisAugmenter:
     """

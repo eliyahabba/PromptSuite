@@ -1,7 +1,7 @@
-from src.multipromptify.augmentations.base import BaseAxisAugmenter
+from multipromptify.augmentations.base import BaseAxisAugmenter
 from typing import List
 import ast
-from src.shared.model_client import get_completion
+from multipromptify.shared.model_client import get_completion
 
 
 #moran's gpt3.5 templates, changes to general LLM and {k} times and the

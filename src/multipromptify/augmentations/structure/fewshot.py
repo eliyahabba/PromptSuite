@@ -2,8 +2,8 @@ from typing import Dict, List, Any
 import pandas as pd
 import random
 
-from src.multipromptify.augmentations.base import BaseAxisAugmenter
-from src.shared.constants import FewShotConstants, BaseAugmenterConstants
+from multipromptify.augmentations.base import BaseAxisAugmenter
+from multipromptify.shared.constants import FewShotConstants, BaseAugmenterConstants
 
 
 class FewShotAugmenter(BaseAxisAugmenter):

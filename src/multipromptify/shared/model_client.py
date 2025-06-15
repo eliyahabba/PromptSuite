@@ -8,7 +8,7 @@ from together import Together
 import together
 from dotenv import load_dotenv
 
-from src.shared.constants import DEFAULT_MODEL
+from multipromptify.shared.constants import DEFAULT_MODEL
 
 # Load environment variables from .env file
 load_dotenv()

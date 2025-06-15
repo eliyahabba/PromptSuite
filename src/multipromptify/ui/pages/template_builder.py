@@ -4,7 +4,7 @@ Template Builder for MultiPromptify - Dictionary Format Only
 
 import streamlit as st
 
-from src.multipromptify import MultiPromptify
+from multipromptify import MultiPromptify
 
 
 def render():

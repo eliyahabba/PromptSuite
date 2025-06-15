@@ -6,8 +6,8 @@ from typing import List
 
 import numpy as np
 
-from src.multipromptify.augmentations.base import BaseAxisAugmenter
-from src.shared.constants import TextSurfaceAugmenterConstants
+from multipromptify.augmentations.base import BaseAxisAugmenter
+from multipromptify.shared.constants import TextSurfaceAugmenterConstants
 
 
 class TextSurfaceAugmenter(BaseAxisAugmenter):

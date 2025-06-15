@@ -1,7 +1,7 @@
 import random
 from typing import List, Dict, Any
-from src.multipromptify.augmentations.base import BaseAxisAugmenter
-from src.shared.model_client import get_completion
+from multipromptify.augmentations.base import BaseAxisAugmenter
+from multipromptify.shared.model_client import get_completion
 
 
 class ContextAugmenter(BaseAxisAugmenter):

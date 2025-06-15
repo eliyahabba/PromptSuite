@@ -2,8 +2,8 @@
 Text-based augmentation modules.
 """
 
-from src.multipromptify.augmentations.text.surface import TextSurfaceAugmenter
-from src.multipromptify.augmentations.text.paraphrase import Paraphrase
-from src.multipromptify.augmentations.text.context import ContextAugmenter
+from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
+from multipromptify.augmentations.text.paraphrase import Paraphrase
+from multipromptify.augmentations.text.context import ContextAugmenter
 
 __all__ = ["TextSurfaceAugmenter", "Paraphrase", "ContextAugmenter"] 

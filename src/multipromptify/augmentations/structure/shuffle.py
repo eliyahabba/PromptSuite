@@ -2,8 +2,8 @@ import random
 import json
 from typing import List, Dict, Any, Tuple
 
-from src.multipromptify.augmentations.base import BaseAxisAugmenter
-from src.shared.constants import ShuffleConstants
+from multipromptify.augmentations.base import BaseAxisAugmenter
+from multipromptify.shared.constants import ShuffleConstants
 
 
 class ShuffleAugmenter(BaseAxisAugmenter):

@@ -4,14 +4,14 @@ Augmentation pipeline that combines multiple augmentation methods.
 import random
 from typing import List, Optional, Dict, Any
 
-from src.multipromptify.augmentations.base import BaseAxisAugmenter
-from src.multipromptify.augmentations.text.context import ContextAugmenter
-from src.multipromptify.augmentations.structure.fewshot import FewShotAugmenter
+from multipromptify.augmentations.base import BaseAxisAugmenter
+from multipromptify.augmentations.text.context import ContextAugmenter
+from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 
-from src.multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
-from src.multipromptify.augmentations.text.paraphrase import Paraphrase
-from src.multipromptify.augmentations.text.surface import TextSurfaceAugmenter
-from src.shared.constants import AugmentationPipelineConstants, BaseAugmenterConstants
+from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
+from multipromptify.augmentations.text.paraphrase import Paraphrase
+from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
+from multipromptify.shared.constants import AugmentationPipelineConstants, BaseAugmenterConstants
 
 
 class AugmentationPipeline:

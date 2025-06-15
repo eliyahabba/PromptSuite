@@ -7,8 +7,8 @@ import json
 import time
 import os
 from dotenv import load_dotenv
-from src.multipromptify import MultiPromptify
-from src.shared.constants import DEFAULT_MODEL, GenerationInterfaceConstants
+from multipromptify import MultiPromptify
+from multipromptify.shared.constants import DEFAULT_MODEL, GenerationInterfaceConstants
 from .results_display import display_full_results
 
 # Load environment variables
@@ -161,16 +161,16 @@ def configure_generation():
     template = st.session_state.get('selected_template', '')
     
     # Handle new template format (dictionary) vs old format (string)
-    template_text = ''
-    if isinstance(template, dict):
-        if 'template' in template:
-            template_text = template['template']
-        elif 'combined' in template:
-            template_text = template['combined']
-        else:
-            template_text = str(template)
-    else:
-        template_text = template
+    # template_text = ''
+    # if isinstance(template, dict):
+    #     if 'template' in template:
+    #         template_text = template['template']
+    #     elif 'combined' in template:
+    #         template_text = template['combined']
+    #     else:
+    #         template_text = str(template)
+    # else:
+    #     template_text = template
 
     needs_api_key = False
     for k, v in template.items():

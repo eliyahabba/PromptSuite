@@ -156,7 +156,7 @@ def load_demo_data_for_step(step_number):
                     st.session_state.custom_dimensions = dimensions_data.get("custom_dimensions", [])
             else:
                 # Load default dimensions if no saved dimensions
-                from src.ui.add_dimensions import DEFAULT_DIMENSIONS
+                from multipromptify.ui.add_dimensions import DEFAULT_DIMENSIONS
                 st.session_state.base_dimensions = DEFAULT_DIMENSIONS
                 st.session_state.custom_dimensions = []
                 

@@ -7,11 +7,11 @@ from typing import Dict, List, Any
 
 import pandas as pd
 
-from src.multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
-from src.multipromptify.augmentations.text.context import ContextAugmenter
-from src.multipromptify.augmentations.text.paraphrase import Paraphrase
-from src.multipromptify.augmentations.text.surface import TextSurfaceAugmenter
-from src.multipromptify.template_parser import TemplateParser
+from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
+from multipromptify.augmentations.text.context import ContextAugmenter
+from multipromptify.augmentations.text.paraphrase import Paraphrase
+from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
+from multipromptify.template_parser import TemplateParser
 
 
 class MultiPromptify:
