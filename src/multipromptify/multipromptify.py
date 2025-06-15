@@ -267,7 +267,17 @@ class MultiPromptify:
             # Create row values for few-shot examples (including extracting real answer)
             row_values = {}
             for col in example_row.index:
-                if pd.notna(example_row[col]):
+                # Handle pandas array comparison issue
+                try:
+                    is_not_na = pd.notna(example_row[col])
+                    if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
+                        # For arrays/lists, check if any element is not na
+                        is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
+                except (ValueError, TypeError):
+                    # Fallback: assume not na if we can't check
+                    is_not_na = example_row[col] is not None
+                
+                if is_not_na:
                     if gold_field and col == gold_field:
                         # For few-shot examples, extract the actual answer value from options
                         answer_value = self._extract_answer_from_options(
@@ -348,7 +358,17 @@ class MultiPromptify:
 
         row_values = {}
         for col in row.index:
-            if pd.notna(row[col]):
+            # Handle pandas array comparison issue
+            try:
+                is_not_na = pd.notna(row[col])
+                if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
+                    # For arrays/lists, check if any element is not na
+                    is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
+            except (ValueError, TypeError):
+                # Fallback: assume not na if we can't check
+                is_not_na = row[col] is not None
+            
+            if is_not_na:
                 # Skip the gold answer field for the main question
                 if gold_field and col == gold_field:
                     continue
@@ -470,7 +490,17 @@ class MultiPromptify:
             if field_name == 'instruction':
                 continue  # Already handled above
 
-            if field_name in row.index and pd.notna(row[field_name]):
+            # Handle pandas array comparison issue
+            try:
+                is_not_na = pd.notna(row[field_name]) if field_name in row.index else False
+                if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
+                    # For arrays/lists, check if any element is not na
+                    is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
+            except (ValueError, TypeError):
+                # Fallback: assume not na if we can't check
+                is_not_na = field_name in row.index and row[field_name] is not None
+            
+            if field_name in row.index and is_not_na:
                 field_value = str(row[field_name])
                 field_variations[field_name] = self._generate_field_variations(
                     field_name, field_value, variation_types, variations_per_field, api_key, row, gold_field, gold_type,
@@ -622,7 +652,17 @@ class MultiPromptify:
                 row_values = {}
                 gold_updates = {}
                 for col in row.index:
-                    if pd.notna(row[col]):
+                    # Handle pandas array comparison issue
+                    try:
+                        is_not_na = pd.notna(row[col])
+                        if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
+                            # For arrays/lists, check if any element is not na
+                            is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
+                    except (ValueError, TypeError):
+                        # Fallback: assume not na if we can't check
+                        is_not_na = row[col] is not None
+                    
+                    if is_not_na:
                         if col in field_values:
                             field_data = field_values[col]
                             row_values[col] = field_data['data']

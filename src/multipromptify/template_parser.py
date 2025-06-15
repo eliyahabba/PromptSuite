@@ -82,6 +82,8 @@ class TemplateParser:
                         few_shot_format=config.get("format", "rotating"),
                         few_shot_split=config.get("split", "all")
                     )
+                    self.fields.append(field)
+                    continue
                 else:
                     raise ValueError("few_shot configuration must be a dictionary with 'count', 'format', and 'split' keys")
             else:

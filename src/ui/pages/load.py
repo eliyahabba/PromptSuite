@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 # Add the src directory to the path to import multipromptify
-base_dir = Path(__file__).resolve().parents[2]
+base_dir = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(base_dir))
 
 from src.ui.pages import (

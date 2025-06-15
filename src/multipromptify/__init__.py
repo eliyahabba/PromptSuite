@@ -4,8 +4,9 @@ MultiPromptify - A tool for creating multi-prompt datasets from single-prompt da
 
 from .multipromptify import MultiPromptify
 from .template_parser import TemplateParser
+from .api import MultiPromptifyAPI
 
 __version__ = "2.0.0"
 __author__ = "MultiPromptify Team"
 
-__all__ = ["MultiPromptify", "TemplateParser"] 
+__all__ = ["MultiPromptify", "TemplateParser", "MultiPromptifyAPI"] 
