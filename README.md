@@ -19,7 +19,7 @@ MultiPromptify transforms your single-prompt datasets into rich multi-prompt dat
 ### From PyPI (Recommended)
 
 ```bash
-pip install multipromptify-dev
+pip install multipromptify
 ```
 
 ### From GitHub (Latest)
