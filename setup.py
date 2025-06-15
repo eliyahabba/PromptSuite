@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="multipromptify",
-    version="2.0.0",
+    version="2.0.1",
     author="MultiPromptify Team",
     description="A tool that creates multi-prompt datasets from single-prompt datasets using templates",
     long_description=long_description,
@@ -30,7 +30,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "pandas>=1.3.0",
-        "datasets>=2.0.0",
+        "datasets>=2.0.1",
         "click>=8.0.0",
         "pyyaml>=6.0",
         "python-dotenv>=0.19.0",
