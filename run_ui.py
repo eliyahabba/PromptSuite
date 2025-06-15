@@ -30,7 +30,7 @@ def main():
         subprocess.run([
             sys.executable, 
             str(ui_main),
-            "--server.port", "8501"
+            "--server_port", "8501"
         ], env={**os.environ, "PYTHONPATH": str(Path("src").absolute())})
     except KeyboardInterrupt:
         print("\n👋 UI stopped. Thanks for using MultiPromptify!")

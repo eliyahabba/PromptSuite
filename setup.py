@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="multipromptify",
+    name="multipromptify-dev",
     version="2.0.0",
     author="MultiPromptify Team",
     description="A tool that creates multi-prompt datasets from single-prompt datasets using templates",

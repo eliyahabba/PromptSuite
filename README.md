@@ -6,16 +6,33 @@ A tool that creates multi-prompt datasets from single-prompt datasets using temp
 
 MultiPromptify transforms your single-prompt datasets into rich multi-prompt datasets by applying various types of variations specified in your templates. It supports HuggingFace-compatible datasets and provides both a command-line interface and a modern web UI.
 
+## 📚 Documentation
+
+- 📖 **[Complete API Guide](docs/api-guide.md)** - Python API reference and examples
+- 🏗️ **[Developer Documentation](docs/dev/)** - For contributors and developers
+  - [Project Structure](docs/dev/project-structure.md) - Code organization guide
+  - [Publishing Guide](docs/dev/publishing-guide.md) - Package publishing instructions
+  - [Implementation Summaries](docs/dev/) - Technical implementation details
+
 ## Installation
 
+### From PyPI (Recommended)
+
 ```bash
-pip install multipromptify
+pip install multipromptify-dev
 ```
 
-Or install from source:
+### From GitHub (Latest)
+
 ```bash
-git clone <repository>
-cd multipromptify
+pip install git+https://github.com/ehabba/MultiPromptifyPipeline.git
+```
+
+### From Source
+
+```bash
+git clone https://github.com/ehabba/MultiPromptifyPipeline.git
+cd MultiPromptifyPipeline
 pip install -e .
 ```
 
@@ -55,6 +72,37 @@ multipromptify --template "{instruction:semantic}: {col1:paraphrase}" \
 ```
 
 ### Python API
+
+#### Using MultiPromptifyAPI (Recommended)
+
+```python
+from multipromptify import MultiPromptifyAPI
+import pandas as pd
+
+# Initialize
+mp = MultiPromptifyAPI()
+
+# Load data
+data = [{"question": "What is 2+2?", "answer": "4"}]
+mp.load_dataframe(pd.DataFrame(data))
+
+# Configure template
+template = {
+    'instruction_template': 'Q: {question}\nA: {answer}',
+    'question': ['surface'],
+    'gold': 'answer'
+}
+mp.set_template(template)
+
+# Configure and generate
+mp.configure(max_rows=1, variations_per_field=3)
+variations = mp.generate(verbose=True)
+
+# Export results
+mp.export("output.json", format="json")
+```
+
+#### Using MultiPromptify (Legacy)
 
 ```python
 from multipromptify import MultiPromptify
