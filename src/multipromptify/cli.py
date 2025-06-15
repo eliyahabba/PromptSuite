@@ -6,8 +6,8 @@ import click
 import json
 import pandas as pd
 from pathlib import Path
-from multipromptify.engine import MultiPromptify, __version__
-
+from multipromptify.engine import MultiPromptify
+from multipromptify import __version__
 
 @click.command()
 @click.option('--template', '-t', required=True, help='Template dictionary as JSON string or file path')
