@@ -10,6 +10,7 @@ setup(
     description="A tool that creates multi-prompt datasets from single-prompt datasets using templates",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    url="https://github.com/ehabba/MultiPromptifyPipeline",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
@@ -23,6 +24,8 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     python_requires=">=3.8",
     install_requires=[
@@ -32,11 +35,11 @@ setup(
         "pyyaml>=6.0",
         "python-dotenv>=0.19.0",
         "together>=0.2.0",
+        "numpy>=1.21.0",  # Changed from ~=2.3.0 to >=1.21.0 for better compatibility
     ],
     entry_points={
         "console_scripts": [
             "multipromptify=multipromptify.cli:main",
-            "multipromptify-ui=ui.main:main",
         ],
     },
     extras_require={
@@ -50,4 +53,4 @@ setup(
             "streamlit>=1.28.0",
         ],
     },
-) 
+)

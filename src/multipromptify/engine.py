@@ -6,7 +6,6 @@ import json
 from typing import Dict, List, Any
 
 import pandas as pd
-
 from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
 from multipromptify.augmentations.text.context import ContextAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
@@ -191,7 +190,7 @@ class MultiPromptify:
                         else:
                             # Standard string return
                             string_variations.append(var)
-                    
+
                     all_variations.extend(string_variations[:variations_per_field])
 
             except Exception as e:
@@ -276,7 +275,7 @@ class MultiPromptify:
                 except (ValueError, TypeError):
                     # Fallback: assume not na if we can't check
                     is_not_na = example_row[col] is not None
-                
+
                 if is_not_na:
                     if gold_field and col == gold_field:
                         # For few-shot examples, extract the actual answer value from options
@@ -314,7 +313,6 @@ class MultiPromptify:
         # If gold_type is 'index', try to extract from options
         if gold_type == 'index' and options_field and options_field in row.index:
             try:
-                from .augmentations.structure.shuffle import ShuffleAugmenter
                 shuffle_augmenter = ShuffleAugmenter()
 
                 options_text = str(row[options_field])
@@ -367,7 +365,7 @@ class MultiPromptify:
             except (ValueError, TypeError):
                 # Fallback: assume not na if we can't check
                 is_not_na = row[col] is not None
-            
+
             if is_not_na:
                 # Skip the gold answer field for the main question
                 if gold_field and col == gold_field:
@@ -499,7 +497,7 @@ class MultiPromptify:
             except (ValueError, TypeError):
                 # Fallback: assume not na if we can't check
                 is_not_na = field_name in row.index and row[field_name] is not None
-            
+
             if field_name in row.index and is_not_na:
                 field_value = str(row[field_name])
                 field_variations[field_name] = self._generate_field_variations(
@@ -607,7 +605,7 @@ class MultiPromptify:
                             else:
                                 # Standard string return
                                 variation_data = {'data': var, 'gold_update': None}
-                            
+
                             if variation_data not in all_variations:
                                 all_variations.append(variation_data)
 
@@ -661,7 +659,7 @@ class MultiPromptify:
                     except (ValueError, TypeError):
                         # Fallback: assume not na if we can't check
                         is_not_na = row[col] is not None
-                    
+
                     if is_not_na:
                         if col in field_values:
                             field_data = field_values[col]

@@ -13,8 +13,8 @@ from typing import Dict, List, Any, Union, Optional
 import pandas as pd
 from pathlib import Path
 
-from .multipromptify import MultiPromptify
-from .template_parser import TemplateParser
+from engine import MultiPromptify
+from multipromptify.template_parser import TemplateParser
 
 # Try to load environment variables
 from dotenv import load_dotenv

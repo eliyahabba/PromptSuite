@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multipromptify"
-dynamic = ["version"]
+version = "2.0.0"
 description = "A tool that creates multi-prompt datasets from single-prompt datasets using templates"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -34,6 +34,7 @@ dependencies = [
     "pyyaml>=6.0",
     "python-dotenv>=0.19.0",
     "together>=0.2.0",
+    "numpy>=1.21.0",
 ]
 
 [project.optional-dependencies]
@@ -50,12 +51,12 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/ehabba/MultiPromptifyPipeline"
 Repository = "https://github.com/ehabba/MultiPromptifyPipeline"
-Documentation = "https://github.com/ehabba/MultiPromptifyPipeline/blob/main/README_API.md"
+Documentation = "https://github.com/ehabba/MultiPromptifyPipeline/blob/main/README.md"
 Issues = "https://github.com/ehabba/MultiPromptifyPipeline/issues"
 
 [project.scripts]
 multipromptify = "multipromptify.cli:main"
-multipromptify-ui = "ui.main:main"
+multipromptify-ui = "multipromptify.ui.main:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -63,13 +64,10 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools_scm]
-write_to = "src/multipromptify/_version.py"
-
 [tool.black]
 line-length = 88
 target-version = ['py38']
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py"] 
+python_files = ["test_*.py"]
