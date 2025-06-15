@@ -1,0 +1,159 @@
+name: Publish MultiPromptify Package
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+    
+    - name: Test import
+      run: |
+        python -c "from multipromptify import MultiPromptifyAPI; print('Import successful')"
+    
+    - name: Run API example (quick test)
+      run: |
+        python -c "
+        from multipromptify import MultiPromptifyAPI
+        import pandas as pd
+        mp = MultiPromptifyAPI()
+        data = [{'question': 'Test?', 'answer': 'Yes'}]
+        mp.load_dataframe(pd.DataFrame(data))
+        template = {'instruction_template': 'Q: {question}\nA: {answer}', 'gold': 'answer'}
+        mp.set_template(template)
+        mp.configure(max_rows=1, variations_per_field=1)
+        print('API test completed')
+        "
+
+  build:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: python -m build
+    
+    - name: Check built package
+      run: twine check dist/*
+
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: python-package-distributions
+        path: dist/
+
+  publish-to-testpypi:
+    name: Publish to TestPyPI
+    needs: [tests, build]
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/multipromptify-dev
+    
+    permissions:
+      id-token: write  # Required for OIDC
+    
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v3
+      with:
+        name: python-package-distributions
+        path: dist/
+    
+    - name: Publish to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    needs: [tests, build, publish-to-testpypi]
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: pypi
+      url: https://pypi.org/p/multipromptify-dev
+    
+    permissions:
+      id-token: write  # Required for OIDC
+    
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v3
+      with:
+        name: python-package-distributions
+        path: dist/
+    
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+
+  create-github-release:
+    name: Create GitHub Release
+    needs: [publish-to-pypi]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          ## Changes in this Release
+          
+          ### 🎉 MultiPromptify ${{ github.ref_name }}
+          
+          New version of MultiPromptify has been published!
+          
+          ### 📦 Installation
+          ```bash
+          pip install multipromptify-dev==${{ github.ref_name }}
+          ```
+          
+          ### 🔗 Links
+          - [PyPI Package](https://pypi.org/project/multipromptify-dev/${{ github.ref_name }}/)
+          - [Documentation](https://github.com/ehabba/MultiPromptifyPipeline/blob/main/README_API.md)
+          
+        draft: false
+        prerelease: false 
