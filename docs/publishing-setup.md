@@ -47,7 +47,7 @@ git push origin main
 5. Click on **Add a new pending publisher**
 
 ### Fill in the details:
-- **PyPI Project Name**: `multipromptify-dev`
+- **PyPI Project Name**: `multipromptify`
 - **Owner**: `ehabba`
 - **Repository name**: `MultiPromptifyPipeline`
 - **Workflow name**: `publish.yml`
@@ -62,7 +62,7 @@ git push origin main
 5. Click on **Add a new pending publisher**
 
 ### Fill in the details:
-- **PyPI Project Name**: `multipromptify-dev`
+- **PyPI Project Name**: `multipromptify`
 - **Owner**: `ehabba`
 - **Repository name**: `MultiPromptifyPipeline`
 - **Workflow name**: `publish.yml`
@@ -96,12 +96,12 @@ git push origin v2.0.0
 
 ### After publishing to TestPyPI:
 ```bash
-pip install --index-url https://test.pypi.org/simple/ multipromptify-dev
+pip install --index-url https://test.pypi.org/simple/ multipromptify
 ```
 
 ### After publishing to PyPI:
 ```bash
-pip install multipromptify-dev
+pip install multipromptify
 ```
 
 ## 🚨 Common Issues and Solutions:
@@ -115,7 +115,7 @@ pip install multipromptify-dev
 - Check that repo and owner are correct
 
 ### "Project name already exists"
-- Is the name `multipromptify-dev` taken? Change to `ehabba-multipromptify`
+- Is the name `multipromptify` taken? Change to `ehabba-multipromptify`
 - Or choose a different name
 
 ### Workflow doesn't run
@@ -126,7 +126,7 @@ pip install multipromptify-dev
 
 When this works, people will be able to install:
 ```bash
-pip install multipromptify-dev
+pip install multipromptify
 ```
 
 And you'll be able to publish new versions simply with:

@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "multipromptify-dev"
+name = "multipromptify"
 dynamic = ["version"]
 description = "A tool that creates multi-prompt datasets from single-prompt datasets using templates"
 readme = "README.md"

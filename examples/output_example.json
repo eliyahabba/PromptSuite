@@ -1,0 +1,1152 @@
+[
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: ['London', 'Berlin', 'Paris', 'Madrid']\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: ['London', 'Berlin', 'Paris', 'Madrid']\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 1,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the capital of France?",
+      "options": "['London', 'Berlin', 'Paris', 'Madrid']"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: 'Paris', ['London', 'Berlin', 'Madrid']\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: 'Paris', ['London', 'Berlin', 'Madrid']\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 2,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the capital of France?",
+      "options": "'Paris', ['London', 'Berlin', 'Madrid']"
+    },
+    "gold_updates": {
+      "answer": "0"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: 'Madrid'], ['London', 'Paris', 'Berlin'\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: 'Madrid'], ['London', 'Paris', 'Berlin'\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 3,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the capital of France?",
+      "options": "'Madrid'], ['London', 'Paris', 'Berlin'"
+    },
+    "gold_updates": {
+      "answer": "2"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: 'Berlin', 'Paris', 'Madrid'], ['London'\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: 'Berlin', 'Paris', 'Madrid'], ['London'\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 4,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the capital of France?",
+      "options": "'Berlin', 'Paris', 'Madrid'], ['London'"
+    },
+    "gold_updates": {
+      "answer": "1"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: ['London', 'Berlin', 'Paris', 'Madrid']\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: ['London', 'Berlin', 'Paris', 'Madrid']\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 5,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "Whah is the capital of Frange?",
+      "options": "['London', 'Berlin', 'Paris', 'Madrid']"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: 'Paris', ['London', 'Berlin', 'Madrid']\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: 'Paris', ['London', 'Berlin', 'Madrid']\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 6,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "Whah is the capital of Frange?",
+      "options": "'Paris', ['London', 'Berlin', 'Madrid']"
+    },
+    "gold_updates": {
+      "answer": "0"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: 'Madrid'], ['London', 'Paris', 'Berlin'\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: 'Madrid'], ['London', 'Paris', 'Berlin'\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 7,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "Whah is the capital of Frange?",
+      "options": "'Madrid'], ['London', 'Paris', 'Berlin'"
+    },
+    "gold_updates": {
+      "answer": "2"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: 'Berlin', 'Paris', 'Madrid'], ['London'\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Whah is the capital of Frange?\nOptions: 'Berlin', 'Paris', 'Madrid'], ['London'\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 8,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "Whah is the capital of Frange?",
+      "options": "'Berlin', 'Paris', 'Madrid'], ['London'"
+    },
+    "gold_updates": {
+      "answer": "1"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: ['London', 'Berlin', 'Paris', 'Madrid']\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: ['London', 'Berlin', 'Paris', 'Madrid']\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 9,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the cakiral of Francs?",
+      "options": "['London', 'Berlin', 'Paris', 'Madrid']"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: 'Paris', ['London', 'Berlin', 'Madrid']\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: 'Paris', ['London', 'Berlin', 'Madrid']\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 10,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the cakiral of Francs?",
+      "options": "'Paris', ['London', 'Berlin', 'Madrid']"
+    },
+    "gold_updates": {
+      "answer": "0"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: 'Madrid'], ['London', 'Paris', 'Berlin'\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: 'Madrid'], ['London', 'Paris', 'Berlin'\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 11,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the cakiral of Francs?",
+      "options": "'Madrid'], ['London', 'Paris', 'Berlin'"
+    },
+    "gold_updates": {
+      "answer": "2"
+    }
+  },
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'\n\n\nAnswer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'\n\n\nAnswer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: 'Berlin', 'Paris', 'Madrid'], ['London'\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: ['3', '4', '5', '6']\nAnswer: '4'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: Which planet is closest to the Sun?\nOptions: ['Venus', 'Mercury', 'Earth', 'Mars']\nAnswer: 'Mercury'"
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the cakiral of Francs?\nOptions: 'Berlin', 'Paris', 'Madrid'], ['London'\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 12,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "question": "What is the cakiral of Francs?",
+      "options": "'Berlin', 'Paris', 'Madrid'], ['London'"
+    },
+    "gold_updates": {
+      "answer": "1"
+    }
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following ['London', 'Berlin', 'Paris', 'Madrid'], where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following ['London', 'Berlin', 'Paris', 'Madrid'], where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 13,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "What is the capital of France?",
+      "options": "['London', 'Berlin', 'Paris', 'Madrid']"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Paris', ['London', 'Berlin', 'Madrid'], where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Paris', ['London', 'Berlin', 'Madrid'], where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 14,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "What is the capital of France?",
+      "options": "'Paris', ['London', 'Berlin', 'Madrid']"
+    },
+    "gold_updates": {
+      "answer": "0"
+    }
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Madrid'], ['London', 'Paris', 'Berlin', where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Madrid'], ['London', 'Paris', 'Berlin', where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 15,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "What is the capital of France?",
+      "options": "'Madrid'], ['London', 'Paris', 'Berlin'"
+    },
+    "gold_updates": {
+      "answer": "2"
+    }
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Berlin', 'Paris', 'Madrid'], ['London', where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Berlin', 'Paris', 'Madrid'], ['London', where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 16,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "What is the capital of France?",
+      "options": "'Berlin', 'Paris', 'Madrid'], ['London'"
+    },
+    "gold_updates": {
+      "answer": "1"
+    }
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following ['London', 'Berlin', 'Paris', 'Madrid'], where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following ['London', 'Berlin', 'Paris', 'Madrid'], where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 17,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "Whah is the capital of Frange?",
+      "options": "['London', 'Berlin', 'Paris', 'Madrid']"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Paris', ['London', 'Berlin', 'Madrid'], where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Paris', ['London', 'Berlin', 'Madrid'], where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 18,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "Whah is the capital of Frange?",
+      "options": "'Paris', ['London', 'Berlin', 'Madrid']"
+    },
+    "gold_updates": {
+      "answer": "0"
+    }
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Madrid'], ['London', 'Paris', 'Berlin', where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Madrid'], ['London', 'Paris', 'Berlin', where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 19,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "Whah is the capital of Frange?",
+      "options": "'Madrid'], ['London', 'Paris', 'Berlin'"
+    },
+    "gold_updates": {
+      "answer": "2"
+    }
+  },
+  {
+    "prompt": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.\n\n\nPlease respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Berlin', 'Paris', 'Madrid'], ['London', where the correct  is required.",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required."
+      },
+      {
+        "role": "assistant",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Berlin', 'Paris', 'Madrid'], ['London', where the correct  is required."
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 20,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": [
+        "paraphrase"
+      ],
+      "question": [
+        "surface"
+      ],
+      "options": [
+        "shuffle",
+        "surface"
+      ],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 2,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",
+      "question": "Whah is the capital of Frange?",
+      "options": "'Berlin', 'Paris', 'Madrid'], ['London'"
+    },
+    "gold_updates": {
+      "answer": "1"
+    }
+  }
+]
