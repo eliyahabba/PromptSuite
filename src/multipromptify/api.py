@@ -13,7 +13,7 @@ from typing import Dict, List, Any, Union, Optional
 import pandas as pd
 from pathlib import Path
 
-from engine import MultiPromptify
+from .engine import MultiPromptify
 from multipromptify.template_parser import TemplateParser
 
 # Try to load environment variables

@@ -40,6 +40,7 @@ setup(
     entry_points={
         "console_scripts": [
             "multipromptify=multipromptify.cli:main",
+            "multipromptify-ui=ui.main:main",
         ],
     },
     extras_require={

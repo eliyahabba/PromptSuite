@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from multipromptify import MultiPromptify
 from multipromptify.shared.constants import GenerationInterfaceConstants
 
-from results_display import display_full_results
+from .results_display import display_full_results
 
 # Load environment variables
 load_dotenv()
