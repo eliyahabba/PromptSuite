@@ -70,7 +70,7 @@ class MultiDocConstants:
 class FewShotConstants:
     # Format strings for examples
     EXAMPLE_FORMAT = "Input: {}\nOutput: {}"
-    QUESTION_FORMAT = "Input: {}\nOutput:"
+    INPUT_FORMAT = "Input: {}\nOutput:"
     
     # Separator between examples
     EXAMPLE_SEPARATOR = "\n\n"
