@@ -31,13 +31,13 @@ class TemplateParser:
     {
         "instruction_template": "Answer the following question: {question}\nAnswer: {answer}",
         "instruction": ["paraphrase", "surface"],
-        "gold": "answer",  # Name of the column containing the correct answer/label
+        "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
             "format": "fixed",  # or "rotating"
             "split": "train"    # or "test" or "all"
         },
-        "question": ["surface"]
+        "input": ["surface"]
     }
     """
     
