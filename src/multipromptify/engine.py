@@ -77,6 +77,9 @@ class MultiPromptify:
         # Load data if needed
         if isinstance(data, str):
             data = self._load_data(data)
+        else:
+            # Even for DataFrames passed directly, check for string lists
+            data = self._convert_string_lists_to_lists(data)
 
         # Parse template
         fields = self.template_parser.parse(template)
@@ -141,15 +144,49 @@ class MultiPromptify:
         return all_variations[:self.max_variations]
 
     def _load_data(self, data_path: str) -> pd.DataFrame:
-        """Load data from file path."""
+        """Load data from file path and automatically convert string representations of lists."""
         if data_path.endswith('.csv'):
-            return pd.read_csv(data_path)
+            df = pd.read_csv(data_path)
         elif data_path.endswith('.json'):
             with open(data_path, 'r') as f:
                 json_data = json.load(f)
-            return pd.DataFrame(json_data)
+            df = pd.DataFrame(json_data)
         else:
             raise ValueError(f"Unsupported file format: {data_path}")
+        
+        # Auto-convert string representations of lists to actual lists
+        return self._convert_string_lists_to_lists(df)
+    
+    def _convert_string_lists_to_lists(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Convert string representations of lists back to actual Python lists.
+        
+        This handles cases where data was saved/loaded from CSV/JSON and 
+        list columns became strings like "['item1', 'item2', 'item3']"
+        """
+        import ast
+        
+        def safe_eval(value):
+            """Try to evaluate a string as a Python literal, return original if it fails."""
+            if isinstance(value, str):
+                try:
+                    return ast.literal_eval(value)
+                except (ValueError, SyntaxError):
+                    return value
+            return value
+        
+        df_copy = df.copy()
+        
+        # Apply safe_eval to all columns - it will only convert what it can
+        for column in df_copy.columns:
+            original_values = df_copy[column].copy()
+            df_copy[column] = df_copy[column].apply(safe_eval)
+            
+            # Check if anything actually changed (meaning we converted some values)
+            if not df_copy[column].equals(original_values):
+                print(f"✅ Converted some values in column '{column}' from strings to Python objects")
+        
+        return df_copy
 
     def get_stats(self, variations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Get statistics about generated variations."""

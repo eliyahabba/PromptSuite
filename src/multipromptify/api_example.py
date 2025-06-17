@@ -203,7 +203,7 @@ def example_with_sample_data():
     print("\n2. Setting template...")
     template = {
         'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-        'instruction': ['paraphrase'],
+        # 'instruction': ['paraphrase'],
         'options': ['shuffle', 'surface'],
         'gold': {
             'field': 'answer',
@@ -503,13 +503,13 @@ def example_environment_variables():
 if __name__ == "__main__":
     # Run the examples
     example_with_sample_data()
-    example_with_sample_data_with_paraphrase()
-    example_with_sample_data2()
-    example_platform_switching()
-    example_with_huggingface()
-    example_different_templates()
-    example_gold_field_formats()
-    example_environment_variables()
+    # example_with_sample_data_with_paraphrase()
+    # example_with_sample_data2()
+    # example_platform_switching()
+    # example_with_huggingface()
+    # example_different_templates()
+    # example_gold_field_formats()
+    # example_environment_variables()
     #
     print("\n🎉 All examples completed!")
     print("\nNext steps:")

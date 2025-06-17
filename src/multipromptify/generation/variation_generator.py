@@ -9,6 +9,7 @@ from multipromptify.augmentations.factory import AugmenterFactory
 from multipromptify.models import (
     VariationConfig, FieldVariation, FieldAugmentationData
 )
+from multipromptify.utils.formatting import format_field_value
 
 
 class VariationGenerator:
@@ -98,7 +99,7 @@ class VariationGenerator:
 
             # Assume clean data - process all fields that exist in the row
             if field_name in row.index:
-                field_value = str(row[field_name])
+                field_value = format_field_value(row[field_name])
                 
                 # Create field augmentation data
                 field_data = FieldAugmentationData(
@@ -123,7 +124,9 @@ class VariationGenerator:
     ) -> List[FieldVariation]:
         """Generate variations for a specific field."""
 
-        all_variations = [FieldVariation(data=field_data.field_value, gold_update=None)]  # Start with original
+        # Start with original - ensure it's formatted even if no variations are applied
+        original_formatted = format_field_value(field_data.field_value)
+        all_variations = [FieldVariation(data=original_formatted, gold_update=None)]
 
         for variation_type in field_data.variation_types:
             try:

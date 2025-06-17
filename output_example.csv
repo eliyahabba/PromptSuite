@@ -1,0 +1,229 @@
+prompt,original_row_index,variation_count,field_instruction,field_options
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:",0,1,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","London, Berlin, Paris, Madrid"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: Paris, London, Berlin, Madrid
+Answer:",0,2,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","Paris, London, Berlin, Madrid"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: Madrid, London, Paris, Berlin
+Answer:",0,3,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","Madrid, London, Paris, Berlin"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: Berlin, Paris, Madrid, London
+Answer:",0,4,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","Berlin, Paris, Madrid, London"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:",1,1,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","3, 4, 5, 6"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 5, 3, 4, 6
+Answer:",1,2,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","5, 3, 4, 6"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 6, 3, 5, 4
+Answer:",1,3,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","6, 3, 5, 4"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 4, 5, 6, 3
+Answer:",1,4,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","4, 5, 6, 3"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Venus, Mercury, Earth, Mars
+Answer:",2,1,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","Venus, Mercury, Earth, Mars"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Earth, Venus, Mercury, Mars
+Answer:",2,2,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","Earth, Venus, Mercury, Mars"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Mars, Venus, Earth, Mercury
+Answer:",2,3,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","Mars, Venus, Earth, Mercury"
+"Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: London, Berlin, Paris, Madrid
+Answer:
+2
+
+Answer the following multiple choice question:
+Question: What is 2+2?
+Options: 3, 4, 5, 6
+Answer:
+1
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: Mercury, Earth, Mars, Venus
+Answer:",2,4,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}","Mercury, Earth, Mars, Venus"

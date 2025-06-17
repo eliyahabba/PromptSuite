@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.models import VariationContext, FieldVariation, FewShotContext
+from multipromptify.utils.formatting import format_field_value
 
 
 @dataclass
@@ -224,13 +225,14 @@ class FewShotHandler:
             # Assume clean data - skip empty columns but process all others
             if col in field_values:
                 field_data = field_values[col]
-                row_values[col] = field_data.data
+                # Ensure even field variations go through formatting
+                row_values[col] = format_field_value(field_data.data)
                 if field_data.gold_update:
                     gold_updates.update(field_data.gold_update)
             elif variation_context.gold_config.field and col == variation_context.gold_config.field:
                 continue  # Skip gold field
             else:
-                row_values[col] = str(variation_context.row_data[col])
+                row_values[col] = format_field_value(variation_context.row_data[col])
         
         return row_values, gold_updates
 

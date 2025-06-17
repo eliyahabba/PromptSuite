@@ -4,6 +4,7 @@ Prompt Builder: Handles building prompts from templates and filling placeholders
 
 from typing import Dict
 import pandas as pd
+from multipromptify.utils.formatting import format_field_value
 
 
 class PromptBuilder:
@@ -20,7 +21,7 @@ class PromptBuilder:
         for field_name, field_value in values.items():
             placeholder = f'{{{field_name}}}'
             if placeholder in result:
-                result = result.replace(placeholder, str(field_value))
+                result = result.replace(placeholder, format_field_value(field_value))
 
         return result
 
@@ -33,7 +34,7 @@ class PromptBuilder:
             if gold_field and col == gold_field:
                 continue  # Skip the gold output field for the main input
             else:
-                row_values[col] = str(row[col])
+                row_values[col] = format_field_value(row[col])
 
         # Fill template and remove the gold field placeholder completely
         input_text = self.fill_template_placeholders(instruction_variant, row_values)

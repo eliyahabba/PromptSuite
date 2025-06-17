@@ -1,0 +1,285 @@
+prompt,original_row_index,variation_count,field_instruction,field_question,field_options
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: ['London', 'Berlin', 'Paris', 'Madrid']
+Answer:",0,1,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the capital of France?,"['London', 'Berlin', 'Paris', 'Madrid']"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: 'Paris', ['London', 'Berlin', 'Madrid']
+Answer:",0,2,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the capital of France?,"'Paris', ['London', 'Berlin', 'Madrid']"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: 'Madrid'], ['London', 'Paris', 'Berlin'
+Answer:",0,3,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the capital of France?,"'Madrid'], ['London', 'Paris', 'Berlin'"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the capital of France?
+Options: 'Berlin', 'Paris', 'Madrid'], ['London'
+Answer:",0,4,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the capital of France?,"'Berlin', 'Paris', 'Madrid'], ['London'"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: Whah is the capital of Frange?
+Options: ['London', 'Berlin', 'Paris', 'Madrid']
+Answer:",0,5,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",Whah is the capital of Frange?,"['London', 'Berlin', 'Paris', 'Madrid']"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: Whah is the capital of Frange?
+Options: 'Paris', ['London', 'Berlin', 'Madrid']
+Answer:",0,6,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",Whah is the capital of Frange?,"'Paris', ['London', 'Berlin', 'Madrid']"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: Whah is the capital of Frange?
+Options: 'Madrid'], ['London', 'Paris', 'Berlin'
+Answer:",0,7,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",Whah is the capital of Frange?,"'Madrid'], ['London', 'Paris', 'Berlin'"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: Whah is the capital of Frange?
+Options: 'Berlin', 'Paris', 'Madrid'], ['London'
+Answer:",0,8,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",Whah is the capital of Frange?,"'Berlin', 'Paris', 'Madrid'], ['London'"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the cakiral of Francs?
+Options: ['London', 'Berlin', 'Paris', 'Madrid']
+Answer:",0,9,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the cakiral of Francs?,"['London', 'Berlin', 'Paris', 'Madrid']"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the cakiral of Francs?
+Options: 'Paris', ['London', 'Berlin', 'Madrid']
+Answer:",0,10,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the cakiral of Francs?,"'Paris', ['London', 'Berlin', 'Madrid']"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the cakiral of Francs?
+Options: 'Madrid'], ['London', 'Paris', 'Berlin'
+Answer:",0,11,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the cakiral of Francs?,"'Madrid'], ['London', 'Paris', 'Berlin'"
+"Answer the following multiple choice question:
+Question: What is 2+2?
+Options: ['3', '4', '5', '6']
+Answer: '4'
+
+
+Answer the following multiple choice question:
+Question: Which planet is closest to the Sun?
+Options: ['Venus', 'Mercury', 'Earth', 'Mars']
+Answer: 'Mercury'
+
+
+Answer the following multiple choice question:
+Question: What is the cakiral of Francs?
+Options: 'Berlin', 'Paris', 'Madrid'], ['London'
+Answer:",0,12,"Answer the following multiple choice question:
+Question: {question}
+Options: {options}
+Answer: {answer}",What is the cakiral of Francs?,"'Berlin', 'Paris', 'Madrid'], ['London'"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following ['London', 'Berlin', 'Paris', 'Madrid'], where the correct  is required.",0,13,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",What is the capital of France?,"['London', 'Berlin', 'Paris', 'Madrid']"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Paris', ['London', 'Berlin', 'Madrid'], where the correct  is required.",0,14,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",What is the capital of France?,"'Paris', ['London', 'Berlin', 'Madrid']"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Madrid'], ['London', 'Paris', 'Berlin', where the correct  is required.",0,15,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",What is the capital of France?,"'Madrid'], ['London', 'Paris', 'Berlin'"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: What is the capital of France? with the following 'Berlin', 'Paris', 'Madrid'], ['London', where the correct  is required.",0,16,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",What is the capital of France?,"'Berlin', 'Paris', 'Madrid'], ['London'"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following ['London', 'Berlin', 'Paris', 'Madrid'], where the correct  is required.",0,17,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",Whah is the capital of Frange?,"['London', 'Berlin', 'Paris', 'Madrid']"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Paris', ['London', 'Berlin', 'Madrid'], where the correct  is required.",0,18,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",Whah is the capital of Frange?,"'Paris', ['London', 'Berlin', 'Madrid']"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Madrid'], ['London', 'Paris', 'Berlin', where the correct  is required.",0,19,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",Whah is the capital of Frange?,"'Madrid'], ['London', 'Paris', 'Berlin'"
+"Please respond to the multiple choice question below, selecting the correct choice: What is 2+2? with the following ['3', '4', '5', '6'], where the correct '4' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Which planet is closest to the Sun? with the following ['Venus', 'Mercury', 'Earth', 'Mars'], where the correct 'Mercury' is required.
+
+
+Please respond to the multiple choice question below, selecting the correct choice: Whah is the capital of Frange? with the following 'Berlin', 'Paris', 'Madrid'], ['London', where the correct  is required.",0,20,"Please respond to the multiple choice question below, selecting the correct choice: {question} with the following {options}, where the correct {answer} is required.",Whah is the capital of Frange?,"'Berlin', 'Paris', 'Madrid'], ['London'"

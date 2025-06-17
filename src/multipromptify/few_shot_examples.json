@@ -1,0 +1,354 @@
+[
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:\n9\n\nAnswer the math question:\nQuestion: What is 10-4?\nAnswer:\n6\n\nAnswer the math question:\nQuestion: What is 2+2?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "9"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 10-4?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "6"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 2+2?\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 1,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "What is 2+2?"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:\n9\n\nAnswer the math question:\nQuestion: What is 10-4?\nAnswer:\n6\n\nAnswer the math question:\nQuestion: Whah is 2+2?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "9"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 10-4?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "6"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: Whah is 2+2?\nAnswer:"
+      }
+    ],
+    "original_row_index": 0,
+    "variation_count": 2,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "Whah is 2+2?"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 2+2?\nAnswer:\n4\n\nAnswer the math question:\nQuestion: What is 3*3?\nAnswer:\n9\n\nAnswer the math question:\nQuestion: What is 5+3?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 2+2?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "4"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "9"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 5+3?\nAnswer:"
+      }
+    ],
+    "original_row_index": 1,
+    "variation_count": 1,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "What is 5+3?"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 2+2?\nAnswer:\n4\n\nAnswer the math question:\nQuestion: What is 3*3?\nAnswer:\n9\n\nAnswer the math question:\nQuestion: Whah is 5+3?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 2+2?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "4"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "9"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: Whah is 5+3?\nAnswer:"
+      }
+    ],
+    "original_row_index": 1,
+    "variation_count": 2,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "Whah is 5+3?"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:\n9\n\nAnswer the math question:\nQuestion: What is 5+3?\nAnswer:\n8\n\nAnswer the math question:\nQuestion: What is 10-4?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "9"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 5+3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "8"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 10-4?\nAnswer:"
+      }
+    ],
+    "original_row_index": 2,
+    "variation_count": 1,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "What is 10-4?"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:\n9\n\nAnswer the math question:\nQuestion: What is 5+3?\nAnswer:\n8\n\nAnswer the math question:\nQuestion: Whah is 10-4?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "9"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 5+3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "8"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: Whah is 10-4?\nAnswer:"
+      }
+    ],
+    "original_row_index": 2,
+    "variation_count": 2,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "Whah is 10-4?"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 5+3?\nAnswer:\n8\n\nAnswer the math question:\nQuestion: What is 2+2?\nAnswer:\n4\n\nAnswer the math question:\nQuestion: What is 3*3?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 5+3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "8"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 2+2?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "4"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 3*3?\nAnswer:"
+      }
+    ],
+    "original_row_index": 3,
+    "variation_count": 1,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "What is 3*3?"
+    },
+    "gold_updates": null
+  },
+  {
+    "prompt": "Answer the math question:\nQuestion: What is 5+3?\nAnswer:\n8\n\nAnswer the math question:\nQuestion: What is 2+2?\nAnswer:\n4\n\nAnswer the math question:\nQuestion: Whah is 3*3?\nAnswer:",
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 5+3?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "8"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: What is 2+2?\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "4"
+      },
+      {
+        "role": "user",
+        "content": "Answer the math question:\nQuestion: Whah is 3*3?\nAnswer:"
+      }
+    ],
+    "original_row_index": 3,
+    "variation_count": 2,
+    "template_config": {
+      "instruction_template": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": [
+        "surface"
+      ],
+      "gold": "answer",
+      "few_shot": {
+        "count": 2,
+        "format": "rotating",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "instruction": "Answer the math question:\nQuestion: {question}\nAnswer: {answer}",
+      "question": "Whah is 3*3?"
+    },
+    "gold_updates": null
+  }
+]

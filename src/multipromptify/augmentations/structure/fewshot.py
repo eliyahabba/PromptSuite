@@ -2,6 +2,7 @@ from typing import Dict, List, Any
 import pandas as pd
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
+from multipromptify.utils.formatting import format_field_value
 
 
 class FewShotAugmenter(BaseAxisAugmenter):
@@ -141,7 +142,7 @@ This augmenter handles few-shot examples for NLP tasks.
                     )
                 else:
                     # Add to input values (everything except gold field)
-                    input_values[col] = str(example_row[col])
+                    input_values[col] = format_field_value(example_row[col])
 
             # Fill template for input (without gold field placeholder)
             input_template = instruction_variant
@@ -165,13 +166,13 @@ This augmenter handles few-shot examples for NLP tasks.
         """Extract the actual answer text from options based on the gold field."""
 
         if not gold_field or gold_field not in row.index:
-            return str(row.get(gold_field, ''))
+            return format_field_value(row.get(gold_field, ''))
 
         gold_value = row[gold_field]
 
         # If gold_type is 'value', return as is
         if gold_type == 'value':
-            return str(gold_value)
+            return format_field_value(gold_value)
     
         # If gold_type is 'index', try to extract from options
         if gold_type == 'index' and options_field and options_field in row.index:
@@ -192,7 +193,7 @@ This augmenter handles few-shot examples for NLP tasks.
                 pass
 
         # Fallback: return the gold value as string
-        return str(gold_value)
+        return format_field_value(gold_value)
 
     def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
         """Fill template placeholders with values."""
@@ -203,7 +204,7 @@ This augmenter handles few-shot examples for NLP tasks.
         for field_name, field_value in values.items():
             placeholder = f'{{{field_name}}}'
             if placeholder in result:
-                result = result.replace(placeholder, str(field_value))
+                result = result.replace(placeholder, format_field_value(field_value))
 
         return result
 
