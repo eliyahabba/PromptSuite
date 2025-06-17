@@ -45,6 +45,7 @@ Return ONLY a Python list of strings. Each string should be a complete prompt va
 Original prompt: '''{prompt}'''
 
 Generate {n_augments} creative variations:"""
+
 class Paraphrase(BaseAxisAugmenter):
     def __init__(self, n_augments: int = 1, api_key: str = None):
         """
@@ -73,9 +74,6 @@ class Paraphrase(BaseAxisAugmenter):
         rephrasing_prompt = self.build_rephrasing_prompt(detailed_template, self.n_augments, prompt)
         response = get_completion(rephrasing_prompt)
         return ast.literal_eval(response)
-        # except Exception as e:
-        #     print(f"Warning: Paraphrase API failed ({str(e)}), falling back to simple variations")
-        #     return self._generate_simple_paraphrases(prompt)
 
     def _generate_simple_paraphrases(self, prompt: str) -> List[str]:
         """

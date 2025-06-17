@@ -260,7 +260,11 @@ def generate_variations_interface():
             f"📊 **Generation Estimate:** ~{estimated_total:,} variations from {effective_rows:,} rows • ~{estimated_total // effective_rows if effective_rows > 0 else 0} variations per row")
 
     except Exception as e:
-        st.warning(f"❌ Could not estimate variations: {str(e)}")
+        error_message = str(e)
+        if "Not enough data for few-shot examples" in error_message:
+            st.info("⚠️ Not enough data for few-shot examples - please increase data size or reduce the number of examples")
+        else:
+            st.warning(f"❌ Could not estimate variations: {str(e)}")
 
     # Enhanced generation button
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -389,13 +393,23 @@ def generate_all_variations():
                 st.rerun()
 
             except Exception as e:
-                # Error handling with details
-                status_text.text("❌ Generation Failed")
-                details_text.error(f"❌ Error: {str(e)}")
-
-                st.error(f"❌ Error generating variations: {str(e)}")
-                import traceback
-                with st.expander("🔍 Debug Information"):
+                # Check if this is the few-shot examples error
+                error_message = str(e)
+                if "Not enough data for few-shot examples" in error_message:
+                    # Handle few-shot error gracefully with single clear message
+                    status_text.text("⚠️ Data Configuration Issue")
+                    details_text.error("Cannot proceed - insufficient data for few-shot examples")
+                    st.error("⚠️ **Cannot create few-shot examples:** Not enough data rows available. Please increase your data size or reduce the number of few-shot examples in the template configuration.")
+                    return  # Stop execution for few-shot error
+                else:
+                    # Error handling with details
+                    status_text.text("❌ Generation Failed")
+                    details_text.error(f"❌ Error: {str(e)}")
+                    st.error(f"❌ Error generating variations: {str(e)}")
+                    
+                    # Show debug info outside the expander to avoid nesting
+                    import traceback
+                    st.text("🔍 Debug Information:")
                     st.code(traceback.format_exc())
 
 

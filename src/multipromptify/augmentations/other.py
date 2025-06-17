@@ -117,7 +117,7 @@ class OtherAugmenter(BaseAxisAugmenter):
         # Call language model to generate the variation
         try:
             temp = self.meta_prompt + f"Input Text: {text} \nReturn only the augmented result as a Python string."
-            result = get_completion(self.meta_prompt + text)
+            result = get_completion(temp)
             # Check if the result is valid (not empty and not the same as the original prompt and the original prompt is in the result)
             if result and result != text:
                 return result

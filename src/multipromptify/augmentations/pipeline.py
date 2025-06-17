@@ -292,6 +292,6 @@ def run_fewshot_combined_example():
 
 if __name__ == "__main__":
     # Run all examples
-    # run_basic_augmentation_example()
-    # run_shuffle_example()
+    run_basic_augmentation_example()
+    run_shuffle_example()
     run_fewshot_combined_example()

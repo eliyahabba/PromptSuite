@@ -293,7 +293,6 @@ if __name__ == "__main__":
 
     # Example 1: Simple text with default sequence
     text1 = "This is a simple example of text surface augmentation."
-    text1_1 = "This, is a simple example: Text surface augmentation."
     variations1 = augmenter.augment(text1)
 
     print(f"Original text: {text1}")
@@ -327,4 +326,3 @@ if __name__ == "__main__":
     print(f"With capitalization changes: {augmenter.change_char_case(text1, prob=0.15, max_outputs=1)[0]}")
     print(f"With spacing changes: {augmenter.add_white_spaces(text1, max_outputs=1)[0]}")
     print(f"With character swaps: {augmenter.swap_characters(text1, prob=0.08, max_outputs=1)[0]}")
-    print(f"With punctuation changes: {augmenter.switch_punctuation(text1_1, prob=0.9, max_outputs=1)[0]}")

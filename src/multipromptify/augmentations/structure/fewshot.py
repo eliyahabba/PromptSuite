@@ -1,363 +1,237 @@
 from typing import Dict, List, Any
 import pandas as pd
-import random
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
-from multipromptify.shared.constants import FewShotConstants, BaseAugmenterConstants
 
 
 class FewShotAugmenter(BaseAxisAugmenter):
     """
     This augmenter handles few-shot examples for question answering tasks.
-    It can vary either the specific examples used or the number of examples.
+    It works with the engine to generate structured few-shot examples.
     """
 
-    def __init__(self, 
-                 n_augments: int = BaseAugmenterConstants.DEFAULT_N_AUGMENTS,
-                 num_examples: int = FewShotConstants.DEFAULT_NUM_EXAMPLES, 
-                 mode: str = "both"):  # Add mode parameter
+    def __init__(self, n_augments: int = 1):
         """
         Initialize the few-shot augmenter.
         
         Args:
-            n_augments: Number of variations to generate
-            num_examples: Number of examples to include for each question
-            mode: Operation mode - "which" (vary examples), "how_many" (vary count), or "both"
+            n_augments: Number of variations to generate (not used in current implementation)
         """
         super().__init__(n_augments=n_augments)
-        self.num_examples = num_examples
-        self.dataset = None
-        self.mode = mode  # Store the mode
-        
-        # For "how_many" mode, we'll use these counts
-        self.example_counts = [1, 2, 3, 5] if num_examples >= 5 else list(range(1, num_examples + 1))
 
     def get_name(self):
-        if self.mode == "which":
-            return "Which Few-Shot Examples"
-        elif self.mode == "how_many":
-            return "How Many Few-Shot Examples"
-        else:
             return "Few-Shot Examples"
 
-    def set_dataset(self, dataset: pd.DataFrame):
+    def augment(self, prompt: str, identification_data: Dict[str, Any] = None) -> List[Dict[str, str]]:
         """
-        Set the dataset to use for few-shot examples.
+        Generate few-shot variations of the prompt for engine use.
         
         Args:
-            dataset: DataFrame with 'input' and 'output' columns
-        """
-        if "input" not in dataset.columns or "output" not in dataset.columns:
-            raise ValueError("Dataset must contain columns - 'input', 'output'")
-        self.dataset = dataset
-
-    def augment(self, prompt: str, identification_data: Dict[str, Any] = None) -> List[str]:
-        """
-        Generate few-shot variations of the prompt based on the selected mode.
-        
-        Args:
-            prompt: The original prompt text
-            identification_data: Optional data containing a dataset to use
+            prompt: The instruction template to use for few-shot examples
+            identification_data: Dictionary containing:
+                - few_shot_field: TemplateField object with few-shot configuration
+                - data: DataFrame with the dataset
+                - current_row_idx: Index of current row to exclude
+                - gold_field: Name of the gold field column
+                - gold_type: Type of gold field ('value' or 'index')
+                - options_field: Name of options field (for index-based gold)
             
         Returns:
-            List of variations with few-shot examples
+            List of dictionaries with 'question' and 'answer' keys for few-shot examples
         """
-        # If no dataset is provided, try to use identification_data or return original prompt
-        dataset = self.dataset
-        if dataset is None and identification_data and "dataset" in identification_data:
-            dataset = identification_data["dataset"]
+        if not identification_data or 'few_shot_field' not in identification_data:
+            return []
         
-        if dataset is None:
-            return [prompt]
+        # Validate gold field requirement
+        few_shot_field = identification_data.get('few_shot_field')
+        gold_field = identification_data.get('gold_field')
+        few_shot_fields = [few_shot_field] if few_shot_field else []
         
-        # Check if a specific mode is requested in identification_data
-        requested_mode = identification_data.get("fewshot_mode", self.mode) if identification_data else self.mode
+        self._validate_gold_field_requirement(prompt, gold_field, few_shot_fields)
         
-        if requested_mode == "which":
-            return self._augment_which_examples(prompt, dataset)
-        elif requested_mode == "how_many":
-            return self._augment_how_many_examples(prompt, dataset)
-        else:  # "both" or any other value
-            return self._augment_both(prompt, dataset)
+        # Engine mode - use structured generation
+        structured_examples = self.generate_few_shot_examples_structured(
+            identification_data.get('few_shot_field'),
+            prompt,
+            identification_data.get('data'),
+            identification_data.get('current_row_idx', 0),
+            identification_data.get('gold_field'),
+            identification_data.get('gold_type', 'value'),
+            identification_data.get('options_field')
+        )
+        # Return structured examples directly (not formatted strings)
+        return structured_examples
 
-    def _augment_which_examples(self, prompt: str, dataset: pd.DataFrame) -> List[str]:
-        """Vary which specific examples are used while keeping the count constant."""
-        variations = []
-        used_variations = set()
-        attempts = 0
+    def _validate_gold_field_requirement(self, instruction_template: str, gold_field: str, few_shot_fields: list):
+        """Validate that gold field is provided when needed for separating questions from answers."""
+        needs_gold_field = False
         
-        while len(variations) < self.n_augments and attempts < self.n_augments * 2:
-            # Get random examples for this variation with fixed count
-            examples = self._get_examples_for_question(prompt, dataset, 
-                                                      count=self.num_examples,
-                                                      random_state=None)
-            formatted = self.format_examples(examples)
-            
-            # Only add if it's new
-            if formatted not in used_variations:
-                variations.append(formatted)
-                used_variations.add(formatted)
-            attempts += 1
+        # Check if few-shot is configured (needs to separate question from answer)
+        if few_shot_fields and len(few_shot_fields) > 0:
+            needs_gold_field = True
         
-        return variations[:self.n_augments]
+        # Check if instruction template has the gold field placeholder
+        if instruction_template and gold_field:
+            gold_placeholder = f'{{{gold_field}}}'
+            if gold_placeholder in instruction_template:
+                needs_gold_field = True
+        
+        if needs_gold_field and not gold_field:
+            raise ValueError(
+                "Gold field is required when using few-shot examples. "
+                "Please specify the 'gold' field in your template to indicate which column contains the correct answers/labels. "
+                "Example: \"gold\": \"answer\" or \"gold\": \"label\""
+            )
 
-    def _augment_how_many_examples(self, prompt: str, dataset: pd.DataFrame) -> List[str]:
-        """Vary the number of examples while trying to keep the specific examples consistent."""
-        variations = []
-        
-        # First, get a pool of examples that we'll use
-        max_examples = max(self.example_counts)
-        example_pool = self._get_examples_for_question(prompt, dataset, 
-                                                     count=max_examples,
-                                                     random_state=42)  # Fixed seed for consistency
-        
-        # Now create variations with different counts
-        for count in self.example_counts:
-            if count <= len(example_pool):
-                examples = example_pool[:count]  # Take the first 'count' examples
-                formatted = self.format_examples(examples)
-                variations.append(formatted)
-                
-                # If we have enough variations, stop
-                if len(variations) >= self.n_augments:
-                    break
-        
-        return variations[:self.n_augments]
+    def generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame,
+                                            current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
+                                            options_field: str = None) -> List[Dict[str, str]]:
+        """Generate few-shot examples using the configured parameters with structured output."""
 
-    def _augment_both(self, prompt: str, dataset: pd.DataFrame) -> List[str]:
-        """Vary both which examples are used and how many."""
-        # Get variations for each mode
-        which_variations = self._augment_which_examples(prompt, dataset)
-        how_many_variations = self._augment_how_many_examples(prompt, dataset)
-        
-        # Combine and shuffle
-        combined = which_variations + how_many_variations
-        random.shuffle(combined)
-        
-        return combined[:self.n_augments]
-
-    def _get_examples_for_question(self, question: str, df, count=None, random_state=None) -> List[str]:
-        """
-        Get few-shot examples for a specific question, skipping the question itself.
-        
-        Args:
-            question: The question to get examples for
-            df: DataFrame with examples
-            count: Number of examples to get (defaults to self.num_examples)
-            random_state: Random state for reproducibility
-            
-        Returns:
-            List of formatted example strings
-        """
-        result = []
-        temp_df = df.copy()
-
-        # Filter out the current question
-        temp_df = temp_df[temp_df["input"] != question]
-
-        if len(temp_df) == 0:
+        if not few_shot_field:
             return []
 
-        # Use specified count or default
-        num_examples = count if count is not None else self.num_examples
-        num_examples = min(num_examples, len(temp_df))
-        
-        temp_df = temp_df.sample(
-            n=num_examples,
-            random_state=random_state,
-            replace=False
-        )
+        count = few_shot_field.few_shot_count or 2
+        few_shot_format = few_shot_field.few_shot_format or "rotating"
+        split = few_shot_field.few_shot_split or "all"
 
-        # Format the examples
-        for i in range(num_examples):
-            example_input = temp_df.iloc[i]["input"]
-            example_output = temp_df.iloc[i]["output"]
-            result.append(FewShotConstants.EXAMPLE_FORMAT.format(example_input, example_output))
+        # Get available data for few-shot examples
+        if split == "train":
+            # Use only training data
+            available_data = data[data.get('split', 'train') == 'train']
+        elif split == "test":
+            # Use only test data
+            available_data = data[data.get('split', 'train') == 'test']
+        else:
+            # Use all data
+            available_data = data
 
-        return result
+        # Remove current row to avoid data leakage
+        available_data = available_data.drop(current_row_idx, errors='ignore')
 
-    def augment_all_questions(self, df) -> Dict[str, List[str]]:
-        """
-        Process all questions in the dataframe and return few-shot examples for each.
-        
-        Args:
-            df: DataFrame with 'input' and 'output' columns
-            
-        Returns:
-            Dictionary where keys are input questions and values are lists of
-            few-shot example strings
-        """
-        if "input" not in df.columns or "output" not in df.columns:
-            raise ValueError("Dataframe must contain columns - 'input', 'output'")
+        if len(available_data) < count:
+            # Raise error with appropriate explanation instead of returning empty list
+            raise ValueError(
+                f"Not enough data for few-shot examples. "
+                f"Requested {count} examples but only {len(available_data)} available after filtering. "
+                f"Consider reducing the few-shot count or providing more data."
+            )
 
-        result = {}
+        # Sample examples
+        if few_shot_format == "fixed":
+            # Use the same first N examples for all questions
+            sampled_data = available_data.head(count)
+        else:
+            # Randomly sample different examples for each question
+            sampled_data = available_data.sample(n=count, random_state=current_row_idx)
 
-        # Process each question in the dataframe
-        for _, row in df.iterrows():
-            question = row["input"]
-            examples = self._get_examples_for_question(question, df)
-            result[question] = examples
-
-        return result
-
-    def format_examples(self, examples: List[str]) -> str:
-        """
-        Format the few-shot examples into a string.
-        
-        Args:
-            examples: list of formatted example strings
-            
-        Returns:
-            formatted string of examples
-        """
-        return FewShotConstants.EXAMPLE_SEPARATOR.join(examples)
-
-    def create_few_shot_prompt(self, test_question: str, example_pairs: List[tuple]) -> str:
-        """
-        Create a few-shot prompt with provided examples and a test question.
-        
-        Args:
-            test_question: The question to answer (will be placed at the end)
-            example_pairs: List of (question, answer) tuples to use as examples
-            
-        Returns:
-            A formatted few-shot prompt string
-        """
         examples = []
         
-        # Add the provided examples
-        for question, answer in example_pairs:
-            examples.append(FewShotConstants.EXAMPLE_FORMAT.format(question, answer))
-        
-        # Add the test question
-        examples.append(FewShotConstants.QUESTION_FORMAT.format(test_question))
-        
-        # Format and return the prompt
-        return self.format_examples(examples)
+        for _, example_row in sampled_data.iterrows():
+            # Create row values for question template (excluding gold field)
+            question_values = {}
+            answer_value = ""
+            
+            for col in example_row.index:
+                # Handle pandas array comparison issue
+                try:
+                    is_not_na = pd.notna(example_row[col])
+                    if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
+                        # For arrays/lists, check if any element is not na
+                        is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
+                except (ValueError, TypeError):
+                    # Fallback: assume not na if we can't check
+                    is_not_na = example_row[col] is not None
 
-    def augment_with_examples(self, test_question: str, example_pool: List[tuple]) -> List[str]:
-        """
-        Create multiple few-shot prompt variations by sampling different examples
-        and varying their order.
-        
-        Args:
-            test_question: The question to answer (will be placed at the end)
-            example_pool: List of (question, answer) tuples to sample from
+                if is_not_na:
+                    if gold_field and col == gold_field:
+                        # Extract the answer value separately for the answer field
+                        answer_value = self._extract_answer_from_options(
+                            example_row, gold_field, gold_type, options_field
+                        )
+                    else:
+                        # Add to question values (everything except gold field)
+                        question_values[col] = str(example_row[col])
+
+            # Fill template for question (without gold field placeholder)
+            question_template = instruction_variant
+            # Remove gold field placeholder from question template
+            if gold_field:
+                gold_placeholder = f'{{{gold_field}}}'
+                question_template = question_template.replace(gold_placeholder, '').strip()
             
-        Returns:
-            List of formatted few-shot prompt variations
-        """
-        if len(example_pool) < self.num_examples:
-            # Not enough examples to sample from
-            return [self.create_few_shot_prompt(test_question, example_pool)]
+            question = self._fill_template_placeholders(question_template, question_values)
+
+            if question:
+                examples.append({
+                    "question": question.strip(),
+                    "answer": answer_value.strip() if answer_value else ""
+                })
         
-        variations = []
-        
-        # Create n_augments variations
-        for _ in range(self.n_augments):
-            # Sample examples
-            sampled_examples = random.sample(example_pool, min(self.num_examples, len(example_pool)))
-            
-            # Optionally shuffle the order (50% chance)
-            if random.random() > 0.5:
-                random.shuffle(sampled_examples)
-            
-            # Create the prompt
-            prompt = self.create_few_shot_prompt(test_question, sampled_examples)
-            variations.append(prompt)
-        
-        # Remove duplicates while preserving order
-        unique_variations = []
-        for var in variations:
-            if var not in unique_variations:
-                unique_variations.append(var)
-        
-        return unique_variations
+        return examples
+
+    def _extract_answer_from_options(self, row: pd.Series, gold_field: str, gold_type: str,
+                                   options_field: str = None) -> str:
+        """Extract the actual answer text from options based on the gold field."""
+
+        if not gold_field or gold_field not in row.index:
+            return str(row.get(gold_field, ''))
+
+        gold_value = row[gold_field]
+
+        # If gold_type is 'value', return as is
+        if gold_type == 'value':
+            return str(gold_value)
+    
+        # If gold_type is 'index', try to extract from options
+        if gold_type == 'index' and options_field and options_field in row.index:
+            try:
+                # Import here to avoid circular imports
+                from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
+                shuffle_augmenter = ShuffleAugmenter()
+
+                options_text = str(row[options_field])
+                options_list = shuffle_augmenter._parse_input_to_list(options_text)
+
+                index = int(gold_value)
+                if 0 <= index < len(options_list):
+                    # Return the actual option text, cleaned up
+                    return options_list[index].strip()
+
+            except (ValueError, IndexError, Exception):
+                pass
+
+        # Fallback: return the gold value as string
+        return str(gold_value)
+
+    def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
+        """Fill template placeholders with values."""
+        if not template:
+            return ""
+
+        result = template
+        for field_name, field_value in values.items():
+            placeholder = f'{{{field_name}}}'
+            if placeholder in result:
+                result = result.replace(placeholder, str(field_value))
+
+        return result
+
+    def format_few_shot_as_string(self, few_shot_examples: List[Dict[str, str]]) -> str:
+        """Format few-shot examples as string."""
+        if not few_shot_examples:
+            return ""
+
+        formatted_examples = []
+        for example in few_shot_examples:
+            # Combine question and answer for the traditional prompt format
+            formatted_example = f"{example['question']}\n{example['answer']}"
+            formatted_examples.append(formatted_example)
+
+        return "\n\n".join(formatted_examples)
 
 
 if __name__ == "__main__":
-    # Create sample data
-    print("Creating sample data...")
-    sample_data = pd.DataFrame({
-        "input": [
-            "What is the capital of France?",
-            "What is the largest planet in our solar system?",
-            "Who wrote Romeo and Juliet?",
-            "What is the boiling point of water?",
-            "What is the chemical symbol for gold?"
-        ],
-        "output": [
-            "Paris",
-            "Jupiter",
-            "William Shakespeare",
-            "100 degrees Celsius",
-            "Au"
-        ]
-    })
-    print(f"Created sample data with {len(sample_data)} examples")
-    
-    # Test question
-    test_question = "What is the tallest mountain in the world?"
-    
-    # Test 1: "which" mode - vary which examples are used
-    print("\n===== Testing 'which' mode =====")
-    which_augmenter = FewShotAugmenter(n_augments=3, num_examples=2, mode="which")
-    which_augmenter.set_dataset(sample_data)
-    which_variations = which_augmenter.augment(test_question)
-    
-    print(f"Generated {len(which_variations)} variations:")
-    for i, var in enumerate(which_variations):
-        print(f"\nVariation {i+1}:")
-        print(var)
-    
-    # Test 2: "how_many" mode - vary the number of examples
-    print("\n===== Testing 'how_many' mode =====")
-    how_many_augmenter = FewShotAugmenter(n_augments=3, num_examples=5, mode="how_many")
-    how_many_augmenter.set_dataset(sample_data)
-    how_many_variations = how_many_augmenter.augment(test_question)
-    
-    print(f"Generated {len(how_many_variations)} variations:")
-    for i, var in enumerate(how_many_variations):
-        print(f"\nVariation {i+1}:")
-        print(var)
-    
-    # Test 3: "both" mode - vary both which examples and how many
-    print("\n===== Testing 'both' mode =====")
-    both_augmenter = FewShotAugmenter(n_augments=5, num_examples=3, mode="both")
-    both_augmenter.set_dataset(sample_data)
-    both_variations = both_augmenter.augment(test_question)
-    
-    print(f"Generated {len(both_variations)} variations:")
-    for i, var in enumerate(both_variations):
-        print(f"\nVariation {i+1}:")
-        print(var)
-    
-    # Test 4: Using identification_data
-    print("\n===== Testing with identification_data =====")
-    id_augmenter = FewShotAugmenter(n_augments=2, num_examples=2, mode="which")
-    
-    # Create identification_data with dataset and mode override
-    identification_data = {
-        "dataset": pd.DataFrame({
-            "input": [
-                "What is the deepest ocean?",
-                "Who discovered electricity?",
-                "What is the smallest planet?",
-                "What is the capital of Japan?"
-            ],
-            "output": [
-                "Pacific Ocean (Mariana Trench)",
-                "Benjamin Franklin",
-                "Mercury",
-                "Tokyo"
-            ]
-        }),
-        "fewshot_mode": "how_many"  # Override the mode
-    }
-    
-    id_variations = id_augmenter.augment(test_question, identification_data)
-    
-    print(f"Generated {len(id_variations)} variations using identification_data:")
-    for i, var in enumerate(id_variations):
-        print(f"\nVariation {i+1}:")
-        print(var)
+    print("FewShotAugmenter is designed to work with the MultiPromptify engine.")
+    print("It requires few_shot_field configuration and structured data.")
+    print("For standalone usage examples, please refer to the engine documentation.")

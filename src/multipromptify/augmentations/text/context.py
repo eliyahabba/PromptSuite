@@ -146,14 +146,14 @@ if __name__ == "__main__":
         print(variation)
         print("-" * 50)
     
-    # # Example 2: More complex prompt
-    # prompt2 = "Explain the process of photosynthesis in plants."
-    # variations2 = augmenter.augment(prompt2)
-    #
-    # print(f"\nOriginal prompt: {prompt2}")
-    # print(f"\nGenerated {len(variations2)} variations:")
-    # for i, variation in enumerate(variations2):
-    #     print(f"\nVariation {i+1}:")
-    #     print(variation)
-    #     print("-" * 50)
+    # Example 2: More complex prompt
+    prompt2 = "Explain the process of photosynthesis in plants."
+    variations2 = augmenter.augment(prompt2)
+
+    print(f"\nOriginal prompt: {prompt2}")
+    print(f"\nGenerated {len(variations2)} variations:")
+    for i, variation in enumerate(variations2):
+        print(f"\nVariation {i+1}:")
+        print(variation)
+        print("-" * 50)
 

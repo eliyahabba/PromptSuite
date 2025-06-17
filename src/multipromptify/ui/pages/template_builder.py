@@ -314,13 +314,19 @@ def template_builder_interface(available_columns):
         col1, col2, col3 = st.columns(3)
 
         with col1:
+            # Calculate dynamic default based on available data
+            df = st.session_state.uploaded_data
+            available_rows = len(df) if df is not None else 0
+            # Set default to min(2, max(0, available_rows - 1)) to ensure we have at least 1 row left for generation
+            dynamic_default = min(2, max(0, available_rows - 1)) if available_rows > 1 else 0
+            
             few_shot_count = st.number_input(
                 "Number of examples",
                 min_value=0,
-                max_value=10,
-                value=st.session_state.template_config.get('few_shot', {}).get('count', 0),
+                max_value=min(10, available_rows - 1) if available_rows > 1 else 0,
+                value=st.session_state.template_config.get('few_shot', {}).get('count', dynamic_default),
                 key="few_shot_count",
-                help="Set to 0 to disable few-shot examples"
+                help=f"Set to 0 to disable few-shot examples. Max available: {available_rows - 1 if available_rows > 1 else 0} (keeping 1 row for generation)"
             )
 
         with col2:
