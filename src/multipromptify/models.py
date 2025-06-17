@@ -9,7 +9,7 @@ import pandas as pd
 
 @dataclass
 class GoldFieldConfig:
-    """Configuration for the gold field (correct answer/label field)."""
+    """Configuration for the gold field (correct output/label field)."""
     field: Optional[str] = None
     type: str = 'value'  # 'value' or 'index'
     options_field: Optional[str] = None
@@ -58,20 +58,10 @@ class VariationContext:
     data: Optional[pd.DataFrame] = None  # Full dataset for few-shot examples
     
     def get_field_value(self, field_name: str) -> Optional[str]:
-        """Get field value from row data, handling pandas comparison issues."""
+        """Get field value from row data. Assumes clean data."""
         if field_name not in self.row_data.index:
             return None
-            
-        try:
-            is_not_na = pd.notna(self.row_data[field_name])
-            if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
-                # For arrays/lists, check if any element is not na
-                is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
-        except (ValueError, TypeError):
-            # Fallback: assume not na if we can't check
-            is_not_na = self.row_data[field_name] is not None
-            
-        return str(self.row_data[field_name]) if is_not_na else None
+        return str(self.row_data[field_name])
 
 
 @dataclass

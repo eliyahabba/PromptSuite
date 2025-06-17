@@ -363,7 +363,7 @@ def display_single_variation(variation, variation_num, original_data):
                 else:
                     # For other fields, compare with original row data if available
                     if original_row is not None and field in original_row.index:
-                        original_val = str(original_row[field]) if pd.notna(original_row[field]) else ""
+                        original_val = str(original_row[field])
                         is_modified = str(value) != str(original_val)
 
                         # Check what operations were applied to this field
@@ -400,7 +400,7 @@ def display_single_variation(variation, variation_num, original_data):
             if gold_updates:
                 for gold_field, new_value in gold_updates.items():
                     if original_row is not None and gold_field in original_row.index:
-                        original_val = str(original_row[gold_field]) if pd.notna(original_row[gold_field]) else ""
+                        original_val = str(original_row[gold_field])
                         st.markdown(f"""
                         <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #e74c3c;">
                             <strong style="color: #c0392b;">{gold_field} (updated):</strong><br>
@@ -412,7 +412,7 @@ def display_single_variation(variation, variation_num, original_data):
             # Show any additional fields from original data that weren't used in field_values
             if original_row is not None:
                 for col in original_row.index:
-                    if col not in field_values and col not in gold_updates and pd.notna(original_row[col]) and str(original_row[col]).strip():
+                    if col not in field_values and col not in gold_updates and str(original_row[col]).strip():
                         original_val = str(original_row[col])
                         st.markdown(f"""
                         <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
@@ -472,11 +472,11 @@ def convert_to_conversation_format(variations):
             [
                 {
                     "role": "user",
-                    "content": "question content"
-                },
-                {
-                    "role": "assistant", 
-                    "content": "answer content"
+                                    "content": "input content"
+            },
+            {
+                "role": "assistant",
+                "content": "output content"
                 },
                 ...
             ]

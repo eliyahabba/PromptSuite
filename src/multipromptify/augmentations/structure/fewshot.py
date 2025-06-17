@@ -6,7 +6,7 @@ from multipromptify.augmentations.base import BaseAxisAugmenter
 
 class FewShotAugmenter(BaseAxisAugmenter):
     """
-    This augmenter handles few-shot examples for question answering tasks.
+This augmenter handles few-shot examples for NLP tasks.
     It works with the engine to generate structured few-shot examples.
     """
 
@@ -37,7 +37,7 @@ class FewShotAugmenter(BaseAxisAugmenter):
                 - options_field: Name of options field (for index-based gold)
             
         Returns:
-            List of dictionaries with 'question' and 'answer' keys for few-shot examples
+            List of dictionaries with 'input' and 'output' keys for few-shot examples
         """
         if not identification_data or 'few_shot_field' not in identification_data:
             return []
@@ -63,10 +63,10 @@ class FewShotAugmenter(BaseAxisAugmenter):
         return structured_examples
 
     def _validate_gold_field_requirement(self, instruction_template: str, gold_field: str, few_shot_fields: list):
-        """Validate that gold field is provided when needed for separating questions from answers."""
+        """Validate that gold field is provided when needed for separating inputs from outputs."""
         needs_gold_field = False
         
-        # Check if few-shot is configured (needs to separate question from answer)
+        # Check if few-shot is configured (needs to separate input from output)
         if few_shot_fields and len(few_shot_fields) > 0:
             needs_gold_field = True
         
@@ -128,44 +128,34 @@ class FewShotAugmenter(BaseAxisAugmenter):
         examples = []
         
         for _, example_row in sampled_data.iterrows():
-            # Create row values for question template (excluding gold field)
-            question_values = {}
-            answer_value = ""
+            # Create row values for input template (excluding gold field)
+            input_values = {}
+            output_value = ""
             
             for col in example_row.index:
-                # Handle pandas array comparison issue
-                try:
-                    is_not_na = pd.notna(example_row[col])
-                    if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
-                        # For arrays/lists, check if any element is not na
-                        is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
-                except (ValueError, TypeError):
-                    # Fallback: assume not na if we can't check
-                    is_not_na = example_row[col] is not None
+                # Assume clean data - process all columns
+                if gold_field and col == gold_field:
+                    # Extract the output value separately for the output field
+                    output_value = self._extract_answer_from_options(
+                        example_row, gold_field, gold_type, options_field
+                    )
+                else:
+                    # Add to input values (everything except gold field)
+                    input_values[col] = str(example_row[col])
 
-                if is_not_na:
-                    if gold_field and col == gold_field:
-                        # Extract the answer value separately for the answer field
-                        answer_value = self._extract_answer_from_options(
-                            example_row, gold_field, gold_type, options_field
-                        )
-                    else:
-                        # Add to question values (everything except gold field)
-                        question_values[col] = str(example_row[col])
-
-            # Fill template for question (without gold field placeholder)
-            question_template = instruction_variant
-            # Remove gold field placeholder from question template
+            # Fill template for input (without gold field placeholder)
+            input_template = instruction_variant
+            # Remove gold field placeholder from input template
             if gold_field:
                 gold_placeholder = f'{{{gold_field}}}'
-                question_template = question_template.replace(gold_placeholder, '').strip()
+                input_template = input_template.replace(gold_placeholder, '').strip()
             
-            question = self._fill_template_placeholders(question_template, question_values)
+            input_text = self._fill_template_placeholders(input_template, input_values)
 
-            if question:
+            if input_text:
                 examples.append({
-                    "question": question.strip(),
-                    "answer": answer_value.strip() if answer_value else ""
+                    "input": input_text.strip(),
+                    "output": output_value.strip() if output_value else ""
                 })
         
         return examples
@@ -224,8 +214,8 @@ class FewShotAugmenter(BaseAxisAugmenter):
 
         formatted_examples = []
         for example in few_shot_examples:
-            # Combine question and answer for the traditional prompt format
-            formatted_example = f"{example['question']}\n{example['answer']}"
+            # Combine input and output for the traditional prompt format
+            formatted_example = f"{example['input']}\n{example['output']}"
             formatted_examples.append(formatted_example)
 
         return "\n\n".join(formatted_examples)
