@@ -1,5 +1,13 @@
 """
 MultiPromptify: A library for generating multi-prompt datasets from single-prompt datasets.
+
+IMPORTANT: MultiPromptify assumes clean input data:
+- All DataFrame cells contain simple values (strings, numbers)
+- No NaN values (use empty strings instead)
+- No nested arrays or complex objects in cells
+- All columns exist as specified in the template
+
+If your data doesn't meet these requirements, clean it before passing to MultiPromptify.
 """
 
 import json
@@ -92,7 +100,7 @@ class MultiPromptify:
             )
 
         # Validate gold field requirement
-        self.prompt_builder.validate_gold_field_requirement(instruction_template, gold_config.field, few_shot_fields)
+        self.few_shot_handler.validate_gold_field_requirement(instruction_template, gold_config.field, few_shot_fields)
 
         all_variations = []
 

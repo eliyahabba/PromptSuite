@@ -5,10 +5,7 @@ Variation Generator: Handles generation of field variations and instruction vari
 from typing import Dict, List, Any
 import pandas as pd
 
-from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
-from multipromptify.augmentations.text.context import ContextAugmenter
-from multipromptify.augmentations.text.paraphrase import Paraphrase
-from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
+from multipromptify.augmentations.factory import AugmenterFactory
 from multipromptify.models import (
     VariationConfig, FieldVariation, FieldAugmentationData
 )
@@ -18,13 +15,6 @@ class VariationGenerator:
     """
     Handles the generation of variations for fields and instructions.
     """
-    
-    VARIATION_TYPE_TO_AUGMENTER = {
-        "paraphrase": Paraphrase,
-        "surface": TextSurfaceAugmenter,
-        "context": ContextAugmenter,
-        "shuffle": ShuffleAugmenter,
-    }
 
     def generate_instruction_variations(
             self,
@@ -43,36 +33,23 @@ class VariationGenerator:
         # Generate variations for each type
         for variation_type in variation_types:
             try:
-                augmenter_class = self.VARIATION_TYPE_TO_AUGMENTER.get(
-                    variation_type, TextSurfaceAugmenter
+                # Use Factory to create augmenter with proper configuration
+                augmenter = AugmenterFactory.create(
+                    variation_type=variation_type,
+                    n_augments=variation_config.variations_per_field,
+                    api_key=variation_config.api_key
                 )
 
-                if augmenter_class == Paraphrase and variation_config.api_key:
-                    augmenter = augmenter_class(n_augments=variation_config.variations_per_field, api_key=variation_config.api_key)
-                else:
-                    augmenter = augmenter_class(n_augments=variation_config.variations_per_field)
+                # Use Factory to handle augmentation with special cases
+                variations = AugmenterFactory.augment_with_special_handling(
+                    augmenter=augmenter,
+                    text=instruction_template,
+                    variation_type=variation_type
+                )
 
-                variations = augmenter.augment(instruction_template)
-
-                if variations and isinstance(variations, list):
-                    # Handle potential dict return from certain augmenters
-                    string_variations = []
-                    for var in variations:
-                        if isinstance(var, dict):
-                            # Extract text data from dict
-                            if 'shuffled_data' in var:
-                                string_variations.append(var['shuffled_data'])
-                            elif 'data' in var:
-                                string_variations.append(var['data'])
-                            elif 'text' in var:
-                                string_variations.append(var['text'])
-                            else:
-                                string_variations.append(str(var))
-                        else:
-                            # Standard string return
-                            string_variations.append(var)
-
-                    all_variations.extend(string_variations[:variation_config.variations_per_field])
+                # Extract text from results using Factory method
+                string_variations = AugmenterFactory.extract_text_from_result(variations, variation_type)
+                all_variations.extend(string_variations[:variation_config.variations_per_field])
 
             except Exception as e:
                 print(f"⚠️ Error generating {variation_type} variations: {e}")
@@ -119,17 +96,8 @@ class VariationGenerator:
             if field_name == 'instruction':
                 continue  # Already handled above
 
-            # Handle pandas array comparison issue
-            try:
-                is_not_na = pd.notna(row[field_name]) if field_name in row.index else False
-                if hasattr(is_not_na, '__len__') and len(is_not_na) > 1:
-                    # For arrays/lists, check if any element is not na
-                    is_not_na = is_not_na.any() if hasattr(is_not_na, 'any') else True
-            except (ValueError, TypeError):
-                # Fallback: assume not na if we can't check
-                is_not_na = field_name in row.index and row[field_name] is not None
-
-            if field_name in row.index and is_not_na:
+            # Assume clean data - process all fields that exist in the row
+            if field_name in row.index:
                 field_value = str(row[field_name])
                 
                 # Create field augmentation data
@@ -159,17 +127,12 @@ class VariationGenerator:
 
         for variation_type in field_data.variation_types:
             try:
-                augmenter_class = self.VARIATION_TYPE_TO_AUGMENTER.get(
-                    variation_type, TextSurfaceAugmenter
+                # Use Factory to create augmenter with proper configuration
+                augmenter = AugmenterFactory.create(
+                    variation_type=variation_type,
+                    n_augments=field_data.variation_config.variations_per_field,
+                    api_key=field_data.variation_config.api_key
                 )
-
-                if augmenter_class == Paraphrase and field_data.variation_config.api_key:
-                    augmenter = augmenter_class(
-                        n_augments=field_data.variation_config.variations_per_field, 
-                        api_key=field_data.variation_config.api_key
-                    )
-                else:
-                    augmenter = augmenter_class(n_augments=field_data.variation_config.variations_per_field)
 
                 # Special handling for shuffle augmenter
                 if variation_type == 'shuffle':
@@ -197,7 +160,12 @@ class VariationGenerator:
                             'gold_value': str(field_data.row_data[field_data.gold_config.field])
                         }
 
-                    variations = augmenter.augment(field_data.field_value, identification_data)
+                    variations = AugmenterFactory.augment_with_special_handling(
+                        augmenter=augmenter,
+                        text=field_data.field_value,
+                        variation_type=variation_type,
+                        identification_data=identification_data
+                    )
 
                     if variations and isinstance(variations, list):
                         for var in variations:
@@ -219,7 +187,11 @@ class VariationGenerator:
                                     all_variations.append(variation_data)
                 else:
                     # Regular augmenters
-                    variations = augmenter.augment(field_data.field_value)
+                    variations = AugmenterFactory.augment_with_special_handling(
+                        augmenter=augmenter,
+                        text=field_data.field_value,
+                        variation_type=variation_type
+                    )
 
                     if variations and isinstance(variations, list):
                         # Add new variations (excluding original if already present)
