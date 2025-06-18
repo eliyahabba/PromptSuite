@@ -10,6 +10,9 @@ from dataclasses import dataclass
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.models import VariationContext, FieldVariation, FewShotContext
 from multipromptify.utils.formatting import format_field_value
+from multipromptify.exceptions import (
+    FewShotGoldFieldMissingError, FewShotDataInsufficientError, FewShotConfigurationError
+)
 
 
 @dataclass
@@ -52,11 +55,7 @@ class FewShotHandler:
                 needs_gold_field = True
         
         if needs_gold_field and not gold_field:
-            raise ValueError(
-                "Gold field is required when using few-shot examples. "
-                "Please specify the 'gold' field in your template to indicate which column contains the correct outputs/labels. "
-                "Example: \"gold\": \"output\" or \"gold\": \"label\""
-            )
+            raise FewShotGoldFieldMissingError()
 
     def validate_data_sufficiency(
         self,
@@ -69,7 +68,7 @@ class FewShotHandler:
         Centralized from fewshot.py data sufficiency checking.
         """
         if data is None or len(data) == 0:
-            raise ValueError("No data provided for few-shot examples")
+            raise FewShotDataInsufficientError(few_shot_config.count, 0)
         
         # Get available data based on split configuration
         available_data = self._filter_data_by_split(data, few_shot_config.split)
@@ -78,11 +77,7 @@ class FewShotHandler:
         available_data = available_data.drop(current_row_idx, errors='ignore')
         
         if len(available_data) < few_shot_config.count:
-            raise ValueError(
-                f"Not enough data for few-shot examples. "
-                f"Requested {few_shot_config.count} examples but only {len(available_data)} available after filtering. "
-                f"Consider reducing the few-shot count or providing more data."
-            )
+            raise FewShotDataInsufficientError(few_shot_config.count, len(available_data), few_shot_config.split)
 
     def parse_few_shot_config(self, config: dict) -> FewShotConfig:
         """
@@ -90,7 +85,7 @@ class FewShotHandler:
         Centralized from template_parser.py logic.
         """
         if not isinstance(config, dict):
-            raise ValueError("few_shot configuration must be a dictionary")
+            raise FewShotConfigurationError("config_type", type(config).__name__, ["dictionary"])
         
         few_shot_config = FewShotConfig(
             count=config.get("count", 2),
@@ -100,13 +95,13 @@ class FewShotHandler:
         
         # Validate configuration
         if few_shot_config.count <= 0:
-            raise ValueError(f"Few-shot count must be positive, got {few_shot_config.count}")
+            raise FewShotConfigurationError("count", few_shot_config.count)
         
         if few_shot_config.format not in ['fixed', 'rotating']:
-            raise ValueError(f"Few-shot format must be 'fixed' or 'rotating', got {few_shot_config.format}")
+            raise FewShotConfigurationError("format", few_shot_config.format, ['fixed', 'rotating'])
         
         if few_shot_config.split not in ['all', 'train', 'test']:
-            raise ValueError(f"Few-shot split must be 'all', 'train', or 'test', got {few_shot_config.split}")
+            raise FewShotConfigurationError("split", few_shot_config.split, ['all', 'train', 'test'])
         
         return few_shot_config
 

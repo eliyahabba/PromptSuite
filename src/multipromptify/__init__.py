@@ -9,4 +9,69 @@ from .engine import MultiPromptify
 from .api import MultiPromptifyAPI
 from .template_parser import TemplateParser
 
-__all__ = ["MultiPromptify", "MultiPromptifyAPI", "TemplateParser"]
+# Import exceptions for better error handling
+from .exceptions import (
+    MultiPromptifyError,
+    TemplateError,
+    InvalidTemplateError,
+    MissingInstructionTemplateError,
+    TemplateValidationError,
+    DataError,
+    DataNotLoadedError,
+    FileNotFoundError,
+    DataParsingError,
+    UnsupportedFileFormatError,
+    FewShotError,
+    FewShotGoldFieldMissingError,
+    FewShotDataInsufficientError,
+    FewShotConfigurationError,
+    ConfigurationError,
+    InvalidConfigurationError,
+    UnknownConfigurationError,
+    APIError,
+    APIKeyMissingError,
+    DatasetLoadError,
+    GenerationError,
+    ExportError,
+    NoResultsToExportError,
+    UnsupportedExportFormatError,
+    ExportWriteError,
+    AugmentationError,
+    ShuffleIndexError,
+    ErrorCollector
+)
+
+__all__ = [
+    "MultiPromptify", 
+    "MultiPromptifyAPI", 
+    "TemplateParser",
+    # Exceptions
+    "MultiPromptifyError",
+    "TemplateError",
+    "InvalidTemplateError", 
+    "MissingInstructionTemplateError",
+    "TemplateValidationError",
+    "DataError",
+    "DataNotLoadedError",
+    "FileNotFoundError",
+    "DataParsingError",
+    "UnsupportedFileFormatError", 
+    "FewShotError",
+    "FewShotGoldFieldMissingError",
+    "FewShotDataInsufficientError",
+    "FewShotConfigurationError",
+    "ConfigurationError",
+    "InvalidConfigurationError",
+    "UnknownConfigurationError",
+    "APIError",
+    "APIKeyMissingError",
+    "DatasetLoadError",
+    "GenerationError",
+    "ExportError", 
+    "NoResultsToExportError",
+    "UnsupportedExportFormatError",
+    "ExportWriteError",
+    "AugmentationError",
+    "ShuffleIndexError",
+    "ErrorCollector"
+]

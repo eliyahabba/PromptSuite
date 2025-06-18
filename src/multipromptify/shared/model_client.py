@@ -9,6 +9,7 @@ import together
 from dotenv import load_dotenv
 
 from multipromptify.shared.constants import DEFAULT_MODEL
+from multipromptify.exceptions import APIKeyMissingError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -35,7 +36,7 @@ def get_model_response(messages: List[Dict[str, str]], model_name: str = DEFAULT
         The model's response text
     """
     if not client:
-        raise ValueError("Together client not initialized. Please set TOGETHER_API_KEY environment variable.")
+        raise APIKeyMissingError("TogetherAI")
     
     response = client.chat.completions.create(
         model=model_name,

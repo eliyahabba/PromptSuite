@@ -19,6 +19,10 @@ from multipromptify.models import (
     GoldFieldConfig, VariationConfig, VariationContext
 )
 from multipromptify.generation import VariationGenerator, PromptBuilder, FewShotHandler
+from multipromptify.exceptions import (
+    InvalidTemplateError, MissingInstructionTemplateError, 
+    UnsupportedFileFormatError, UnsupportedExportFormatError
+)
 
 
 class MultiPromptify:
@@ -72,7 +76,7 @@ class MultiPromptify:
         # Validate template
         is_valid, errors = self.template_parser.validate_template(template)
         if not is_valid:
-            raise ValueError(f"Invalid template: {', '.join(errors)}")
+            raise InvalidTemplateError(errors, template)
 
         # Load data if needed
         if isinstance(data, str):
@@ -97,10 +101,7 @@ class MultiPromptify:
         # Get instruction template from user - required
         instruction_template = self.template_parser.get_instruction_template()
         if not instruction_template:
-            raise ValueError(
-                "Instruction template is required. Please specify 'instruction_template' in your template. "
-                "Example: \"instruction_template\": \"Process the input: {input}\\nOutput: {output}\""
-            )
+            raise MissingInstructionTemplateError()
 
         # Validate gold field requirement
         self.few_shot_handler.validate_gold_field_requirement(instruction_template, gold_config.field, few_shot_fields)
@@ -152,7 +153,7 @@ class MultiPromptify:
                 json_data = json.load(f)
             df = pd.DataFrame(json_data)
         else:
-            raise ValueError(f"Unsupported file format: {data_path}")
+            raise UnsupportedFileFormatError(data_path, ['.csv', '.json'])
         
         # Auto-convert string representations of lists to actual lists
         return self._convert_string_lists_to_lists(df)
@@ -249,4 +250,4 @@ class MultiPromptify:
                     f.write("\n\n")
 
         else:
-            raise ValueError(f"Unsupported format: {format}")
+            raise UnsupportedExportFormatError(format, ["json", "csv", "txt"])

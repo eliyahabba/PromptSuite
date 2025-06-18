@@ -3,6 +3,7 @@ import pandas as pd
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.utils.formatting import format_field_value
+from multipromptify.exceptions import FewShotGoldFieldMissingError, FewShotDataInsufficientError
 
 
 class FewShotAugmenter(BaseAxisAugmenter):
@@ -78,11 +79,7 @@ This augmenter handles few-shot examples for NLP tasks.
                 needs_gold_field = True
         
         if needs_gold_field and not gold_field:
-            raise ValueError(
-                "Gold field is required when using few-shot examples. "
-                "Please specify the 'gold' field in your template to indicate which column contains the correct answers/labels. "
-                "Example: \"gold\": \"answer\" or \"gold\": \"label\""
-            )
+            raise FewShotGoldFieldMissingError()
 
     def generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame,
                                             current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
@@ -112,11 +109,7 @@ This augmenter handles few-shot examples for NLP tasks.
 
         if len(available_data) < count:
             # Raise error with appropriate explanation instead of returning empty list
-            raise ValueError(
-                f"Not enough data for few-shot examples. "
-                f"Requested {count} examples but only {len(available_data)} available after filtering. "
-                f"Consider reducing the few-shot count or providing more data."
-            )
+            raise FewShotDataInsufficientError(count, len(available_data), split)
 
         # Sample examples
         if few_shot_format == "fixed":

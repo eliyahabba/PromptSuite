@@ -4,6 +4,7 @@ Template parser for MultiPromptify templates with dictionary format.
 
 from typing import Dict, List, Tuple, Set, Optional, Union
 from dataclasses import dataclass
+from multipromptify.exceptions import InvalidTemplateFieldError, TemplateValidationError
 
 
 @dataclass
@@ -56,7 +57,7 @@ class TemplateParser:
             List of TemplateField objects
         """
         if not isinstance(template, dict):
-            raise ValueError("Template must be a dictionary")
+            raise InvalidTemplateFieldError("template", template, "dictionary")
         
         self.fields = []
         self.instruction_template = None
@@ -85,7 +86,7 @@ class TemplateParser:
                     self.fields.append(field)
                     continue
                 else:
-                    raise ValueError("few_shot configuration must be a dictionary with 'count', 'format', and 'split' keys")
+                    raise InvalidTemplateFieldError("few_shot", config, "dictionary with 'count', 'format', and 'split' keys")
             else:
                 # Regular fields with variation list
                 if isinstance(config, list):

@@ -3,6 +3,7 @@ from typing import List, Dict, Any
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.shared.constants import ShuffleConstants
+from multipromptify.exceptions import AugmentationConfigurationError, InvalidAugmentationInputError, ShuffleIndexError
 
 
 class ShuffleAugmenter(BaseAxisAugmenter):
@@ -36,11 +37,11 @@ class ShuffleAugmenter(BaseAxisAugmenter):
             List of dictionaries containing 'shuffled_data' and 'new_gold_index'
         """
         if not identification_data or 'gold_field' not in identification_data or 'gold_value' not in identification_data:
-            raise ValueError("ShuffleAugmenter requires identification_data with 'gold_field' and 'gold_value' keys")
+            raise AugmentationConfigurationError("ShuffleAugmenter", ['gold_field', 'gold_value'])
         
         # Convert comma-separated string to list
         if not isinstance(input_data, str):
-            raise ValueError(f"ShuffleAugmenter expects string input, got {type(input_data)}")
+            raise InvalidAugmentationInputError("ShuffleAugmenter", "string", type(input_data).__name__)
         
         # Simple split by comma - input should already be formatted as "item1, item2, item3"
         data_list = [item.strip() for item in input_data.split(',')]
@@ -56,9 +57,9 @@ class ShuffleAugmenter(BaseAxisAugmenter):
         try:
             current_gold_index = int(gold_value)
             if current_gold_index < 0 or current_gold_index >= len(data_list):
-                raise ValueError(f"Gold index {current_gold_index} is out of range for list of length {len(data_list)}")
+                raise ShuffleIndexError(current_gold_index, len(data_list))
         except (ValueError, TypeError):
-            raise ValueError(f"Gold value '{gold_value}' must be a valid integer index for shuffle operation")
+            raise ShuffleIndexError(gold_value, len(data_list))
         
         variations = []
         

@@ -15,6 +15,12 @@ from pathlib import Path
 
 from .engine import MultiPromptify
 from multipromptify.template_parser import TemplateParser
+from multipromptify.exceptions import (
+    DatasetLoadError, FileNotFoundError, DataParsingError, InvalidDataFormatError,
+    InvalidTemplateError, InvalidConfigurationError, UnknownConfigurationError,
+    DataNotLoadedError, MissingTemplateError, NoResultsToExportError,
+    UnsupportedExportFormatError, ExportWriteError
+)
 
 # Try to load environment variables
 from dotenv import load_dotenv
@@ -113,7 +119,7 @@ class MultiPromptifyAPI:
             self.data = dataset.to_pandas()
             print(f"✅ Loaded {len(self.data)} rows from {dataset_name} ({split} split)")
         except Exception as e:
-            raise ValueError(f"Failed to load dataset '{dataset_name}': {str(e)}")
+            raise DatasetLoadError(dataset_name, str(e))
     
     def load_csv(self, filepath: Union[str, Path], **kwargs) -> None:
         """
@@ -129,13 +135,13 @@ class MultiPromptifyAPI:
         """
         filepath = Path(filepath)
         if not filepath.exists():
-            raise FileNotFoundError(f"CSV file not found: {filepath}")
+            raise FileNotFoundError(str(filepath), "CSV file")
         
         try:
             self.data = pd.read_csv(filepath, **kwargs)
             print(f"✅ Loaded {len(self.data)} rows from CSV: {filepath}")
         except Exception as e:
-            raise ValueError(f"Failed to load CSV file '{filepath}': {str(e)}")
+            raise DataParsingError(str(filepath), "CSV", str(e))
     
     def load_json(self, filepath: Union[str, Path], **kwargs) -> None:
         """
@@ -151,7 +157,7 @@ class MultiPromptifyAPI:
         """
         filepath = Path(filepath)
         if not filepath.exists():
-            raise FileNotFoundError(f"JSON file not found: {filepath}")
+            raise FileNotFoundError(str(filepath), "JSON file")
         
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -162,11 +168,11 @@ class MultiPromptifyAPI:
             elif isinstance(json_data, dict):
                 self.data = pd.DataFrame([json_data])
             else:
-                raise ValueError("JSON must contain a list of objects or a single object")
+                raise InvalidDataFormatError("list of objects or single object", type(json_data).__name__, str(filepath))
             
             print(f"✅ Loaded {len(self.data)} rows from JSON: {filepath}")
         except Exception as e:
-            raise ValueError(f"Failed to load JSON file '{filepath}': {str(e)}")
+            raise DataParsingError(str(filepath), "JSON", str(e))
     
     def load_dataframe(self, df: pd.DataFrame) -> None:
         """
@@ -179,7 +185,7 @@ class MultiPromptifyAPI:
             ValueError: If df is not a pandas DataFrame
         """
         if not isinstance(df, pd.DataFrame):
-            raise ValueError("Input must be a pandas DataFrame")
+            raise InvalidDataFormatError("pandas DataFrame", type(df).__name__)
         
         self.data = df.copy()
         print(f"✅ Loaded {len(self.data)} rows from DataFrame")
@@ -211,14 +217,14 @@ class MultiPromptifyAPI:
             ValueError: If template is invalid
         """
         if not isinstance(template_dict, dict):
-            raise ValueError("Template must be a dictionary")
+            raise InvalidDataFormatError("dictionary", type(template_dict).__name__)
         
         # Validate template using template parser
         parser = TemplateParser()
         is_valid, errors = parser.validate_template(template_dict)
         
         if not is_valid:
-            raise ValueError(f"Invalid template: {', '.join(errors)}")
+            raise InvalidTemplateError(errors, template_dict)
         
         self.template = template_dict
         print("✅ Template configuration set successfully")
@@ -240,7 +246,7 @@ class MultiPromptifyAPI:
         if 'api_platform' in kwargs:
             new_platform = kwargs['api_platform']
             if new_platform not in ["TogetherAI", "OpenAI"]:
-                raise ValueError("api_platform must be 'TogetherAI' or 'OpenAI'")
+                raise InvalidConfigurationError("api_platform", new_platform, ["TogetherAI", "OpenAI"])
             
             self.config['api_platform'] = new_platform
             # Update API key based on new platform (unless explicitly provided)
@@ -252,7 +258,8 @@ class MultiPromptifyAPI:
             if key in self.config:
                 self.config[key] = value
             else:
-                raise ValueError(f"Unknown configuration parameter: {key}")
+                valid_params = list(self.config.keys())
+                raise UnknownConfigurationError(key, valid_params)
         
         # Set random seed if specified
         if self.config['random_seed'] is not None:
@@ -275,10 +282,10 @@ class MultiPromptifyAPI:
         """
         # Validate prerequisites
         if self.data is None:
-            raise ValueError("No data loaded. Use load_dataset(), load_csv(), load_json(), or load_dataframe() first.")
+            raise DataNotLoadedError()
         
         if self.template is None:
-            raise ValueError("No template set. Use set_template() first.")
+            raise MissingTemplateError()
         
         # Check if paraphrase variations need API key
         if self._needs_api_key() and not self.config['api_key']:
@@ -350,7 +357,8 @@ class MultiPromptifyAPI:
                 print(f"❌ Error details: {error_msg}")
                 print("🔍 Full traceback:")
                 traceback.print_exc()
-            raise ValueError(error_msg)
+            from multipromptify.exceptions import GenerationError
+            raise GenerationError(str(e), "generation", str(e))
     
     def export(self, filepath: Union[str, Path], format: str = "json") -> None:
         """
@@ -364,10 +372,10 @@ class MultiPromptifyAPI:
             ValueError: If no results to export or invalid format
         """
         if self.results is None:
-            raise ValueError("No results to export. Run generate() first.")
+            raise NoResultsToExportError()
         
         if format not in ["json", "csv", "txt", "conversation"]:
-            raise ValueError(f"Unsupported format: {format}. Use 'json', 'csv', 'txt', or 'conversation'")
+            raise UnsupportedExportFormatError(format, ["json", "csv", "txt", "conversation"])
         
         filepath = Path(filepath)
         
@@ -375,7 +383,7 @@ class MultiPromptifyAPI:
             self.mp.save_variations(self.results, str(filepath), format=format)
             print(f"✅ Results exported to {filepath} ({format} format)")
         except Exception as e:
-            raise ValueError(f"Failed to export results: {str(e)}")
+            raise ExportWriteError(str(filepath), str(e))
     
     def get_results(self) -> Optional[List[Dict[str, Any]]]:
         """
