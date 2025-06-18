@@ -249,29 +249,76 @@ def display_conversation_format(variations):
 
 
 def display_single_conversation(conversation, conversation_num, original_variation):
-    """Display a single conversation in clean JSON format"""
-    original_row_index = original_variation.get('original_row_index', 0)
+    """Display a single conversation in clean JSON format with correct answer when available"""
+    
+    # Handle both old and new conversation formats
+    if isinstance(conversation, dict) and 'conversation' in conversation:
+        # New enhanced format with metadata
+        actual_conversation = conversation['conversation']
+        metadata = conversation['metadata']
+        original_row_index = metadata.get('original_row_index', 0)
+    else:
+        # Old format - conversation is just the messages
+        actual_conversation = conversation
+        metadata = {}
+        original_row_index = original_variation.get('original_row_index', 0)
 
     # Create expandable card for each conversation
     with st.expander(f"💬 Conversation {conversation_num} (from row {original_row_index + 1})", expanded=(conversation_num <= 3)):
 
-        # Create JSON representation
-        conversation_json = json.dumps(conversation, indent=2, ensure_ascii=False)
-        
-        # Display actions for JSON
-        col1, col2 = st.columns([3, 1])
+        # Two column layout for conversation display
+        col1, col2 = st.columns([2, 1])
         
         with col1:
-            st.markdown("**📝 Conversation JSON Format:**")
-        
-        with col2:
-            # Copy button for JSON format
-            if st.button(f"📋 Copy", key=f"copy_conv_{conversation_num}"):
+            st.markdown("**💬 Conversation Format:**")
+            # Create JSON representation of just the conversation
+            conversation_json = json.dumps(actual_conversation, indent=2, ensure_ascii=False)
+            
+            # Display actions for JSON
+            if st.button(f"📋 Copy Conversation", key=f"copy_conv_{conversation_num}"):
                 # This is just visual feedback
                 st.success("Copied to clipboard!")
+            
+            # Display the clean conversation JSON format
+            st.code(conversation_json, language="json")
         
-        # Always show the clean JSON format
-        st.code(conversation_json, language="json")
+        with col2:
+            # Get correct answer from metadata or original variation
+            correct_answer = None
+            
+            # Try metadata first
+            if metadata and 'correct_answer' in metadata:
+                correct_answer = metadata['correct_answer']
+            
+            # If not in metadata, try to get from original variation
+            if correct_answer is None:
+                # Check for gold_updates first (updated answer)
+                gold_updates = original_variation.get('gold_updates')
+                if gold_updates:
+                    for gold_field, gold_value in gold_updates.items():
+                        correct_answer = gold_value
+                        break
+                
+                # If no updates, use original answer
+                if correct_answer is None:
+                    original_answer = original_variation.get('original_answer')
+                    if original_answer is not None:
+                        correct_answer = str(original_answer)
+            
+            # Display correct answer (should always be available now)
+            if correct_answer is not None and str(correct_answer).strip():
+                st.markdown("**🏆 Correct Answer:**")
+                st.markdown(f"""
+                <div style="background: #e8f5e8; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #4caf50; margin: 0.5rem 0;">
+                    <span style="color: #2e7d32; font-weight: bold; font-size: 1.1rem;">{correct_answer}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            elif correct_answer is not None and not str(correct_answer).strip():
+                # Empty answer - this is valid for templates without gold field
+                st.markdown("**🏆 Correct Answer:** No answer field configured in template")
+            else:
+                # This should never happen - if it does, it's a bug
+                st.error("🐛 Bug: No correct answer found - please report this issue")
 
 
 def display_single_variation(variation, variation_num, original_data):
@@ -469,17 +516,23 @@ def convert_to_conversation_format(variations):
     Returns:
         List of conversations in the format:
         [
-            [
-                {
-                    "role": "user",
-                                    "content": "input content"
-            },
             {
-                "role": "assistant",
-                "content": "output content"
-                },
-                ...
-            ]
+                "conversation": [
+                    {
+                        "role": "user",
+                        "content": "input content"
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "output content"
+                    }
+                ],
+                "metadata": {
+                    "original_row_index": 0,
+                    "variation_count": 1,
+                    "correct_answer": "2"  # Only the updated correct answer
+                }
+            }
         ]
     """
     conversations = []
@@ -499,7 +552,34 @@ def convert_to_conversation_format(variations):
                 }
             ]
         
-        conversations.append(conversation)
+        # Get the correct answer after updates
+        correct_answer = None
+        gold_updates = variation.get('gold_updates')
+        if gold_updates:
+            # Get the first (and usually only) gold field update
+            for gold_field, gold_value in gold_updates.items():
+                correct_answer = gold_value
+                break
+        else:
+            # No updates, use original answer if available
+            original_answer = variation.get('original_answer')
+            if original_answer is not None:
+                correct_answer = str(original_answer)
+        
+        # Create conversation with minimal metadata
+        conversation_item = {
+            "conversation": conversation,
+            "metadata": {
+                "original_row_index": variation.get('original_row_index', 0),
+                "variation_count": variation.get('variation_count', 1),
+            }
+        }
+        
+        # Always add correct_answer if we have it
+        if correct_answer is not None:
+            conversation_item["metadata"]["correct_answer"] = correct_answer
+        
+        conversations.append(conversation_item)
     
     return conversations
 
@@ -560,7 +640,21 @@ def export_interface(variations):
                 }
                 # Add field values
                 for key, value in var.get('field_values', {}).items():
-                    flat_var[f'field_{key}'] = value
+                    # For CSV, we need to handle different data types appropriately
+                    if isinstance(value, list):
+                        # Convert lists to JSON string for CSV compatibility
+                        flat_var[f'field_{key}'] = json.dumps(value)
+                        flat_var[f'field_{key}_type'] = 'list'
+                    else:
+                        flat_var[f'field_{key}'] = value
+                        flat_var[f'field_{key}_type'] = type(value).__name__
+                
+                # Add gold updates if present
+                gold_updates = var.get('gold_updates')
+                if gold_updates:
+                    for gold_field, gold_value in gold_updates.items():
+                        flat_var[f'gold_update_{gold_field}'] = gold_value
+                
                 flattened.append(flat_var)
 
             csv_df = pd.DataFrame(flattened)
@@ -675,7 +769,21 @@ def display_simple_download_options(variations):
                 }
                 # Add field values
                 for key, value in var.get('field_values', {}).items():
-                    flat_var[f'field_{key}'] = value
+                    # For CSV, we need to handle different data types appropriately
+                    if isinstance(value, list):
+                        # Convert lists to JSON string for CSV compatibility
+                        flat_var[f'field_{key}'] = json.dumps(value)
+                        flat_var[f'field_{key}_type'] = 'list'
+                    else:
+                        flat_var[f'field_{key}'] = value
+                        flat_var[f'field_{key}_type'] = type(value).__name__
+                
+                # Add gold updates if present
+                gold_updates = var.get('gold_updates')
+                if gold_updates:
+                    for gold_field, gold_value in gold_updates.items():
+                        flat_var[f'gold_update_{gold_field}'] = gold_value
+                
                 flattened.append(flat_var)
 
             csv_df = pd.DataFrame(flattened)

@@ -1,10 +1,8 @@
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.exceptions import (
-    InvalidAugmentationInputError, 
-    EnumeratorLengthMismatchError,
-    AugmentationConfigurationError
+    EnumeratorLengthMismatchError
 )
 
 
@@ -37,7 +35,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     def __init__(self, n_augments=1):
         """Initialize the enumerator augmenter."""
         super().__init__(n_augments=n_augments)
-    
+
     def get_name(self):
         return "Enumerate Field"
 
@@ -66,15 +64,15 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         """
         if len(enumeration_sequence) < len(data_list):
             raise EnumeratorLengthMismatchError(
-                len(enumeration_sequence), 
-                len(data_list), 
+                len(enumeration_sequence),
+                len(data_list),
                 f"type: {enumeration_sequence[:5]}..."
             )
-        
+
         enumerated_items = []
         for i, item in enumerate(data_list):
             enumerated_items.append(f"{enumeration_sequence[i]}. {item}")
-        
+
         return " ".join(enumerated_items)
 
     def enumerate_field(self, field_data: Any, enum_type: str) -> str:
@@ -97,13 +95,13 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         else:
             # Convert single value to string
             data_list = [str(field_data)]
-        
+
         if len(data_list) == 0:
             return str(field_data)
-        
+
         # Get enumeration sequence
         enumeration_sequence = self._get_enumeration_sequence(enum_type)
-        
+
         # Apply enumeration
         return self._enumerate_list(data_list, enumeration_sequence)
 
@@ -123,27 +121,27 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
 
 def main():
     """Example usage of EnumeratorAugmenter."""
-    
+
     print("=== EnumeratorAugmenter Usage Examples ===")
-    
+
     augmenter = EnumeratorAugmenter()
-    
+
     # Test different enumeration types
     options = "Venus, Mercury, Earth, Mars"
     print(f"Original options: {options}")
-    
+
     for enum_type in ['1234', 'ABCD', 'abcd', 'hebrew']:
         try:
             result = augmenter.enumerate_field(options, enum_type)
             print(f"Type '{enum_type}': {result}")
         except Exception as e:
             print(f"Type '{enum_type}': Error - {e}")
-    
+
     # Test with list input
     options_list = ["Venus", "Mercury", "Earth", "Mars"]
     result = augmenter.enumerate_field(options_list, 'ABCD')
     print(f"List input: {result}")
-    
+
     # Test error case
     try:
         short_type = "AB"  # Only 2 characters
@@ -154,4 +152,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()
