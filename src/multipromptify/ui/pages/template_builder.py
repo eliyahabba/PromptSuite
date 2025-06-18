@@ -95,7 +95,7 @@ def template_suggestions_interface(available_columns):
             for template in category_info['templates']:
                 # Get required fields from new dictionary format
                 template_dict = template['template']
-                required_fields = [k for k in template_dict.keys() if k not in ['instruction', 'few_shot', 'instruction_template', 'gold']]
+                required_fields = [k for k in template_dict.keys() if k not in ['instruction', 'few_shot', 'instruction_template', 'gold', 'enumerate']]
 
                 # Check if gold field value exists in columns
                 if 'gold' in template_dict:
@@ -241,7 +241,7 @@ def template_builder_interface(available_columns):
     configured_fields = {}
 
     # Use tabs for better organization
-    field_tabs = st.tabs(["📝 Instruction", "📊 Data Fields", "🎯 Few-shot"])
+    field_tabs = st.tabs(["📝 Instruction", "📊 Data Fields", "🏆 Gold Field", "🔢 Enumerate", "🎯 Few-shot"])
 
     with field_tabs[0]:
         # Instruction configuration
@@ -307,6 +307,177 @@ def template_builder_interface(available_columns):
                     st.code(f"Sample: {sample_value[:100]}{'...' if len(sample_value) > 100 else ''}")
 
     with field_tabs[2]:
+        # Gold field configuration
+        st.markdown("**Gold Field Configuration**")
+        st.write("Configure the gold field (correct answer/output column):")
+        
+        # Check if few-shot will be enabled to determine if gold is required
+        # We need to check the current state of few-shot configuration from the UI
+        st.info("💡 Gold field is required when using few-shot examples")
+        
+        # Gold field selection
+        gold_field = st.selectbox(
+            "Select gold field (correct answer column):",
+            options=["None"] + available_columns,
+            index=0,
+            key="gold_field",
+            help="Choose the column that contains the correct answers/outputs"
+        )
+        
+        if gold_field and gold_field != "None":
+            # Gold field configuration format
+            gold_format = st.selectbox(
+                "Gold field format:",
+                options=["Simple", "Advanced"],
+                index=0,
+                key="gold_format",
+                help="Simple: just specify the column name. Advanced: specify type and options"
+            )
+            
+            if gold_format == "Simple":
+                # Simple format - just the field name
+                configured_fields['gold'] = gold_field
+                
+                # Show preview
+                df = st.session_state.uploaded_data
+                if not df[gold_field].dropna().empty:
+                    sample_value = df[gold_field].dropna().iloc[0]
+                    st.markdown("**Preview:**")
+                    st.code(f"Sample gold value: {sample_value}")
+                    st.info("💡 Using simple format: `'gold': '{}'`".format(gold_field))
+                    
+            else:
+                # Advanced format - full configuration
+                gold_type = st.selectbox(
+                    "Gold field type:",
+                    options=["value", "index"],
+                    index=0,
+                    key="gold_type",
+                    help="'value' for text answers, 'index' for position-based answers (like multiple choice)"
+                )
+                
+                # If index type, need options field
+                options_field = None
+                if gold_type == "index":
+                    options_field = st.selectbox(
+                        "Options field (for index-based answers):",
+                        options=["None"] + available_columns,
+                        index=0,
+                        key="gold_options_field",
+                        help="Choose the column that contains the list of options"
+                    )
+                    
+                    if options_field == "None":
+                        options_field = None
+                
+                # Preview gold configuration
+                df = st.session_state.uploaded_data
+                if not df[gold_field].dropna().empty:
+                    sample_value = df[gold_field].dropna().iloc[0]
+                    st.markdown("**Preview:**")
+                    st.code(f"Sample gold value: {sample_value}")
+                    
+                    if gold_type == "index" and options_field and options_field in df.columns:
+                        if not df[options_field].dropna().empty:
+                            sample_options = df[options_field].dropna().iloc[0]
+                            st.code(f"Sample options: {sample_options}")
+                
+                # Add to configuration
+                if gold_type == "value":
+                    # Simple format for value type
+                    if options_field:
+                        configured_fields['gold'] = {
+                            'field': gold_field,
+                            'type': gold_type,
+                            'options_field': options_field
+                        }
+                    else:
+                        configured_fields['gold'] = {
+                            'field': gold_field,
+                            'type': gold_type
+                        }
+                else:
+                    # Index type requires options field
+                    if options_field:
+                        configured_fields['gold'] = {
+                            'field': gold_field,
+                            'type': gold_type,
+                            'options_field': options_field
+                        }
+                    else:
+                        st.warning("⚠️ Index type requires an options field")
+
+    with field_tabs[3]:
+        # Enumerate configuration
+        st.markdown("**Enumerate Field Configuration**")
+        st.write("Configure automatic enumeration for list fields (e.g., multiple choice options):")
+
+        # Check for fields that contain lists
+        df = st.session_state.uploaded_data
+        list_like_fields = []
+        for field_name in available_columns:
+            if not df[field_name].dropna().empty:
+                sample_value = df[field_name].dropna().iloc[0]
+                # Check if it's actually a list type
+                if isinstance(sample_value, list):
+                    list_like_fields.append(field_name)
+
+        if list_like_fields:
+            st.info(f"💡 Detected list-like fields: {', '.join(list_like_fields)}")
+        
+        # Field selection for enumeration
+        enumerate_field = st.selectbox(
+            "Select field to enumerate:",
+            options=["None"] + available_columns,
+            index=0,
+            key="enumerate_field",
+            help="Choose a field that contains lists or comma-separated values to enumerate"
+        )
+
+        if enumerate_field and enumerate_field != "None":
+            # Enumeration type selection
+            enumerate_types = {
+                "1234": "Numbers (1. 2. 3. 4.)",
+                "ABCD": "Uppercase letters (A. B. C. D.)",
+                "abcd": "Lowercase letters (a. b. c. d.)",
+                "greek": "Greek letters (α. β. γ. δ.)",
+                "roman": "Roman numerals (I. II. III. IV.)"
+            }
+            
+            enumerate_type = st.selectbox(
+                "Select enumeration type:",
+                options=list(enumerate_types.keys()),
+                format_func=lambda x: enumerate_types[x],
+                index=0,
+                key="enumerate_type",
+                help="Choose how to enumerate the items in the selected field"
+            )
+
+            # Preview enumeration
+            df = st.session_state.uploaded_data
+            if not df[enumerate_field].dropna().empty:
+                sample_value = str(df[enumerate_field].dropna().iloc[0])
+                st.markdown("**Preview:**")
+                
+                # Show original
+                st.code(f"Original: {sample_value}")
+                
+                # Show enumerated preview (simulate the enumeration)
+                try:
+                    from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
+                    enumerator = EnumeratorAugmenter()
+                    preview_result = enumerator.enumerate_field(sample_value, enumerate_type)
+                    st.code(f"Enumerated: {preview_result}")
+                except Exception as e:
+                    st.warning(f"Preview error: {e}")
+
+            # Add to configuration
+            configured_fields['enumerate'] = {
+                'field': enumerate_field,
+                'type': enumerate_type
+            }
+
+    with field_tabs[4]:
         # Few-shot configuration
         st.markdown("**Few-shot Examples Configuration**")
         st.write("Configure few-shot learning examples:")
@@ -380,6 +551,19 @@ def template_builder_interface(available_columns):
             for field_name, config in configured_fields.items():
                 if field_name == 'few_shot':
                     summary = f"**{field_name}**: {config['count']} {config['format']} examples from {config['split']} data"
+                elif field_name == 'gold':
+                    if isinstance(config, str):
+                        summary = f"**{field_name}**: {config} (simple format)"
+                    elif isinstance(config, dict):
+                        gold_type = config.get('type', 'value')
+                        if 'options_field' in config:
+                            summary = f"**{field_name}**: {config['field']} ({gold_type} type, options from {config['options_field']})"
+                        else:
+                            summary = f"**{field_name}**: {config['field']} ({gold_type} type)"
+                    else:
+                        summary = f"**{field_name}**: {config}"
+                elif field_name == 'enumerate':
+                    summary = f"**{field_name}**: {config['field']} field with {config['type']} enumeration"
                 else:
                     variations = ', '.join(config) if isinstance(config, list) else str(config)
                     summary = f"**{field_name}**: {variations}"
@@ -397,16 +581,37 @@ def template_builder_interface(available_columns):
     # Save template
     st.markdown("### 3. Save Template")
 
+    # Check if template is valid
+    template_errors = []
+    
+    # Check if few-shot is configured and gold is required
+    if 'few_shot' in configured_fields:
+        few_shot_count = configured_fields['few_shot'].get('count', 0)
+        if few_shot_count > 0 and 'gold' not in configured_fields:
+            template_errors.append("Gold field is required when using few-shot examples")
+    
+    # Check if instruction template is provided
+    if 'instruction_template' not in configured_fields:
+        template_errors.append("Instruction template is required")
+    
+    # Display validation errors
+    if template_errors:
+        st.error("❌ Template validation errors:")
+        for error in template_errors:
+            st.write(f"• {error}")
+
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("🚀 Create Template", type="primary", use_container_width=True):
-            if configured_fields:
+            if configured_fields and not template_errors:
                 st.session_state.selected_template = configured_fields
                 st.session_state.template_name = "Custom Dictionary Template"
                 st.session_state.template_ready = True
                 st.session_state.template_config = configured_fields
                 st.success("✅ Template created successfully!")
                 st.rerun()
+            elif template_errors:
+                st.error("❌ Please fix validation errors before creating template")
             else:
                 st.error("❌ Please configure at least one field")
 
@@ -451,6 +656,36 @@ def display_selected_template_details(available_columns):
                         border-radius: 6px; border-left: 3px solid #9c27b0;">
                 <strong style="color: #7b1fa2;">🎯 {key}:</strong> 
                 <span style="color: #4a148c;">{value['count']} {value['format']} examples from {value['split']} data</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        elif key == 'gold':
+            if isinstance(value, str):
+                gold_text = f"{value} (simple format)"
+            elif isinstance(value, dict):
+                gold_type = value.get('type', 'value')
+                if 'options_field' in value:
+                    gold_text = f"{value['field']} ({gold_type} type, options from {value['options_field']})"
+                else:
+                    gold_text = f"{value['field']} ({gold_type} type)"
+            else:
+                gold_text = str(value)
+            
+            st.markdown(f"""
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #fff8e1 0%, #f8f9fa 100%); 
+                        border-radius: 6px; border-left: 3px solid #ffc107;">
+                <strong style="color: #f57c00;">🏆 {key}:</strong> 
+                <span style="color: #e65100;">{gold_text}</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        elif key == 'enumerate':
+            enumerate_text = f"{value['field']} field with {value['type']} enumeration"
+            st.markdown(f"""
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #f1f8e9 0%, #f8f9fa 100%); 
+                        border-radius: 6px; border-left: 3px solid #8bc34a;">
+                <strong style="color: #689f38;">🔢 {key}:</strong> 
+                <span style="color: #33691e;">{enumerate_text}</span>
             </div>
             """, unsafe_allow_html=True)
             
