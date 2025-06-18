@@ -25,12 +25,14 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
         """
         super().__init__(n_augments=n_augments)
 
-    def _add_white_spaces_to_single_text(self, value):
+    def _add_white_spaces_to_single_text(self, value, placeholder_map=None):
         """
         Add white spaces to the input text.
+        If placeholder_map is provided, placeholders are already protected.
 
         Args:
             value: The input text to augment.
+            placeholder_map: Optional mapping of placeholder tokens to restore
 
         Returns:
             Augmented text with added white spaces.
@@ -48,11 +50,17 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
                         TextSurfaceAugmenterConstants.MAX_WHITESPACE_INDEX)]
             else:
                 new_value += word
+        
+        # Restore placeholders if provided
+        if placeholder_map:
+            new_value = self._restore_placeholders(new_value, placeholder_map)
+        
         return new_value
 
     def add_white_spaces(self, inputs, max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Add white spaces to input text(s).
+        Placeholders in format {field_name} are protected during augmentation.
 
         Args:
             inputs: Either a single text string or a list of input texts to augment.
@@ -64,19 +72,25 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
         """
         # Handle single text input
         if isinstance(inputs, str):
+            # Protect placeholders
+            protected_text, placeholder_map = self._protect_placeholders(inputs)
+            
             augmented_input = []
             for i in range(max_outputs):
-                augmented_text = self._add_white_spaces_to_single_text(inputs)
+                augmented_text = self._add_white_spaces_to_single_text(protected_text, placeholder_map)
                 augmented_input.append(augmented_text)
             return augmented_input
 
         # Handle list of texts
         augmented_texts = []
         for input_text in inputs:
+            # Protect placeholders for each text
+            protected_text, placeholder_map = self._protect_placeholders(input_text)
+            
             augmented_input = []
             for i in range(max_outputs):
                 # Apply augmentation
-                cur_augmented_texts = self._add_white_spaces_to_single_text(input_text)
+                cur_augmented_texts = self._add_white_spaces_to_single_text(protected_text, placeholder_map)
                 augmented_input.append(cur_augmented_texts)
             augmented_texts.append(augmented_input)
         return augmented_texts
@@ -85,6 +99,7 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
                       max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Introduce typos in the text by simulating butter fingers on a keyboard.
+        Placeholders in format {field_name} are protected during augmentation.
 
         Args:
             text: Input text to augment.
@@ -96,6 +111,9 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
         Returns:
             List of texts with typos.
         """
+        # Protect placeholders
+        protected_text, placeholder_map = self._protect_placeholders(text)
+        
         random.seed(seed)
         key_approx = TextSurfaceAugmenterConstants.QUERTY_KEYBOARD if keyboard == "querty" else {}
 
@@ -107,7 +125,7 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
         perturbed_texts = []
         for _ in itertools.repeat(None, max_outputs):
             butter_text = ""
-            for letter in text:
+            for letter in protected_text:
                 lcletter = letter.lower()
                 if lcletter not in key_approx.keys():
                     new_letter = lcletter
@@ -120,13 +138,17 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
                 if not lcletter == letter:
                     new_letter = new_letter.upper()
                 butter_text += new_letter
-            perturbed_texts.append(butter_text)
+            
+            # Restore placeholders
+            restored_text = self._restore_placeholders(butter_text, placeholder_map)
+            perturbed_texts.append(restored_text)
         return perturbed_texts
 
     def change_char_case(self, text, prob=TextSurfaceAugmenterConstants.DEFAULT_CASE_CHANGE_PROB, seed=0,
                          max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Change the case of characters in the text.
+        Placeholders in format {field_name} are protected during augmentation.
 
         Args:
             text: Input text to augment.
@@ -137,11 +159,14 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
         Returns:
             List of texts with modified character cases.
         """
+        # Protect placeholders
+        protected_text, placeholder_map = self._protect_placeholders(text)
+        
         random.seed(seed)
         results = []
         for _ in range(max_outputs):
             result = []
-            for c in text:
+            for c in protected_text:
                 if c.isupper() and random.random() < prob:
                     result.append(c.lower())
                 elif c.islower() and random.random() < prob:
@@ -149,7 +174,10 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
                 else:
                     result.append(c)
             result = "".join(result)
-            results.append(result)
+            
+            # Restore placeholders
+            restored_text = self._restore_placeholders(result, placeholder_map)
+            results.append(restored_text)
         return results
 
 
@@ -158,6 +186,7 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
         """
         Swaps characters in text, with probability prob for ang given pair.
         Ex: 'apple' -> 'aplpe'
+        Placeholders in format {field_name} are protected during augmentation.
         Arguments:
             text (string): text to transform
             prob (float): probability of any two characters swapping. Default: 0.05
@@ -165,17 +194,20 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
             max_outputs: Maximum number of augmented outputs.
             (taken from the NL-Augmenter project)
         """
+        # Protect placeholders
+        protected_text, placeholder_map = self._protect_placeholders(text)
+        
         results = []
         for _ in range(max_outputs):
             max_seed = 2 ** 32
             # seed with hash so each text of same length gets different treatment.
-            np.random.seed((seed + sum([ord(c) for c in text])) % max_seed)
+            np.random.seed((seed + sum([ord(c) for c in protected_text])) % max_seed)
             # np.random.seed((seed) % max_seed).
             # number of possible characters to swap.
-            num_pairs = len(text) - 1
+            num_pairs = len(protected_text) - 1
             # if no pairs, do nothing
             if num_pairs < 1:
-                return text
+                return [text]  # Return original text as list
             # get indices to swap.
             indices_to_swap = np.argwhere(
                 np.random.rand(num_pairs) < prob
@@ -183,40 +215,94 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
             # shuffle swapping order, may matter if there are adjacent swaps.
             np.random.shuffle(indices_to_swap)
             # convert to list.
-            text = list(text)
+            text_list = list(protected_text)
             # swap.
             for index in indices_to_swap:
-                text[index], text[index + 1] = text[index + 1], text[index]
+                text_list[index], text_list[index + 1] = text_list[index + 1], text_list[index]
             # convert to string.
-            text = "".join(text)
-            results.append(text)
+            swapped_text = "".join(text_list)
+            
+            # Restore placeholders
+            restored_text = self._restore_placeholders(swapped_text, placeholder_map)
+            results.append(restored_text)
         return results
 
     def switch_punctuation(self, text, prob=TextSurfaceAugmenterConstants.DEFAULT_TYPO_PROB, seed=0, max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Switches punctuation in text with a probability of prob.
+        Placeholders in format {field_name} are protected during augmentation.
         Arguments:
             text (string): text to transform
             prob (float): probability of any two characters switching. Default: 0.05
             seed (int): random seed
             max_outputs: Maximum number of augmented outputs.
         """
+        # Protect placeholders
+        protected_text, placeholder_map = self._protect_placeholders(text)
+        
         results = []
         for _ in range(max_outputs):
             np.random.seed(seed)
-            text_chars = list(text)
+            text_chars = list(protected_text)
             for i in range(len(text_chars)):
                 if text_chars[i] in TextSurfaceAugmenterConstants.PUNCTUATION_MARKS and np.random.rand() < prob:
                     # Randomly select a different punctuation mark to switch with
                     new_punctuation = np.random.choice([p for p in TextSurfaceAugmenterConstants.PUNCTUATION_MARKS
                                                         if p != text_chars[i]])
                     text_chars[i] = new_punctuation
-            results.append("".join(text_chars))
+            
+            # Restore placeholders
+            modified_text = "".join(text_chars)
+            restored_text = self._restore_placeholders(modified_text, placeholder_map)
+            results.append(restored_text)
         return results
+
+    def _protect_placeholders(self, text: str) -> tuple[str, dict]:
+        """
+        Replace placeholders with temporary tokens to protect them during augmentation.
+        
+        Args:
+            text: Text that may contain placeholders like {field_name}
+            
+        Returns:
+            Tuple of (protected_text, placeholder_map)
+        """
+        import re
+        
+        # Find all placeholders in format {field_name}
+        placeholders = re.findall(r'\{[^}]+\}', text)
+        placeholder_map = {}
+        protected_text = text
+        
+        # Replace each placeholder with a simple number token that's unlikely to be corrupted
+        for i, placeholder in enumerate(placeholders):
+            # Use a simple numeric token to minimize corruption
+            token = f"9999{i}9999"
+            placeholder_map[token] = placeholder
+            protected_text = protected_text.replace(placeholder, token)
+        
+        return protected_text, placeholder_map
+    
+    def _restore_placeholders(self, text: str, placeholder_map: dict) -> str:
+        """
+        Restore original placeholders from temporary tokens.
+        
+        Args:
+            text: Text with temporary tokens
+            placeholder_map: Mapping of tokens to original placeholders
+            
+        Returns:
+            Text with original placeholders restored
+        """
+        restored_text = text
+        for token, placeholder in placeholder_map.items():
+            restored_text = restored_text.replace(token, placeholder)
+        return restored_text
 
     def augment(self, text: str, techniques: List[str] = None) -> List[str]:
         """
         Apply text surface transformations to generate variations.
+        Placeholders in format {field_name} are protected during augmentation.
 
         Args:
             text: The text to augment
@@ -226,12 +312,15 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
         Returns:
             List of augmented texts including the original text
         """
+        # Protect placeholders before augmentation
+        protected_text, placeholder_map = self._protect_placeholders(text)
+        
         # Default sequence if none provided
         if techniques is None:
             techniques = ["typos", "capitalization", "spacing", "swap_characters", "punctuation"]
 
-        # Start with the original text
-        variations = [text]
+        # Start with the original protected text
+        variations = [protected_text]
 
         # Apply each technique in sequence
         for technique in techniques:
@@ -276,15 +365,21 @@ class TextSurfaceAugmenter(BaseAxisAugmenter):
             if var not in unique_variations:
                 unique_variations.append(var)
 
+        # Restore placeholders in all variations
+        restored_variations = []
+        for var in unique_variations:
+            restored_var = self._restore_placeholders(var, placeholder_map)
+            restored_variations.append(restored_var)
+
         # Ensure we return the requested number of variations
-        if len(unique_variations) > self.n_augments:
+        if len(restored_variations) > self.n_augments:
             # Keep the original text and sample from the rest
-            original = unique_variations[0]
-            rest = unique_variations[1:]
+            original = restored_variations[0]
+            rest = restored_variations[1:]
             sampled = random.sample(rest, min(self.n_augments - 1, len(rest)))
             return [original] + sampled
 
-        return unique_variations
+        return restored_variations
 
 
 if __name__ == "__main__":
@@ -326,3 +421,19 @@ if __name__ == "__main__":
     print(f"With capitalization changes: {augmenter.change_char_case(text1, prob=0.15, max_outputs=1)[0]}")
     print(f"With spacing changes: {augmenter.add_white_spaces(text1, max_outputs=1)[0]}")
     print(f"With character swaps: {augmenter.swap_characters(text1, prob=0.08, max_outputs=1)[0]}")
+
+    # Example 4: Placeholder protection test
+    print("\nPlaceholder protection test:")
+    instruction_template = "Answer the following question: {question}\\nOptions: {options}\\nAnswer: {answer}"
+    print(f"Original instruction template: {instruction_template}")
+    
+    # Test with surface variations - placeholders should remain intact
+    variations3 = augmenter.augment(instruction_template, techniques=["typos", "capitalization"])
+    print(f"\nGenerated {len(variations3)} variations with placeholder protection:")
+    for i, variation in enumerate(variations3):
+        if variation == instruction_template:
+            print(f"\nVariation {i+1} (Original):")
+        else:
+            print(f"\nVariation {i+1}:")
+        print(variation)
+        print("-" * 50)
