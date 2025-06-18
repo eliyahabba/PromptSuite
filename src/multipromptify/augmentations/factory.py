@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
+from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 from multipromptify.augmentations.text.context import ContextAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
 from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
@@ -23,6 +24,7 @@ class AugmenterFactory:
         "context": ContextAugmenter,
         "shuffle": ShuffleAugmenter,
         "fewshot": FewShotAugmenter,
+        "enumerate": EnumeratorAugmenter,
     }
 
     @classmethod
@@ -59,7 +61,7 @@ class AugmenterFactory:
         if augmenter_class == Paraphrase:
             # Paraphrase requires api_key
             if api_key:
-                return augmenter_class(n_augments=n_augments, api_key=api_key)
+                return augmenter_class(n_augments=n_augments-1, api_key=api_key)
             else:
                 print(f"⚠️ Paraphrase augmenter requires api_key, using TextSurfaceAugmenter as fallback")
                 return TextSurfaceAugmenter(n_augments=n_augments)
@@ -67,6 +69,14 @@ class AugmenterFactory:
         elif augmenter_class == FewShotAugmenter:
             # FewShotAugmenter might have different parameters
             return augmenter_class(n_augments=n_augments)
+            
+        elif augmenter_class == EnumeratorAugmenter:
+            # EnumeratorAugmenter can take custom enumeration patterns
+            enumeration_patterns = kwargs.get('enumeration_patterns', None)
+            if enumeration_patterns:
+                return augmenter_class(enumeration_patterns=enumeration_patterns, n_augments=n_augments)
+            else:
+                return augmenter_class(n_augments=n_augments)
             
         else:
             # Standard augmenters (TextSurfaceAugmenter, ContextAugmenter, ShuffleAugmenter)
@@ -122,6 +132,9 @@ class AugmenterFactory:
                 return augmenter.augment(text, identification_data)
             elif variation_type == 'fewshot' and identification_data:
                 # FewShotAugmenter requires identification_data
+                return augmenter.augment(text, identification_data)
+            elif variation_type == 'enumerate':
+                # EnumeratorAugmenter works with or without identification_data
                 return augmenter.augment(text, identification_data)
             else:
                 # Standard augmenters

@@ -14,6 +14,7 @@ from multipromptify.augmentations.text.context import ContextAugmenter
 # Structure augmenters  
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
+from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 
 
 # Other augmenters
@@ -27,6 +28,7 @@ __all__ = [
     "ContextAugmenter",
     "FewShotAugmenter", 
     "ShuffleAugmenter",
+    "EnumeratorAugmenter",
 
     "OtherAugmenter"
 ] 

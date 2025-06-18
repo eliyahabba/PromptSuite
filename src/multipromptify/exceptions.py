@@ -414,6 +414,16 @@ class ShuffleIndexError(AugmentationError):
         super().__init__(message, "SHUFFLE_INDEX_ERROR", context, suggestion)
 
 
+class EnumeratorLengthMismatchError(AugmentationError):
+    """Raised when enumeration sequence is shorter than the list to enumerate."""
+
+    def __init__(self, sequence_length: int, list_length: int, sequence_type: str):
+        context = {"sequence_length": sequence_length, "list_length": list_length, "sequence_type": sequence_type}
+        message = f"Enumeration sequence ({sequence_type}) has {sequence_length} items but list has {list_length} items"
+        suggestion = f"Provide an enumeration sequence with at least {list_length} items to match the list length"
+        super().__init__(message, "ENUMERATOR_LENGTH_MISMATCH", context, suggestion)
+
+
 # Utility functions for error collection
 class ErrorCollector:
     """Utility class for collecting multiple errors before raising."""

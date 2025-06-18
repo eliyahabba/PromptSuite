@@ -89,6 +89,7 @@ class MultiPromptify:
         fields = self.template_parser.parse(template)
         variation_fields = self.template_parser.get_variation_fields()
         few_shot_fields = self.template_parser.get_few_shot_fields()
+        enumerate_fields = self.template_parser.get_enumerate_fields()
 
         # Create configuration objects
         gold_config = GoldFieldConfig.from_template(template.get('gold', None))

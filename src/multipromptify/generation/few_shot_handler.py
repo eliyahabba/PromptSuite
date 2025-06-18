@@ -8,6 +8,7 @@ import pandas as pd
 from dataclasses import dataclass
 
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
+from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 from multipromptify.models import VariationContext, FieldVariation, FewShotContext
 from multipromptify.utils.formatting import format_field_value
 from multipromptify.exceptions import (
@@ -31,6 +32,7 @@ class FewShotHandler:
 
     def __init__(self):
         self.few_shot_augmenter = FewShotAugmenter()
+        self.enumerator_augmenter = EnumeratorAugmenter()
 
     def validate_gold_field_requirement(
         self, 
@@ -216,20 +218,56 @@ class FewShotHandler:
         row_values = {}
         gold_updates = {}
         
+        # First, get enumerate fields from template
+        enumerate_fields_config = self._get_enumerate_fields_config(variation_context.template)
+        
         for col in variation_context.row_data.index:
             # Assume clean data - skip empty columns but process all others
             if col in field_values:
                 field_data = field_values[col]
                 # Ensure even field variations go through formatting
-                row_values[col] = format_field_value(field_data.data)
+                processed_value = format_field_value(field_data.data)
+                
+                # Apply enumerate if this field should be enumerated
+                processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
+                
+                row_values[col] = processed_value
                 if field_data.gold_update:
                     gold_updates.update(field_data.gold_update)
             elif variation_context.gold_config.field and col == variation_context.gold_config.field:
                 continue  # Skip gold field
             else:
-                row_values[col] = format_field_value(variation_context.row_data[col])
+                processed_value = format_field_value(variation_context.row_data[col])
+                
+                # Apply enumerate if this field should be enumerated
+                processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
+                
+                row_values[col] = processed_value
         
         return row_values, gold_updates
+
+    def _get_enumerate_fields_config(self, template: dict) -> Dict[str, dict]:
+        """Extract enumerate field configurations from template."""
+        enumerate_config = {}
+        if 'enumerate' in template:
+            enum_field = template['enumerate'].get('field')
+            if enum_field:
+                enumerate_config[enum_field] = template['enumerate']
+        return enumerate_config
+
+    def _apply_enumerate_if_needed(self, value: str, field_name: str, enumerate_configs: Dict[str, dict]) -> str:
+        """Apply enumeration to field value if configured."""
+        if field_name in enumerate_configs:
+            enum_config = enumerate_configs[field_name]
+            enum_type = enum_config.get('type', '1234')
+            
+            try:
+                return self.enumerator_augmenter.enumerate_field(value, enum_type)
+            except Exception as e:
+                print(f"⚠️ Error enumerating field '{field_name}': {e}")
+                return value  # Return original value if enumeration fails
+        
+        return value
 
     def _generate_few_shot_examples(
         self, 

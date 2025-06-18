@@ -17,6 +17,9 @@ class TemplateField:
     few_shot_count: Optional[int] = None
     few_shot_format: Optional[str] = None  # 'fixed' for same examples, 'rotating' for different
     few_shot_split: Optional[str] = None   # 'train', 'test', or 'all' for data splitting
+    # Enumerate specific parameters
+    enumerate_field: Optional[str] = None  # Which field to enumerate
+    enumerate_type: Optional[str] = None   # Type of enumeration ('1234', 'ABCD', etc.)
     
     def __post_init__(self):
         """Ensure variation_types is always a list"""
@@ -87,6 +90,19 @@ class TemplateParser:
                     continue
                 else:
                     raise InvalidTemplateFieldError("few_shot", config, "dictionary with 'count', 'format', and 'split' keys")
+            elif field_name == "enumerate":
+                # Special handling for enumerate
+                if isinstance(config, dict):
+                    field = TemplateField(
+                        name="enumerate",
+                        variation_types=[],
+                        enumerate_field=config.get("field", None),
+                        enumerate_type=config.get("type", "1234")
+                    )
+                    self.fields.append(field)
+                    continue
+                else:
+                    raise InvalidTemplateFieldError("enumerate", config, "dictionary with 'field' and 'type' keys")
             else:
                 # Regular fields with variation list
                 if isinstance(config, list):
@@ -178,6 +194,15 @@ class TemplateParser:
         """
         return [field for field in self.fields if field.name == 'few_shot']
     
+    def get_enumerate_fields(self) -> List[TemplateField]:
+        """
+        Get all enumerate fields with their parameters.
+        
+        Returns:
+            List of TemplateField objects that are enumerate fields
+        """
+        return [field for field in self.fields if field.name == 'enumerate']
+    
     def validate_template(self, template: dict) -> Tuple[bool, List[str]]:
         """
         Validate a template dictionary and return any errors.
@@ -220,8 +245,17 @@ class TemplateParser:
                 if field.few_shot_split not in ['all', 'train', 'test']:
                     errors.append(f"Few-shot split must be 'all', 'train', or 'test', got {field.few_shot_split}")
         
+        # Validate enumerate configuration
+        for field in fields:
+            if field.name == 'enumerate':
+                if not field.enumerate_field:
+                    errors.append("Enumerate field must specify which field to enumerate")
+                
+                if not field.enumerate_type:
+                    errors.append("Enumerate type cannot be empty")
+        
         # Check for valid variation types
-        valid_variations = {'paraphrase', 'surface', 'context', 'shuffle', 'multidoc'}
+        valid_variations = {'paraphrase', 'surface', 'context', 'shuffle', 'multidoc', 'enumerate'}
         for field in fields:
             if field.name != 'few_shot':
                 for variation_type in field.variation_types:
