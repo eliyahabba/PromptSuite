@@ -60,17 +60,16 @@ def example_with_sample_data2():
 
     # Show info
     mp.info()
-def example_with_sample_data_with_paraphrase():
-    """Example using sample data with different template configurations."""
+def example_with_enumerate():
+    """Example demonstrating the new enumerate functionality."""
 
-    print("🚀 MultiPromptify API Example")
+    print("🚀 MultiPromptify API Example with Enumerate")
     print("=" * 50)
 
     # Initialize the API
     mp = MultiPromptifyAPI()
 
-    # Create sample data - NOTE: answers are indices (0-based) not the actual text
-    # because we use 'type': 'index' in the gold configuration
+    # Create sample data
     sample_data = [
         {
             "question": "What is the capital of France?",
@@ -95,38 +94,34 @@ def example_with_sample_data_with_paraphrase():
     print("\n1. Loading data...")
     mp.load_dataframe(df)
     print("📝 Data format: answers are indices (0-based), not text values")
-    print("   Example: Paris = index 2 in ['London', 'Berlin', 'Paris', 'Madrid']")
 
-    # Configure template (dictionary format)
-    print("\n2. Setting template...")
+    # Configure template with enumerate
+    print("\n2. Setting template with enumerate...")
     template = {
         'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-        'instruction': ['paraphrase'],
         'question': ['surface'],
-        'options': ['shuffle', 'surface'],
         'gold': {
             'field': 'answer',
-            'type': 'index',  # This means answer field contains indices, not text
+            'type': 'index',
             'options_field': 'options'
         },
-        'few_shot': {
-            'count': 2,
-            'format': 'fixed',
-            'split': 'all'
+        'enumerate': {
+            'field': 'options',  # Which field to enumerate
+            'type': '1234'       # Use numbers: 1. 2. 3. 4.
         }
     }
 
     mp.set_template(template)
+    print("✅ Template configured with enumerate field")
+    print("   - Will enumerate 'options' field with numbers (1234)")
 
     # Configure generation parameters
     print("\n3. Configuring generation...")
     mp.configure(
-        max_rows=3,  # Use first 3 rows (need at least 3 for few_shot count=2)
-        variations_per_field=3,  # 3 variations per field
-        max_variations=20,  # Maximum 20 total variations
-        random_seed=42,  # For reproducibility
-        api_platform="TogetherAI",  # Platform selection
-        model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+        max_rows=3,
+        variations_per_field=2,
+        max_variations=10,
+        random_seed=42
     )
 
     # Show current status
@@ -140,26 +135,67 @@ def example_with_sample_data_with_paraphrase():
     # Show results
     print(f"\n6. Results: Generated {len(variations)} variations")
 
-    # Display first few variations
-    for i, variation in enumerate(variations[:3]):
+    # Display first few variations to see enumerate in action
+    for i, variation in enumerate(variations[:2]):
         print(f"\nVariation {i + 1}:")
-        print("-" * 40)
+        print("-" * 50)
         print(variation.get('prompt', 'No prompt found'))
-        print()
-
-    # Get statistics
-    stats = mp.get_stats()
-    if stats:
-        print("\n7. Statistics:")
-        for key, value in stats.items():
-            print(f"   {key}: {value}")
+        print("-" * 50)
 
     # Export results
     print("\n8. Exporting results...")
-    mp.export("output_example.json", format="json")
-    mp.export("output_example.csv", format="csv")
+    mp.export("enumerate_example.json", format="json")
 
-    print("\n✅ Example completed successfully!")
+    print("\n✅ Enumerate example completed successfully!")
+
+
+def example_enumerate_types():
+    """Example showing different enumerate types."""
+    
+    print("\n" + "=" * 50)
+    print("🔢 Different Enumerate Types Example")
+    print("=" * 50)
+    
+    mp = MultiPromptifyAPI()
+    
+    # Simple data
+    data = [{
+        "question": "Which is correct?",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "answer": 0
+    }]
+    mp.load_dataframe(pd.DataFrame(data))
+    
+    # Test different enumerate types
+    enumerate_types = [
+        ("1234", "Numbers"),
+        ("ABCD", "Uppercase letters"),
+        ("abcd", "Lowercase letters"),
+        ("roman", "Roman numerals")
+    ]
+    
+    for enum_type, description in enumerate_types:
+        print(f"\n--- {description} ({enum_type}) ---")
+        
+        template = {
+            'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+            'gold': {'field': 'answer', 'type': 'index', 'options_field': 'options'},
+            'enumerate': {
+                'field': 'options',
+                'type': enum_type
+            }
+        }
+        
+        mp.set_template(template)
+        mp.configure(max_rows=1, variations_per_field=1, max_variations=1)
+        
+        try:
+            variations = mp.generate(verbose=False)
+            if variations:
+                print("Result:")
+                print(variations[0].get('prompt', 'No prompt'))
+        except Exception as e:
+            print(f"Error with {enum_type}: {e}")
 
 
 def example_with_sample_data():
@@ -503,18 +539,23 @@ def example_environment_variables():
 if __name__ == "__main__":
     # Run the examples
     example_with_sample_data()
-    # example_with_sample_data_with_paraphrase()
+    example_with_enumerate()
+    example_enumerate_types()
+    
+    # Uncomment other examples as needed:
     # example_with_sample_data2()
     # example_platform_switching()
     # example_with_huggingface()
     # example_different_templates()
     # example_gold_field_formats()
     # example_environment_variables()
-    #
+    
     print("\n🎉 All examples completed!")
     print("\nNext steps:")
     print("1. Install datasets library: pip install datasets")
     print("2. Set your API keys:")
     print("   export TOGETHER_API_KEY='your_together_key'")
     print("   export OPENAI_API_KEY='your_openai_key'")
-    print("3. Try with your own data and templates") 
+    print("3. Try the new enumerate feature in your templates:")
+    print("   'enumerate': {'field': 'options', 'type': '1234'}")
+    print("4. Try with your own data and templates") 

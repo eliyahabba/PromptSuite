@@ -198,7 +198,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Basic Multiple Choice',
                         'template': {
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': ['paraphrase'],
+                            'instruction': ['surface'],
                             'question': ['surface'],
                             'options': ['shuffle'],
                             'gold': {
@@ -237,6 +237,52 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?', 'What is the smallest prime number?'],
                             'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse', '1, 2, 3'],
                             'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
+                        }
+                    },
+                    {
+                        'name': 'Enumerated Multiple Choice',
+                        'template': {
+                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
+                            'instruction': ['paraphrase'],
+                            'question': ['surface'],
+                            'gold': {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            },
+                            'enumerate': {
+                                'field': 'options',
+                                'type': '1234'
+                            }
+                        },
+                        'description': 'Multiple choice with automatic enumeration of options (1. 2. 3. 4.)',
+                        'sample_data': {
+                            'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
+                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver, Hydrogen', 'Lion, Cheetah, Horse, Tiger'],
+                            'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
+                        }
+                    },
+                    {
+                        'name': 'Lettered Multiple Choice with Enumerate',
+                        'template': {
+                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
+                            'instruction': ['paraphrase'],
+                            'question': ['surface'],
+                            'gold': {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            },
+                            'enumerate': {
+                                'field': 'options',
+                                'type': 'ABCD'
+                            }
+                        },
+                        'description': 'Multiple choice with letter enumeration of options (A. B. C. D.)',
+                        'sample_data': {
+                            'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
+                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver, Hydrogen', 'Lion, Cheetah, Horse, Tiger'],
+                            'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
                         }
                     }
                 ]
