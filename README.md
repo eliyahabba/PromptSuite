@@ -175,7 +175,7 @@ multipromptify --template '{"instruction_template": "{instruction}: {question}",
                --output variations.json
 
 # Specify number of variations
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["surface"], "gold": "answer"}' \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
                --data data.csv \
                --max-variations 50
 ```
@@ -189,7 +189,7 @@ multipromptify --template '{"instruction_template": "{instruction}: {question}",
                --max-variations 50
 
 # Output in different formats
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["surface"], "gold": "answer"}' \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
                --data data.csv \
                --format csv \
                --output variations.csv
@@ -227,6 +227,32 @@ class MultiPromptifier:
 ```
 
 ## Examples
+
+### Minimal Example
+
+A minimal example for basic usage: loading data, setting a template, and generating variations.
+
+```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'question': ['What is 2+2?', 'What is the capital of France?'],
+    'answer': ['4', 'Paris']
+})
+
+template = {
+    'instruction_template': 'Q: {question}\nA: {answer}',
+    'question': ['rewording']
+}
+
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=2, variations_per_field=2)
+variations = mp.generate(verbose=True)
+print(variations)
+```
 
 ### Sentiment Analysis
 
@@ -296,8 +322,8 @@ template = {
     'instruction_template': 'Answer the multiple choice question:\nContext: {context}\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
     'instruction': ['semantic'],
     'context': ['paraphrase_with_llm'],
-    'question': ['surface'],
-    'options': ['shuffle', 'surface'],
+    'question': ['rewording'],
+    'options': ['shuffle', 'rewording'],
     'gold': {
         'field': 'answer',
         'type': 'index',
@@ -400,7 +426,7 @@ data = pd.DataFrame({
 
 template = {
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['surface']
+    'question': ['rewording']
 }
 
 mp = MultiPromptifier()
