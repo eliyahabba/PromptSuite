@@ -66,21 +66,20 @@ The web UI provides:
 ### Command Line Interface
 
 ```bash
-multipromptify --template "{instruction:semantic}: {col1:paraphrase}" \
-               --data data.csv \
-               --instruction "Classify the sentiment"
+multipromptify --template '{"instruction_template": "{instruction}: {text}", "text": ["paraphrase"], "gold": "label"}' \
+               --data data.csv
 ```
 
 ### Python API
 
-#### Using MultiPromptifyAPI (Recommended)
+#### Using MultiPromptifier (Recommended)
 
 ```python
-from multipromptify import MultiPromptifyAPI
+from multipromptify import MultiPromptifier
 import pandas as pd
 
 # Initialize
-mp = MultiPromptifyAPI()
+mp = MultiPromptifier()
 
 # Load data
 data = [{"question": "What is 2+2?", "answer": "4"}]
@@ -102,7 +101,7 @@ variations = mp.generate(verbose=True)
 mp.export("output.json", format="json")
 ```
 
-#### Using MultiPromptify (Legacy)
+#### Using MultiPromptify Engine (Advanced)
 
 ```python
 from multipromptify import MultiPromptify
@@ -114,16 +113,21 @@ data = pd.DataFrame({
     'options': ['A)3 B)4 C)5', 'A)Red B)Blue C)Green']
 })
 
-# Template with variation specifications
-template = "{instruction:semantic}: {few_shot}\n Question: {question:paraphrase}\n Options: {options}"
+# Template dictionary with variation specifications
+template = {
+    'instruction_template': '{instruction}: {question}\nOptions: {options}',
+    'instruction': ['semantic'],
+    'question': ['paraphrase'],
+    'options': ['surface'],
+    'gold': 'answer'
+}
 
 # Initialize and generate variations
 mp = MultiPromptify()
 variations = mp.generate_variations(
     template=template,
     data=data,
-    instruction="Choose the correct answer",
-    few_shot=["Example: 1+1=2"]
+    variations_per_field=3
 )
 
 print(f"Generated {len(variations)} prompt variations")
@@ -188,70 +192,64 @@ few_shot = ("Example 1", "Example 2")
 
 ```bash
 # Basic usage
-multipromptify --template "{instruction:semantic}: {question:paraphrase}" \
-               --data data.csv \
-               --instruction "Answer the question"
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer"}' \
+               --data data.csv
 
 # With output file
-multipromptify --template "{instruction}: {question:paraphrase}" \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer"}' \
                --data data.csv \
-               --instruction "Answer this" \
                --output variations.json
 
 # Specify number of variations
-multipromptify --template "{instruction:semantic}: {question}" \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["surface"], "gold": "answer"}' \
                --data data.csv \
-               --instruction "Solve this" \
                --max-variations 50
 ```
 
 ### Advanced Options
 
 ```bash
-# With few-shot examples from file
-multipromptify --template "{instruction}: {few_shot}\n{question:paraphrase}" \
+# With few-shot examples
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
                --data data.csv \
-               --instruction "Answer the question" \
-               --few-shot-file examples.txt \
-               --few-shot-count 3
+               --max-variations 50
 
-# Output to HuggingFace dataset format
-multipromptify --template "{instruction:semantic}: {question}" \
+# Output in different formats
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["surface"], "gold": "answer"}' \
                --data data.csv \
-               --instruction "Solve this" \
-               --output-format hf \
-               --output dataset_variations/
+               --format csv \
+               --output variations.csv
 ```
 
 ## API Reference
 
-### MultiPromptify Class
+### MultiPromptifier Class
 
 ```python
-class MultiPromptify:
-    def __init__(self, max_variations: int = 100):
-        """Initialize MultiPromptify generator."""
+class MultiPromptifier:
+    def __init__(self):
+        """Initialize MultiPromptifier."""
         
-    def generate_variations(
-        self,
-        template: str,
-        data: Union[pd.DataFrame, str, dict],
-        instruction: str = None,
-        few_shot: Union[list, tuple] = None,
-        **kwargs
-    ) -> List[Dict[str, Any]]:
-        """Generate prompt variations based on template."""
+    def load_dataframe(self, df: pd.DataFrame) -> None:
+        """Load data from pandas DataFrame."""
         
-    def parse_template(self, template: str) -> Dict[str, str]:
-        """Parse template to extract columns and variation types."""
+    def load_csv(self, filepath: str, **kwargs) -> None:
+        """Load data from CSV file."""
         
-    def save_variations(
-        self,
-        variations: List[Dict[str, Any]],
-        output_path: str,
-        format: str = "json"
-    ):
-        """Save variations to file."""
+    def load_dataset(self, dataset_name: str, split: str = "train", **kwargs) -> None:
+        """Load data from HuggingFace datasets."""
+        
+    def set_template(self, template_dict: Dict[str, Any]) -> None:
+        """Set template configuration."""
+        
+    def configure(self, **kwargs) -> None:
+        """Configure generation parameters."""
+        
+    def generate(self, verbose: bool = False) -> List[Dict[str, Any]]:
+        """Generate prompt variations."""
+        
+    def export(self, filepath: str, format: str = "json") -> None:
+        """Export variations to file."""
 ```
 
 ## Examples
@@ -260,61 +258,105 @@ class MultiPromptify:
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptify
+from multipromptify import MultiPromptifier
 
 data = pd.DataFrame({
     'text': ['I love this movie!', 'This book is terrible.'],
     'label': ['positive', 'negative']
 })
 
-template = "{instruction:semantic}: '{text:paraphrase}'\nSentiment: {label}"
+template = {
+    'instruction_template': 'Classify the sentiment: "{text}"\nSentiment: {label}',
+    'instruction': ['semantic'],
+    'text': ['paraphrase'],
+    'gold': 'label'
+}
 
-mp = MultiPromptify()
-variations = mp.generate_variations(
-    template=template,
-    data=data,
-    instruction="Classify the sentiment of the following text"
-)
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=2, variations_per_field=3)
+variations = mp.generate(verbose=True)
 ```
 
 ### Question Answering with Few-shot
 
 ```python
-template = "{instruction:paraphrase}: {few_shot}\n\nQuestion: {question:semantic}\nAnswer:"
+template = {
+    'instruction_template': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
+    'instruction': ['paraphrase'],
+    'question': ['semantic'],
+    'gold': 'answer',
+    'few_shot': {
+        'count': 2,
+        'format': 'rotating',
+        'split': 'all'
+    }
+}
 
-few_shot_examples = [
-    "Q: What is the capital of France? A: Paris",
-    "Q: What is 2+2? A: 4"
-]
-
-variations = mp.generate_variations(
-    template=template,
-    data=qa_data,
-    instruction="Answer the following question",
-    few_shot=few_shot_examples
-)
+mp = MultiPromptifier()
+mp.load_dataframe(qa_data)
+mp.set_template(template)
+mp.configure(max_rows=5, variations_per_field=3)
+variations = mp.generate(verbose=True)
 ```
 
 ### Multiple Choice
 
 ```python
-template = "{instruction:semantic}:\n\n{context:paraphrase}\n\nQuestion: {question}\nOptions:\n{options:non-semantic}\n\nAnswer:"
+template = {
+    'instruction_template': 'Answer the multiple choice question:\nContext: {context}\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
+    'instruction': ['semantic'],
+    'context': ['paraphrase'],
+    'question': ['surface'],
+    'options': ['shuffle', 'surface'],
+    'gold': {
+        'field': 'answer',
+        'type': 'index',
+        'options_field': 'options'
+    }
+}
 
-variations = mp.generate_variations(
-    template=template,
-    data=mc_data,
-    instruction="Choose the best answer"
-)
+mp = MultiPromptifier()
+mp.load_dataframe(mc_data)
+mp.set_template(template)
+mp.configure(max_rows=3, variations_per_field=2)
+variations = mp.generate(verbose=True)
 ```
 
-## Web UI Screenshots
+## Web UI Interface
 
-The MultiPromptify 2.0 web interface provides an intuitive workflow:
+The MultiPromptify 2.0 web interface provides an intuitive **3-step workflow**:
 
-1. **Data Upload**: Upload CSV/JSON files or select from sample datasets
-2. **Template Builder**: Create templates with smart suggestions and real-time validation
-3. **Generation**: Configure settings and watch real-time progress
-4. **Results**: Analyze, search, filter, and export your variations
+### 🚀 Step 1: Upload Data
+- **Upload CSV/JSON files** or select from built-in sample datasets
+- **Create custom data** with in-browser editor
+- **Preview your data** with automatic column detection and validation
+- **Sample datasets** for quick testing: Sentiment Analysis, Q&A, Multiple Choice, Text Classification
+
+### 🔧 Step 2: Build Template  
+- **Smart template suggestions** based on your data structure
+- **Dictionary format templates** with variation specifications
+- **Real-time validation** and syntax checking
+- **Live preview** of how your template will look with actual data
+- **Category-based templates**: Sentiment Analysis, Question Answering, Multiple Choice, Text Classification
+
+### ⚡ Step 3: Generate & Export
+- **Configure generation**: variations per field, max rows, random seed
+- **AI platform selection**: TogetherAI or OpenAI for paraphrase variations
+- **Real-time progress tracking** with detailed status updates
+- **Comprehensive results display**:
+  - 📋 **All Variations**: Browse all generated variations with highlighting
+  - 💬 **Conversation Format**: View as chat-like conversations
+  - 💾 **Export Options**: JSON, CSV, TXT, Conversation formats
+
+### 🎯 Key Features
+- **Step-by-step navigation** with progress indicator
+- **Smart template suggestions** for common NLP tasks
+- **Real-time validation** with instant feedback
+- **Multiple export formats** for different use cases
+- **Enhanced visualization** with color-coded field highlighting
+- **Pagination and filtering** for large result sets
 
 ## Contributing
 

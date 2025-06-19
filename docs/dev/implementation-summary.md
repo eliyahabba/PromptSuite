@@ -50,17 +50,27 @@ Successfully implemented a complete redesign of MultiPromptify according to the 
 ```
 src/multipromptify/
 ├── __init__.py           # Package exports
-├── core.py              # Main MultiPromptify class
+├── api.py               # High-level Python API (MultiPromptifyAPI)
+├── engine.py            # Main MultiPromptify engine class
 ├── template_parser.py   # Template parsing with variation annotations
-├── variation_generator.py # Variation generation logic
-└── cli.py               # Command-line interface
+├── cli.py               # Command-line interface
+├── models.py            # Data models and configurations
+├── exceptions.py        # Custom exceptions
+├── generation/          # Variation generation modules
+├── augmentations/       # Text augmentation modules
+├── validators/          # Template and data validators
+├── utils/               # Utility functions
+├── shared/              # Shared resources
+└── ui/                  # Streamlit web interface
+    ├── main.py          # UI entry point
+    ├── pages/           # UI pages
+    └── utils/           # UI utilities
 
 examples/
-├── sample_data.csv      # Sample data for testing
-├── test_multipromptify.py # Comprehensive test suite
-└── usage_examples.py    # Usage examples
+├── api_example.py       # API usage examples
+└── sample data files    # Sample data for testing
 
-setup.py                 # Package installation configuration
+pyproject.toml           # Modern package configuration
 README.md                # Comprehensive documentation
 requirements.txt         # Dependencies
 ```
@@ -96,21 +106,18 @@ requirements.txt         # Dependencies
 ### Command Line
 ```bash
 # Basic usage
-multipromptify --template "{instruction:semantic}: {question:paraphrase}" \
-               --data data.csv \
-               --instruction "Answer this question"
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer"}' \
+               --data data.csv
 
 # With few-shot examples and output
-multipromptify --template "{instruction}: {few_shot}\n{question:paraphrase}" \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
                --data data.csv \
-               --instruction "Answer" \
-               --few-shot '["Q: 1+1? A: 2"]' \
                --output variations.json
 ```
 
 ### Python API
 ```python
-from multipromptify import MultiPromptify
+from multipromptify import MultiPromptifier
 import pandas as pd
 
 data = pd.DataFrame({
@@ -118,14 +125,19 @@ data = pd.DataFrame({
     'options': ['A)3 B)4 C)5', 'A)Red B)Blue C)Green']
 })
 
-template = "{instruction:semantic}: {question:paraphrase}\nOptions: {options}"
+template = {
+    'instruction_template': '{instruction}: {question}\nOptions: {options}',
+    'instruction': ['semantic'],
+    'question': ['paraphrase'],
+    'options': ['surface'],
+    'gold': 'answer'
+}
 
-mp = MultiPromptify()
-variations = mp.generate_variations(
-    template=template,
-    data=data,
-    instruction="Choose the correct answer"
-)
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=2, variations_per_field=3)
+variations = mp.generate(verbose=True)
 ```
 
 ## 🔄 Backward Compatibility
@@ -169,10 +181,12 @@ variations = mp.generate_variations(
 ## 🔧 Implementation Details
 
 ### Core Architecture
-- **MultiPromptify**: Main orchestrator class
+- **MultiPromptifier**: High-level interface for easy programmatic usage
+- **MultiPromptify**: Main engine class (in engine.py)
 - **TemplateParser**: Handles f-string parsing and validation
-- **VariationGenerator**: Generates variations based on type specifications
+- **VariationGenerator**: Generates variations based on type specifications (in generation/)
 - **CLI**: Click-based command-line interface
+- **Streamlit UI**: Modern web interface with step-by-step workflow
 
 ### Variation Types Implemented
 1. **Semantic**: Meaning-preserving transformations

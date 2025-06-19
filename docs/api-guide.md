@@ -15,11 +15,11 @@ pip install python-dotenv  # Optional: for environment variable loading
 ## Quick Start
 
 ```python
-from multipromptify import MultiPromptifyAPI
+from multipromptify import MultiPromptifier
 import pandas as pd
 
 # Initialize
-mp = MultiPromptifyAPI()
+mp = MultiPromptifier()
 
 # Load data
 data = [
@@ -51,7 +51,7 @@ mp.export("output.json", format="json")
 ### Initialization
 
 ```python
-mp = MultiPromptifyAPI()
+mp = MultiPromptifier()
 ```
 
 ### Data Loading Methods

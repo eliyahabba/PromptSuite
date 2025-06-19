@@ -26,18 +26,18 @@ from multipromptify.exceptions import (
 from dotenv import load_dotenv
 load_dotenv()
 
-class MultiPromptifyAPI:
+class MultiPromptifier:
     """
-    High-level Python API for MultiPromptify.
+    High-level interface for MultiPromptify - the easy way to generate prompt variations.
     
-    This class provides a clean, programmatic interface to generate prompt variations
+    This class provides a clean, step-by-step interface to generate prompt variations
     using the same functionality as the Streamlit web interface.
     
     Example usage:
-#            >>> from multipromptify import MultiPromptifyAPI
+#            >>> from multipromptify import MultiPromptifier
 #        >>>
 #        >>> # Initialize
-#        >>> mp = MultiPromptifyAPI()
+#        >>> mp = MultiPromptifier()
 #        >>>
 #        >>> # Load data
 #        >>> mp.load_dataset("squad", split="train")
@@ -63,7 +63,7 @@ class MultiPromptifyAPI:
 #    """
     
     def __init__(self):
-        """Initialize the MultiPromptify API."""
+        """Initialize the MultiPromptifier."""
         self.mp = None
         self.data = None
         self.template = None
@@ -420,7 +420,7 @@ class MultiPromptifyAPI:
     
     def info(self) -> None:
         """Print current configuration and status information."""
-        print("📋 MultiPromptify API Status:")
+        print("📋 MultiPromptifier Status:")
         print(f"   Data: {'✅ Loaded' if self.data is not None else '❌ Not loaded'} "
               f"({len(self.data)} rows)" if self.data is not None else "")
         print(f"   Template: {'✅ Set' if self.template is not None else '❌ Not set'}")
