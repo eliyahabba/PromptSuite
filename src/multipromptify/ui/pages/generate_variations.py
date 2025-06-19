@@ -166,7 +166,7 @@ def configure_generation():
         if use_seed:
             if 'random_seed' not in st.session_state:
                 st.session_state.random_seed = GenerationDefaults.RANDOM_SEED
-            seed = st.number_input("🌱 Random seed", min_value=0, key='random_seed')
+            seed = st.number_input("🌱 Random seed", min_value=0, value=st.session_state.random_seed, key='random_seed')
         else:
             st.session_state.random_seed = None
 
