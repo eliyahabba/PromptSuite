@@ -52,8 +52,7 @@ python demo_ui.py
 The web UI provides:
 - 📁 **Step 1**: Upload data or use sample datasets
 - 🔧 **Step 2**: Build templates with smart suggestions
-- ⚡ **Step 3**: Generate variations with real-time progress
-- 🎉 **Step 4**: Analyze results and export in multiple formats
+- ⚡ **Step 3**: Generate variations with real-time progress and export results
 
 ### Command Line Interface
 
@@ -65,14 +64,14 @@ multipromptify --template "{instruction:semantic}: {col1:paraphrase}" \
 
 ### Python API
 
-#### Using MultiPromptifyAPI (Recommended)
+#### Using MultiPromptifier (Recommended)
 
 ```python
-from multipromptify import MultiPromptifyAPI
+from multipromptify import MultiPromptifier
 import pandas as pd
 
 # Initialize
-mp = MultiPromptifyAPI()
+mp = MultiPromptifier()
 
 # Load data
 data = [{"question": "What is 2+2?", "answer": "4"}]

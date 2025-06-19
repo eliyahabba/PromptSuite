@@ -60,8 +60,7 @@ python demo_ui.py
 The web UI provides:
 - 📁 **Step 1**: Upload data or use sample datasets
 - 🔧 **Step 2**: Build templates with smart suggestions
-- ⚡ **Step 3**: Generate variations with real-time progress
-- 🎉 **Step 4**: Analyze results and export in multiple formats
+- ⚡ **Step 3**: Generate variations with real-time progress and export results
 
 ### Command Line Interface
 
