@@ -4,11 +4,12 @@ Template Builder for MultiPromptify - Dictionary Format Only
 
 import streamlit as st
 
-from multipromptify import MultiPromptify
-from multipromptify.template_keys import (
+from multipromptify.core import MultiPromptify
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
 )
+from multipromptify.shared.constants import FEW_SHOT_DYNAMIC_DEFAULT
 
 
 def render():
@@ -99,11 +100,12 @@ def template_suggestions_interface(available_columns):
             for template in category_info['templates']:
                 # Get required fields from new dictionary format
                 template_dict = template['template']
-                required_fields = [k for k in template_dict.keys() if k not in ['instruction', 'few_shot', 'instruction_template', 'gold', 'enumerate']]
+                required_fields = [k for k in template_dict.keys() if
+                                   k not in ['instruction', 'few_shot', 'instruction_template', 'gold', 'enumerate']]
 
                 # Check if gold field value exists in columns
-                if 'gold' in template_dict:
-                    gold_config = template_dict['gold']
+                if GOLD_KEY in template_dict:
+                    gold_config = template_dict[GOLD_KEY]
                     if isinstance(gold_config, str):
                         # Old format: gold field is just the column name
                         if gold_config not in available_columns:
@@ -146,7 +148,7 @@ def template_suggestions_interface(available_columns):
 
                         # Display dictionary template
                         st.markdown("**Template Configuration (Dictionary Format):**")
-                        
+
                         # Display as formatted JSON code block to avoid Streamlit's array indexing
                         import json
                         formatted_json = json.dumps(template['template'], indent=2, ensure_ascii=False)
@@ -258,8 +260,8 @@ def template_builder_interface(available_columns):
             "Enter your instruction template with placeholders:",
             value=st.session_state.template_config.get('instruction_template', ''),
             key="instruction_template",
-                    help="Use {field_name} for placeholders. Example: 'Answer the following question: {question}\\nAnswer: {answer}'. Remember to specify the 'gold' field for the answer column.",
-        placeholder="Answer the following question: {question}\nAnswer: {answer}"
+            help="Use {field_name} for placeholders. Example: 'Answer the following question: {question}\\nAnswer: {answer}'. Remember to specify the 'gold' field for the answer column.",
+            placeholder="Answer the following question: {question}\nAnswer: {answer}"
         )
 
         if instruction_template:
@@ -314,11 +316,11 @@ def template_builder_interface(available_columns):
         # Gold field configuration
         st.markdown("**Gold Field Configuration**")
         st.write("Configure the gold field (correct answer/output column):")
-        
+
         # Check if few-shot will be enabled to determine if gold is required
         # We need to check the current state of few-shot configuration from the UI
         st.info("💡 Gold field is required when using few-shot examples")
-        
+
         # Gold field selection
         gold_field = st.selectbox(
             "Select gold field (correct answer column):",
@@ -327,7 +329,7 @@ def template_builder_interface(available_columns):
             key="gold_field",
             help="Choose the column that contains the correct answers/outputs"
         )
-        
+
         if gold_field and gold_field != "None":
             # Gold field configuration format
             gold_format = st.selectbox(
@@ -337,11 +339,11 @@ def template_builder_interface(available_columns):
                 key="gold_format",
                 help="Simple: just specify the column name. Advanced: specify type and options"
             )
-            
+
             if gold_format == "Simple":
                 # Simple format - just the field name
                 configured_fields['gold'] = gold_field
-                
+
                 # Show preview
                 df = st.session_state.uploaded_data
                 if not df[gold_field].dropna().empty:
@@ -349,7 +351,7 @@ def template_builder_interface(available_columns):
                     st.markdown("**Preview:**")
                     st.code(f"Sample gold value: {sample_value}")
                     st.info("💡 Using simple format: `'gold': '{}'`".format(gold_field))
-                    
+
             else:
                 # Advanced format - full configuration
                 gold_type = st.selectbox(
@@ -359,7 +361,7 @@ def template_builder_interface(available_columns):
                     key="gold_type",
                     help="'value' for text answers, 'index' for position-based answers (like multiple choice)"
                 )
-                
+
                 # If index type, need options field
                 options_field = None
                 if gold_type == "index":
@@ -370,22 +372,22 @@ def template_builder_interface(available_columns):
                         key="gold_options_field",
                         help="Choose the column that contains the list of options"
                     )
-                    
+
                     if options_field == "None":
                         options_field = None
-                
+
                 # Preview gold configuration
                 df = st.session_state.uploaded_data
                 if not df[gold_field].dropna().empty:
                     sample_value = df[gold_field].dropna().iloc[0]
                     st.markdown("**Preview:**")
                     st.code(f"Sample gold value: {sample_value}")
-                    
+
                     if gold_type == "index" and options_field and options_field in df.columns:
                         if not df[options_field].dropna().empty:
                             sample_options = df[options_field].dropna().iloc[0]
                             st.code(f"Sample options: {sample_options}")
-                
+
                 # Add to configuration
                 if gold_type == "value":
                     # Simple format for value type
@@ -428,7 +430,7 @@ def template_builder_interface(available_columns):
 
         if list_like_fields:
             st.info(f"💡 Detected list-like fields: {', '.join(list_like_fields)}")
-        
+
         # Field selection for enumeration
         enumerate_field = st.selectbox(
             "Select field to enumerate:",
@@ -447,7 +449,7 @@ def template_builder_interface(available_columns):
                 "greek": "Greek letters (α. β. γ. δ.)",
                 "roman": "Roman numerals (I. II. III. IV.)"
             }
-            
+
             enumerate_type = st.selectbox(
                 "Select enumeration type:",
                 options=list(enumerate_types.keys()),
@@ -462,10 +464,10 @@ def template_builder_interface(available_columns):
             if not df[enumerate_field].dropna().empty:
                 sample_value = str(df[enumerate_field].dropna().iloc[0])
                 st.markdown("**Preview:**")
-                
+
                 # Show original
                 st.code(f"Original: {sample_value}")
-                
+
                 # Show enumerated preview (simulate the enumeration)
                 try:
                     from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
@@ -493,8 +495,8 @@ def template_builder_interface(available_columns):
             df = st.session_state.uploaded_data
             available_rows = len(df) if df is not None else 0
             # Set default to min(2, max(0, available_rows - 1)) to ensure we have at least 1 row left for generation
-            dynamic_default = min(2, max(0, available_rows - 1)) if available_rows > 1 else 0
-            
+            dynamic_default = FEW_SHOT_DYNAMIC_DEFAULT(available_rows)
+
             few_shot_count = st.number_input(
                 "Number of examples",
                 min_value=0,
@@ -544,7 +546,7 @@ def template_builder_interface(available_columns):
 
             # Display configuration in a nice format
             st.markdown("**Template Configuration:**")
-            
+
             # Display as formatted JSON code block to avoid Streamlit's array indexing
             import json
             formatted_json = json.dumps(configured_fields, indent=2, ensure_ascii=False)
@@ -587,17 +589,17 @@ def template_builder_interface(available_columns):
 
     # Check if template is valid
     template_errors = []
-    
+
     # Check if few-shot is configured and gold is required
     if 'few_shot' in configured_fields:
         few_shot_count = configured_fields['few_shot'].get('count', 0)
         if few_shot_count > 0 and 'gold' not in configured_fields:
             template_errors.append("Gold field is required when using few-shot examples")
-    
+
     # Check if instruction template is provided
     if 'instruction_template' not in configured_fields:
         template_errors.append("Instruction template is required")
-    
+
     # Display validation errors
     if template_errors:
         st.error("❌ Template validation errors:")
@@ -640,7 +642,7 @@ def display_selected_template_details(available_columns):
 
     # Template configuration with enhanced styling
     st.markdown("### 📝 Template Configuration")
-    
+
     # Display template in a clean, expanded format with colors
     for key, value in template.items():
         if key == 'instruction_template':
@@ -653,7 +655,7 @@ def display_selected_template_details(available_columns):
             # Add quotes around the instruction template for clarity
             quoted_value = f'"{value}"'
             st.code(quoted_value, language="text")
-            
+
         elif key == 'few_shot' and isinstance(value, dict):
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%); 
@@ -662,7 +664,7 @@ def display_selected_template_details(available_columns):
                 <span style="color: #4a148c;">{value['count']} {value['format']} examples from {value['split']} data</span>
             </div>
             """, unsafe_allow_html=True)
-            
+
         elif key == 'gold':
             if isinstance(value, str):
                 gold_text = f"{value} (simple format)"
@@ -674,7 +676,7 @@ def display_selected_template_details(available_columns):
                     gold_text = f"{value['field']} ({gold_type} type)"
             else:
                 gold_text = str(value)
-            
+
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #fff8e1 0%, #f8f9fa 100%); 
                         border-radius: 6px; border-left: 3px solid #ffc107;">
@@ -682,7 +684,7 @@ def display_selected_template_details(available_columns):
                 <span style="color: #e65100;">{gold_text}</span>
             </div>
             """, unsafe_allow_html=True)
-            
+
         elif key == 'enumerate':
             enumerate_text = f"{value['field']} field with {value['type']} enumeration"
             st.markdown(f"""
@@ -692,7 +694,7 @@ def display_selected_template_details(available_columns):
                 <span style="color: #33691e;">{enumerate_text}</span>
             </div>
             """, unsafe_allow_html=True)
-            
+
         elif isinstance(value, list):
             variations_text = ', '.join(value)
             st.markdown(f"""
@@ -702,7 +704,7 @@ def display_selected_template_details(available_columns):
                 <span style="color: #1b5e20;">{variations_text}</span>
             </div>
             """, unsafe_allow_html=True)
-            
+
         else:
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%); 
