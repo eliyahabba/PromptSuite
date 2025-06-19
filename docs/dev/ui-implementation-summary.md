@@ -156,17 +156,14 @@ pip install -e ".[ui]"
 
 ### Launch Options
 ```bash
-# Direct launch
-python src/ui/run_streamlit.py
+# If installed via pip
+multipromptify-ui
 
-# Demo script with introduction
-python demo_ui.py
+# Direct launch (development)
+python src/multipromptify/ui/main.py
 
-# With specific starting step
-python src/ui/run_streamlit.py --step=2
-
-# With debug mode
-python src/ui/run_streamlit.py --debug=true
+# Using the runner script
+python run_ui.py
 ```
 
 ### URL Parameters

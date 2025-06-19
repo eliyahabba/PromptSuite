@@ -37,16 +37,19 @@ pip install -e ".[ui]"
 
 ## Quick Start
 
-### Web UI (Recommended)
+### Streamlit Interface (Recommended)
 
-Launch the modern web interface for an intuitive experience:
+Launch the modern Streamlit interface for an intuitive experience:
 
 ```bash
-# From project root
-python src/ui/run_streamlit.py
+# If installed via pip
+multipromptify-ui
 
-# Or use the demo script
-python demo_ui.py
+# From project root (development)
+python src/multipromptify/ui/main.py
+
+# Alternative: using the runner script
+python run_ui.py
 ```
 
 The web UI provides:

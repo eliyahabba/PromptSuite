@@ -14,7 +14,7 @@ def main():
     print("=" * 50)
     
     # Check if we're in the right directory
-    ui_main = Path("src/ui/main.py")
+    ui_main = Path("src/multipromptify/ui/main.py")
     if not ui_main.exists():
         print("❌ Error: Please run this script from the project root directory")
         print(f"Looking for: {ui_main.absolute()}")
