@@ -10,6 +10,35 @@ import streamlit as st
 
 from multipromptify.engine import MultiPromptify
 
+# Helper function to inject JavaScript for clipboard functionality
+def _copy_to_clipboard_js():
+    js_code = """
+    function copyTextToClipboard(text) {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // Avoid scrolling to bottom
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            var successful = document.execCommand('copy');
+            var msg = successful ? 'successful' : 'unsuccessful';
+            console.log('Copying text command was ' + msg);
+        } catch (err) {
+            console.error('Oops, unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+    """
+    st.components.v1.html(f"<script>{js_code}</script>", height=0, width=0)
+
 # Define colors for highlighting different parts
 HIGHLIGHT_COLORS = {
     "original": "#E8F5E8",  # Light green for original values
@@ -196,16 +225,16 @@ def display_single_conversation(conversation, conversation_num, original_variati
         col1, col2 = st.columns([2, 1])
 
         with col1:
-            # st.markdown("**💬 Conversation Format:**")
-            # Create JSON representation of just the conversation
+            # JSON representation of just the conversation
             conversation_json = json.dumps(actual_conversation, indent=2, ensure_ascii=False)
 
-            # Display actions for JSON
-            if st.button(f"📋 Copy Conversation", key=f"copy_conv_{conversation_num}"):
-                # This is just visual feedback
-                st.success("Copied to clipboard!")
-
-            # Display the clean conversation JSON format
+            # הצגת כפתור העתקה מעוצב, textarea מוסתר, ותצוגה יפה עם st.code
+            st.components.v1.html(f'''
+                <div style="position: relative; margin-bottom: 0.5rem;">
+                    <textarea id="conv_{conversation_num}" style="display:none;">{conversation_json}</textarea>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('conv_{conversation_num}').value); var btn=this; btn.innerText='Copied!'; setTimeout(()=>btn.innerText='Copy Conversation',1200);" style="position:absolute;top:0;right:0;padding:6px 16px;background:linear-gradient(135deg,#2196f3 0%,#21cbf3 100%);color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;box-shadow:0 2px 6px rgba(33,150,243,0.08);transition:background 0.2s;z-index:10;">Copy Conversation</button>
+                </div>
+            ''', height=38)
             st.code(conversation_json, language="json")
 
         with col2:
