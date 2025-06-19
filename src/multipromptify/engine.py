@@ -11,7 +11,7 @@ If your data doesn't meet these requirements, clean it before passing to MultiPr
 """
 
 import json
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union
 
 import pandas as pd
 from multipromptify.template_parser import TemplateParser
@@ -23,6 +23,8 @@ from multipromptify.exceptions import (
     InvalidTemplateError, MissingInstructionTemplateError, 
     UnsupportedFileFormatError, UnsupportedExportFormatError
 )
+from pathlib import Path
+import ast
 
 
 class MultiPromptify:
@@ -222,11 +224,91 @@ class MultiPromptify:
         self.template_parser.parse(template)
         return self.template_parser.get_variation_fields()
 
+    @staticmethod
+    def _prepare_variations_for_conversation_export(variations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Enhance variations with conversation field to match API format.
+        This is a shared utility function to ensure consistent conversation JSON output.
+        
+        Args:
+            variations: List of generated variations
+            
+        Returns:
+            List of variations with conversation field added and extra fields removed
+        """
+        enhanced_variations = []
+        
+        for variation in variations:
+            # Create a new variation with only the required API fields
+            enhanced_var = {
+                'prompt': variation.get('prompt', ''),
+                'original_row_index': variation.get('original_row_index', 0),
+                'variation_count': variation.get('variation_count', 1),
+                'template_config': variation.get('template_config', {}),
+                'field_values': variation.get('field_values', {}),
+                'gold_updates': variation.get('gold_updates')
+            }
+            
+            # Add conversation field if not already present
+            if 'conversation' in variation and variation['conversation']:
+                enhanced_var['conversation'] = variation['conversation']
+            else:
+                # Build conversation from prompt
+                prompt = variation.get('prompt', '')
+                
+                # Split prompt into conversation parts if it contains few-shot examples
+                parts = prompt.split('\n\n')
+                conversation = []
+                
+                for i, part in enumerate(parts):
+                    part = part.strip()
+                    if not part:
+                        continue
+                    
+                    # Check if this is the last part (incomplete question)
+                    if i == len(parts) - 1:
+                        # Last part - this is the question without answer
+                        conversation.append({
+                            "role": "user",
+                            "content": part
+                        })
+                    else:
+                        # This is a complete Q&A pair
+                        # Split by the last occurrence of newline to separate question and answer
+                        lines = part.split('\n')
+                        if len(lines) >= 2:
+                            # Assume the last line is the answer
+                            answer = lines[-1].strip()
+                            question = '\n'.join(lines[:-1]).strip()
+                            
+                            conversation.append({
+                                "role": "user", 
+                                "content": question
+                            })
+                            conversation.append({
+                                "role": "assistant",
+                                "content": answer
+                            })
+                        else:
+                            # Single line - treat as user message
+                            conversation.append({
+                                "role": "user",
+                                "content": part
+                            })
+                
+                enhanced_var['conversation'] = conversation
+            
+            enhanced_variations.append(enhanced_var)
+        
+        return enhanced_variations
+
     def save_variations(self, variations: List[Dict[str, Any]], output_path: str, format: str = "json"):
         """Save variations to file."""
         if format == "json":
+            # Prepare variations to conversation format before dumping to JSON
+            conversation_variations = MultiPromptify._prepare_variations_for_conversation_export(variations)
             with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(variations, f, indent=2, ensure_ascii=False)
+                json.dump(conversation_variations, f, indent=2, ensure_ascii=False)
 
         elif format == "csv":
             flattened = []

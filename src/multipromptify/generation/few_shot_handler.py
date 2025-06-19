@@ -199,17 +199,6 @@ class FewShotHandler:
             for field_name, field_data in field_values.items()
         }
         
-        # Also preserve original field values with their original structure
-        original_field_values = {}
-        for field_name, field_data in field_values.items():
-            # Try to get the original value from variation context
-            if hasattr(field_data, 'original_value'):
-                original_field_values[field_name] = field_data.original_value
-            elif field_name in variation_context.row_data.index:
-                original_field_values[field_name] = variation_context.row_data[field_name]
-            else:
-                original_field_values[field_name] = field_data.data
-        
         return {
             'prompt': final_prompt,
             'conversation': conversation_messages,
@@ -217,9 +206,7 @@ class FewShotHandler:
             'variation_count': variation_count,
             'template_config': variation_context.template,
             'field_values': output_field_values,  # Formatted values for display in prompts
-            'original_field_values': original_field_values,  # Original structure for metadata
             'gold_updates': gold_updates if gold_updates else None,
-            'original_answer': self._get_original_answer(variation_context),  # Always include original answer
         }
 
     def _extract_row_values_and_updates(
@@ -365,10 +352,3 @@ class FewShotHandler:
             prompt_parts.append(main_input)
         
         return '\n\n'.join(prompt_parts) 
-
-    def _get_original_answer(self, variation_context: VariationContext) -> str:
-        """Get the original answer from the variation context."""
-        if variation_context.gold_config and variation_context.gold_config.field:
-            return variation_context.row_data[variation_context.gold_config.field]
-        else:
-            return "" 

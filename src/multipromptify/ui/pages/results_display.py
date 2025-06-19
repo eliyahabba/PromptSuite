@@ -3,17 +3,19 @@ Shared Results Display Module for MultiPromptify 2.0
 Contains all the display functions for generated variations
 """
 
-import streamlit as st
-import pandas as pd
 import json
-import io
+
+import pandas as pd
+import streamlit as st
+
+from multipromptify.engine import MultiPromptify
 
 # Define colors for highlighting different parts
 HIGHLIGHT_COLORS = {
-    "original": "#E8F5E8",      # Light green for original values
-    "variation": "#FFF2CC",     # Light yellow for variations
-    "field": "#E3F2FD",         # Light blue for field names
-    "template": "#F3E5F5"       # Light purple for template parts
+    "original": "#E8F5E8",  # Light green for original values
+    "variation": "#FFF2CC",  # Light yellow for variations
+    "field": "#E3F2FD",  # Light blue for field names
+    "template": "#F3E5F5"  # Light purple for template parts
 }
 
 
@@ -49,20 +51,16 @@ def display_full_results(variations, original_data, stats, generation_time, show
     display_enhanced_summary_metrics(variations, stats, generation_time)
 
     # Tabbed interface
-    if show_export:
-        tab1, tab2, tab3 = st.tabs(["📋 All Variations", "💬 Conversation Format", "💾 Export"])
+    tab1, tab2, tab3 = st.tabs(["📋 All Variations", "💬 Conversation Format", "💾 Export"])
 
-        with tab1:
-            display_enhanced_variations(variations, original_data)
-
-        with tab2:
-            display_conversation_format(variations)
-
-        with tab3:
-            export_interface(variations)
-    else:
-        # Just show variations without export tab
+    with tab1:
         display_enhanced_variations(variations, original_data)
+
+    with tab2:
+        display_conversation_format(variations, original_data)
+
+    with tab3:
+        export_interface(variations)
 
 
 def display_enhanced_summary_metrics(variations, stats, generation_time):
@@ -175,82 +173,9 @@ def display_color_legend():
     pass
 
 
-def display_conversation_format(variations):
-    """Display variations in conversation format within the UI"""
-    st.markdown("""
-    <div style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2196f3; margin-bottom: 2rem;">
-        <h3 style="color: #1976d2; margin-top: 0;">💬 Conversation Format Display</h3>
-        <p style="margin-bottom: 0; color: #0d47a1;">Each variation displayed as a conversation with role and content structure</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if not variations:
-        st.warning("No variations to display")
-        return
-
-    # Convert to conversation format
-    conversations = convert_to_conversation_format(variations)
-
-    # Quick action buttons
-    col1, col2, col3 = st.columns([1, 1, 1])
-
-    with col1:
-        # Copy all conversations button
-        all_conversations_json = json.dumps(conversations, indent=2, ensure_ascii=False)
-        if st.button("📋 Copy All Conversations JSON", use_container_width=True):
-            st.code(all_conversations_json, language="json")
-
-    with col2:
-        # Download button (same as in export tab)
-        st.download_button(
-            label="💾 Download Conversations",
-            data=all_conversations_json,
-            file_name="prompt_variations_conversation.json",
-            mime="application/json",
-            use_container_width=True
-        )
-
-    with col3:
-        # Stats
-        total_messages = sum(len(conv) for conv in conversations)
-        st.metric("Total Messages", f"{total_messages:,}")
-
-    st.markdown("---")
-
-    # Pagination controls
-    total_conversations = len(conversations)
-
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("### 📄 Navigation")
-        page_options = [5, 10, 20, 50]
-        items_per_page = st.selectbox("Conversations per page", page_options, index=1, key="conv_per_page")
-
-        total_pages = (total_conversations - 1) // items_per_page + 1 if total_conversations > 0 else 1
-        page = st.number_input(f"Page (1-{total_pages})", min_value=1, max_value=total_pages, value=1, key="conv_page")
-        if page is None:
-            page = 1
-
-    # Calculate range
-    start_idx = (page - 1) * items_per_page
-    end_idx = min(start_idx + items_per_page, total_conversations)
-
-    st.markdown(f"""
-    <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; margin: 1rem 0;">
-        <strong>Showing conversations {start_idx + 1}-{end_idx} of {total_conversations:,}</strong>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Display conversations
-    for i in range(start_idx, end_idx):
-        conversation = conversations[i]
-        original_variation = variations[i]
-        display_single_conversation(conversation, i + 1, original_variation)
-
-
 def display_single_conversation(conversation, conversation_num, original_variation):
     """Display a single conversation in clean JSON format with correct answer when available"""
-    
+
     # Handle both old and new conversation formats
     if isinstance(conversation, dict) and 'conversation' in conversation:
         # New enhanced format with metadata
@@ -264,32 +189,33 @@ def display_single_conversation(conversation, conversation_num, original_variati
         original_row_index = original_variation.get('original_row_index', 0)
 
     # Create expandable card for each conversation
-    with st.expander(f"💬 Conversation {conversation_num} (from row {original_row_index + 1})", expanded=(conversation_num <= 3)):
+    with st.expander(f"💬 Conversation {conversation_num} (from row {original_row_index + 1})",
+                     expanded=(conversation_num <= 3)):
 
         # Two column layout for conversation display
         col1, col2 = st.columns([2, 1])
-        
+
         with col1:
-            st.markdown("**💬 Conversation Format:**")
+            # st.markdown("**💬 Conversation Format:**")
             # Create JSON representation of just the conversation
             conversation_json = json.dumps(actual_conversation, indent=2, ensure_ascii=False)
-            
+
             # Display actions for JSON
             if st.button(f"📋 Copy Conversation", key=f"copy_conv_{conversation_num}"):
                 # This is just visual feedback
                 st.success("Copied to clipboard!")
-            
+
             # Display the clean conversation JSON format
             st.code(conversation_json, language="json")
-        
+
         with col2:
             # Get correct answer from metadata or original variation
             correct_answer = None
-            
+
             # Try metadata first
             if metadata and 'correct_answer' in metadata:
                 correct_answer = metadata['correct_answer']
-            
+
             # If not in metadata, try to get from original variation
             if correct_answer is None:
                 # Check for gold_updates first (updated answer)
@@ -298,13 +224,13 @@ def display_single_conversation(conversation, conversation_num, original_variati
                     for gold_field, gold_value in gold_updates.items():
                         correct_answer = gold_value
                         break
-                
+
                 # If no updates, use original answer
                 if correct_answer is None:
                     original_answer = original_variation.get('original_answer')
                     if original_answer is not None:
                         correct_answer = str(original_answer)
-            
+
             # Display correct answer (should always be available now)
             if correct_answer is not None and str(correct_answer).strip():
                 st.markdown("**🏆 Correct Answer:**")
@@ -443,7 +369,7 @@ def display_single_variation(variation, variation_num, original_data):
             gold_updates = variation.get('gold_updates', {})
             if gold_updates is None:
                 gold_updates = {}
-            
+
             if gold_updates:
                 for gold_field, new_value in gold_updates.items():
                     if original_row is not None and gold_field in original_row.index:
@@ -505,85 +431,6 @@ def highlight_prompt_fields(prompt, field_values):
     return highlighted
 
 
-def convert_to_conversation_format(variations):
-    """
-    Convert variations to conversation format using structured data
-    Uses the conversation field if available, otherwise falls back to simple format
-    
-    Args:
-        variations: List of generated variations
-        
-    Returns:
-        List of conversations in the format:
-        [
-            {
-                "conversation": [
-                    {
-                        "role": "user",
-                        "content": "input content"
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "output content"
-                    }
-                ],
-                "metadata": {
-                    "original_row_index": 0,
-                    "variation_count": 1,
-                    "correct_answer": "2"  # Only the updated correct answer
-                }
-            }
-        ]
-    """
-    conversations = []
-    
-    for variation in variations:
-        # Check if we have structured conversation data
-        if 'conversation' in variation and variation['conversation']:
-            # Use the pre-built conversation structure
-            conversation = variation['conversation']
-        else:
-            # Fallback to simple format for backward compatibility
-            prompt = variation.get('prompt', '')
-            conversation = [
-                {
-                    "role": "user",
-                    "content": prompt.strip()
-                }
-            ]
-        
-        # Get the correct answer after updates
-        correct_answer = None
-        gold_updates = variation.get('gold_updates')
-        if gold_updates:
-            # Get the first (and usually only) gold field update
-            for gold_field, gold_value in gold_updates.items():
-                correct_answer = gold_value
-                break
-        else:
-            # No updates, use original answer if available
-            original_answer = variation.get('original_answer')
-            if original_answer is not None:
-                correct_answer = str(original_answer)
-        
-        # Create conversation with minimal metadata
-        conversation_item = {
-            "conversation": conversation,
-            "metadata": {
-                "original_row_index": variation.get('original_row_index', 0),
-                "variation_count": variation.get('variation_count', 1),
-            }
-        }
-        
-        # Always add correct_answer if we have it
-        if correct_answer is not None:
-            conversation_item["metadata"]["correct_answer"] = correct_answer
-        
-        conversations.append(conversation_item)
-    
-    return conversations
-
-
 def export_interface(variations):
     """Interface for exporting results in various formats"""
     st.markdown("""
@@ -612,7 +459,9 @@ def export_interface(variations):
             </div>
             """, unsafe_allow_html=True)
 
-            json_data = json.dumps(variations, indent=2, ensure_ascii=False)
+            # Enhance variations with conversation field to match API format
+            enhanced_variations = MultiPromptify._prepare_variations_for_conversation_export(variations)
+            json_data = json.dumps(enhanced_variations, indent=2, ensure_ascii=False)
             st.download_button(
                 label="📥 Download JSON",
                 data=json_data,
@@ -648,13 +497,13 @@ def export_interface(variations):
                     else:
                         flat_var[f'field_{key}'] = value
                         flat_var[f'field_{key}_type'] = type(value).__name__
-                
+
                 # Add gold updates if present
                 gold_updates = var.get('gold_updates')
                 if gold_updates:
                     for gold_field, gold_value in gold_updates.items():
                         flat_var[f'gold_update_{gold_field}'] = gold_value
-                
+
                 flattened.append(flat_var)
 
             csv_df = pd.DataFrame(flattened)
@@ -690,153 +539,158 @@ def export_interface(variations):
                 use_container_width=True
             )
 
-        with subcol2:
-            st.markdown("""
-            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-                <h4 style="color: #e91e63; margin: 0;">💬 Conversation Format</h4>
-                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Chat format with roles</p>
-            </div>
-            """, unsafe_allow_html=True)
 
-            # Convert to conversation format
-            conversation_data = convert_to_conversation_format(variations)
-            conversation_json = json.dumps(conversation_data, indent=2, ensure_ascii=False)
-
-            st.download_button(
-                label="📥 Download Conversation",
-                data=conversation_json,
-                file_name="prompt_variations_conversation.json",
-                mime="application/json",
-                use_container_width=True
-            )
-
-
-def display_simple_download_options(variations):
+def convert_to_conversation_format(variations, original_data=None):
     """
-    Simple download options for integration into generation page
+    Convert variations to conversation format with user/assistant messages.
+    
+    Args:
+        variations: List of generated variations
+        original_data: Optional DataFrame with original data for extracting original answers
+        
+    Returns:
+        List of conversation objects with metadata
     """
-    if not variations:
-        return
+    conversations = []
 
-    st.markdown("---")
+    for variation in variations:
+        # Parse conversation from existing conversation field or prompt
+        if 'conversation' in variation and variation['conversation']:
+            conversation = variation['conversation']
+        else:
+            # Build conversation from prompt
+            prompt = variation.get('prompt', '')
+
+            # Split prompt into conversation parts if it contains few-shot examples
+            parts = prompt.split('\n\n')
+            conversation = []
+
+            for i, part in enumerate(parts):
+                part = part.strip()
+                if not part:
+                    continue
+
+                # Check if this is the last part (incomplete question)
+                if i == len(parts) - 1:
+                    # Last part - this is the question without answer
+                    conversation.append({
+                        "role": "user",
+                        "content": part
+                    })
+                else:
+                    # This is a complete Q&A pair
+                    # Split by the last occurrence of newline to separate question and answer
+                    lines = part.split('\n')
+                    if len(lines) >= 2:
+                        # Assume the last line is the answer
+                        answer = lines[-1].strip()
+                        question = '\n'.join(lines[:-1]).strip()
+
+                        conversation.append({
+                            "role": "user",
+                            "content": question
+                        })
+                        conversation.append({
+                            "role": "assistant",
+                            "content": answer
+                        })
+                    else:
+                        # Single line - treat as user message
+                        conversation.append({
+                            "role": "user",
+                            "content": part
+                        })
+
+        # Get the correct answer after updates
+        correct_answer = None
+        gold_updates = variation.get('gold_updates')
+        if gold_updates:
+            # Get the first (and usually only) gold field update
+            for gold_field, gold_value in gold_updates.items():
+                correct_answer = gold_value
+                break
+        else:
+            # No updates, try to extract original answer from original data
+            if original_data is not None:
+                original_row_index = variation.get('original_row_index', 0)
+                template_config = variation.get('template_config', {})
+                gold_config = template_config.get('gold')
+
+                if gold_config and original_row_index < len(original_data):
+                    # Extract gold field name
+                    if isinstance(gold_config, str):
+                        gold_field = gold_config
+                    elif isinstance(gold_config, dict) and 'field' in gold_config:
+                        gold_field = gold_config['field']
+                    else:
+                        gold_field = None
+
+                    if gold_field and gold_field in original_data.columns:
+                        original_answer = original_data.iloc[original_row_index][gold_field]
+                        correct_answer = str(original_answer)
+
+        # Create conversation with minimal metadata
+        conversation_item = {
+            "conversation": conversation,
+            "metadata": {
+                "original_row_index": variation.get('original_row_index', 0),
+                "variation_count": variation.get('variation_count', 1),
+            }
+        }
+
+        # Always add correct_answer if we have it
+        if correct_answer is not None:
+            conversation_item["metadata"]["correct_answer"] = correct_answer
+
+        conversations.append(conversation_item)
+
+    return conversations
+
+
+def display_conversation_format(variations, original_data=None):
+    """Display variations in conversation format within the UI"""
     st.markdown("""
-    <div style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2196f3; margin: 2rem 0;">
-        <h3 style="color: #1976d2; margin-top: 0;">💾 Download Your Results</h3>
-        <p style="margin-bottom: 0; color: #0d47a1;">Choose your preferred format to download the generated variations</p>
+    <div style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2196f3; margin-bottom: 2rem;">
+        <h3 style="color: #1976d2; margin-top: 0;">💬 Conversation Format Display</h3>
+        <p style="margin-bottom: 0; color: #0d47a1;">Each variation displayed as a conversation with role and content structure</p>
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+    if not variations:
+        st.warning("No variations to display")
+        return
 
-    with col1:
-        # Row 1 - JSON and CSV
-        subcol1, subcol2 = st.columns(2)
+    # Convert to conversation format with original data for correct answers
+    conversations = convert_to_conversation_format(variations, original_data)
 
-        with subcol1:
-            # JSON download with enhanced styling
-            st.markdown("""
-            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-                <h4 style="color: #ff9800; margin: 0;">📋 JSON Format</h4>
-                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Complete data with metadata</p>
-            </div>
-            """, unsafe_allow_html=True)
+    st.markdown("---")
 
-            json_data = json.dumps(variations, indent=2, ensure_ascii=False)
-            st.download_button(
-                label="📥 Download JSON",
-                data=json_data,
-                file_name="prompt_variations.json",
-                mime="application/json",
-                use_container_width=True
-            )
+    # Pagination controls
+    total_conversations = len(conversations)
 
-        with subcol2:
-            # CSV download with enhanced styling
-            st.markdown("""
-            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-                <h4 style="color: #4caf50; margin: 0;">📊 CSV Format</h4>
-                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Spreadsheet compatible</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # Flatten for CSV
-            flattened = []
-            for var in variations:
-                flat_var = {
-                    'prompt': var['prompt'],
-                    'original_row_index': var.get('original_row_index', ''),
-                    'variation_count': var.get('variation_count', ''),
-                }
-                # Add field values
-                for key, value in var.get('field_values', {}).items():
-                    # For CSV, we need to handle different data types appropriately
-                    if isinstance(value, list):
-                        # Convert lists to JSON string for CSV compatibility
-                        flat_var[f'field_{key}'] = json.dumps(value)
-                        flat_var[f'field_{key}_type'] = 'list'
-                    else:
-                        flat_var[f'field_{key}'] = value
-                        flat_var[f'field_{key}_type'] = type(value).__name__
-                
-                # Add gold updates if present
-                gold_updates = var.get('gold_updates')
-                if gold_updates:
-                    for gold_field, gold_value in gold_updates.items():
-                        flat_var[f'gold_update_{gold_field}'] = gold_value
-                
-                flattened.append(flat_var)
-
-            csv_df = pd.DataFrame(flattened)
-            csv_data = csv_df.to_csv(index=False)
-
-            st.download_button(
-                label="📥 Download CSV",
-                data=csv_data,
-                file_name="prompt_variations.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
-
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Row 2 - Text and Conversation formats
-        subcol1, subcol2 = st.columns(2)
+        st.markdown("### 📄 Navigation")
+        page_options = [5, 10, 20, 50]
+        items_per_page = st.selectbox("Conversations per page", page_options, index=1, key="conv_per_page")
 
-        with subcol1:
-            # Text download with enhanced styling
-            st.markdown("""
-            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-                <h4 style="color: #9c27b0; margin: 0;">📝 Text Format</h4>
-                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Plain text prompts only</p>
-            </div>
-            """, unsafe_allow_html=True)
+        total_pages = (total_conversations - 1) // items_per_page + 1 if total_conversations > 0 else 1
+        page = st.number_input(f"Page (1-{total_pages})", min_value=1, max_value=total_pages, value=1, key="conv_page")
+        if page is None:
+            page = 1
 
-            text_data = "\n\n--- VARIATION ---\n\n".join([var['prompt'] for var in variations])
+    # Calculate range
+    start_idx = (page - 1) * items_per_page
+    end_idx = min(start_idx + items_per_page, total_conversations)
 
-            st.download_button(
-                label="📥 Download TXT",
-                data=text_data,
-                file_name="prompt_variations.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
+    st.markdown(f"""
+    <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; margin: 1rem 0;">
+        <strong>Showing conversations {start_idx + 1}-{end_idx} of {total_conversations:,}</strong>
+    </div>
+    """, unsafe_allow_html=True)
 
-        with subcol2:
-            # Conversation download with enhanced styling
-            st.markdown("""
-            <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 1rem;">
-                <h4 style="color: #e91e63; margin: 0;">💬 Conversation Format</h4>
-                <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Chat format with roles</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # Convert to conversation format
-            conversation_data = convert_to_conversation_format(variations)
-            conversation_json = json.dumps(conversation_data, indent=2, ensure_ascii=False)
-
-            st.download_button(
-                label="📥 Download Conversation",
-                data=conversation_json,
-                file_name="prompt_variations_conversation.json",
-                mime="application/json",
-                use_container_width=True
-            )
+    # Display conversations
+    for i in range(start_idx, end_idx):
+        conversation = conversations[i]
+        original_variation = variations[i]
+        display_single_conversation(conversation, i + 1, original_variation)

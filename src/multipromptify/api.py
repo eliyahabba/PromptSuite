@@ -366,7 +366,7 @@ class MultiPromptifyAPI:
         
         Args:
             filepath: Output file path
-            format: Export format ("json", "csv", "txt", "conversation")
+            format: Export format ("json", "csv", "txt")
         
         Raises:
             ValueError: If no results to export or invalid format
@@ -374,8 +374,8 @@ class MultiPromptifyAPI:
         if self.results is None:
             raise NoResultsToExportError()
         
-        if format not in ["json", "csv", "txt", "conversation"]:
-            raise UnsupportedExportFormatError(format, ["json", "csv", "txt", "conversation"])
+        if format not in ["json", "csv", "txt"]:
+            raise UnsupportedExportFormatError(format, ["json", "csv", "txt"])
         
         filepath = Path(filepath)
         
