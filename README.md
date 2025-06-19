@@ -74,8 +74,6 @@ multipromptify --template '{"instruction_template": "{instruction}: {text}", "te
 
 ### Python API
 
-#### Using MultiPromptifier (Recommended)
-
 ```python
 from multipromptify import MultiPromptifier
 import pandas as pd
@@ -87,10 +85,10 @@ mp = MultiPromptifier()
 data = [{"question": "What is 2+2?", "answer": "4"}]
 mp.load_dataframe(pd.DataFrame(data))
 
-# Configure template
+# Configure template with variation specifications
 template = {
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['surface'],
+    'question': ['paraphrase'],
     'gold': 'answer'
 }
 mp.set_template(template)
@@ -101,38 +99,6 @@ variations = mp.generate(verbose=True)
 
 # Export results
 mp.export("output.json", format="json")
-```
-
-#### Using MultiPromptify Engine (Advanced)
-
-```python
-from multipromptify import MultiPromptify
-import pandas as pd
-
-# Your data
-data = pd.DataFrame({
-    'question': ['What is 2+2?', 'What color is the sky?'],
-    'options': ['A)3 B)4 C)5', 'A)Red B)Blue C)Green']
-})
-
-# Template dictionary with variation specifications
-template = {
-    'instruction_template': '{instruction}: {question}\nOptions: {options}',
-    'instruction': ['semantic'],
-    'question': ['paraphrase'],
-    'options': ['surface'],
-    'gold': 'answer'
-}
-
-# Initialize and generate variations
-mp = MultiPromptify()
-variations = mp.generate_variations(
-    template=template,
-    data=data,
-    variations_per_field=3
-)
-
-print(f"Generated {len(variations)} prompt variations")
 ```
 
 ## Template Format

@@ -67,8 +67,6 @@ multipromptify --template "{instruction:semantic}: {col1:paraphrase}" \
 
 ### Python API
 
-#### Using MultiPromptifier (Recommended)
-
 ```python
 from multipromptify import MultiPromptifier
 import pandas as pd
@@ -80,10 +78,10 @@ mp = MultiPromptifier()
 data = [{"question": "What is 2+2?", "answer": "4"}]
 mp.load_dataframe(pd.DataFrame(data))
 
-# Configure template
+# Configure template with variation specifications
 template = {
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['surface'],
+    'question': ['paraphrase'],
     'gold': 'answer'
 }
 mp.set_template(template)
@@ -94,33 +92,6 @@ variations = mp.generate(verbose=True)
 
 # Export results
 mp.export("output.json", format="json")
-```
-
-#### Using MultiPromptify (Legacy)
-
-```python
-from multipromptify import MultiPromptify
-import pandas as pd
-
-# Your data
-data = pd.DataFrame({
-    'question': ['What is 2+2?', 'What color is the sky?'],
-    'options': ['A)3 B)4 C)5', 'A)Red B)Blue C)Green']
-})
-
-# Template with variation specifications
-template = "{instruction:semantic}: {few_shot}\n Question: {question:paraphrase}\n Options: {options}"
-
-# Initialize and generate variations
-mp = MultiPromptify()
-variations = mp.generate_variations(
-    template=template,
-    data=data,
-    instruction="Choose the correct answer",
-    few_shot=["Example: 1+1=2"]
-)
-
-print(f"Generated {len(variations)} prompt variations")
 ```
 
 ## Template Format
@@ -219,33 +190,33 @@ multipromptify --template "{instruction:semantic}: {question}" \
 
 ## API Reference
 
-### MultiPromptify Class
+### MultiPromptifier Class
 
 ```python
-class MultiPromptify:
-    def __init__(self, max_variations: int = 100):
-        """Initialize MultiPromptify generator."""
+class MultiPromptifier:
+    def __init__(self):
+        """Initialize MultiPromptifier."""
         
-    def generate_variations(
-        self,
-        template: str,
-        data: Union[pd.DataFrame, str, dict],
-        instruction: str = None,
-        few_shot: Union[list, tuple] = None,
-        **kwargs
-    ) -> List[Dict[str, Any]]:
-        """Generate prompt variations based on template."""
+    def load_dataframe(self, df: pd.DataFrame) -> None:
+        """Load data from pandas DataFrame."""
         
-    def parse_template(self, template: str) -> Dict[str, str]:
-        """Parse template to extract columns and variation types."""
+    def load_csv(self, filepath: str, **kwargs) -> None:
+        """Load data from CSV file."""
         
-    def save_variations(
-        self,
-        variations: List[Dict[str, Any]],
-        output_path: str,
-        format: str = "json"
-    ):
-        """Save variations to file."""
+    def load_dataset(self, dataset_name: str, split: str = "train", **kwargs) -> None:
+        """Load data from HuggingFace datasets."""
+        
+    def set_template(self, template_dict: Dict[str, Any]) -> None:
+        """Set template configuration."""
+        
+    def configure(self, **kwargs) -> None:
+        """Configure generation parameters."""
+        
+    def generate(self, verbose: bool = False) -> List[Dict[str, Any]]:
+        """Generate prompt variations."""
+        
+    def export(self, filepath: str, format: str = "json") -> None:
+        """Export variations to file."""
 ```
 
 ## Examples
@@ -254,51 +225,67 @@ class MultiPromptify:
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptify
+from multipromptify import MultiPromptifier
 
 data = pd.DataFrame({
     'text': ['I love this movie!', 'This book is terrible.'],
     'label': ['positive', 'negative']
 })
 
-template = "{instruction:semantic}: '{text:paraphrase}'\nSentiment: {label}"
+template = {
+    'instruction_template': 'Classify the sentiment: "{text}"\nSentiment: {label}',
+    'text': ['paraphrase'],
+    'gold': 'label'
+}
 
-mp = MultiPromptify()
-variations = mp.generate_variations(
-    template=template,
-    data=data,
-    instruction="Classify the sentiment of the following text"
-)
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=2, variations_per_field=3)
+variations = mp.generate(verbose=True)
 ```
 
 ### Question Answering with Few-shot
 
 ```python
-template = "{instruction:paraphrase}: {few_shot}\n\nQuestion: {question:semantic}\nAnswer:"
+template = {
+    'instruction_template': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
+    'question': ['semantic'],
+    'gold': 'answer',
+    'few_shot': {
+        'count': 2,
+        'format': 'rotating',
+        'split': 'all'
+    }
+}
 
-few_shot_examples = [
-    "Q: What is the capital of France? A: Paris",
-    "Q: What is 2+2? A: 4"
-]
-
-variations = mp.generate_variations(
-    template=template,
-    data=qa_data,
-    instruction="Answer the following question",
-    few_shot=few_shot_examples
-)
+mp = MultiPromptifier()
+mp.load_dataframe(qa_data)
+mp.set_template(template)
+mp.configure(max_rows=5, variations_per_field=3)
+variations = mp.generate(verbose=True)
 ```
 
 ### Multiple Choice
 
 ```python
-template = "{instruction:semantic}:\n\n{context:paraphrase}\n\nQuestion: {question}\nOptions:\n{options:non-semantic}\n\nAnswer:"
+template = {
+    'instruction_template': 'Answer the multiple choice question:\nContext: {context}\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
+    'context': ['paraphrase'],
+    'question': ['surface'],
+    'options': ['shuffle', 'surface'],
+    'gold': {
+        'field': 'answer',
+        'type': 'index',
+        'options_field': 'options'
+    }
+}
 
-variations = mp.generate_variations(
-    template=template,
-    data=mc_data,
-    instruction="Choose the best answer"
-)
+mp = MultiPromptifier()
+mp.load_dataframe(mc_data)
+mp.set_template(template)
+mp.configure(max_rows=3, variations_per_field=2)
+variations = mp.generate(verbose=True)
 ```
 
 ## Web UI Screenshots
