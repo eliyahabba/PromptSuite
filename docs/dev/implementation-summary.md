@@ -49,28 +49,24 @@ Successfully implemented a complete redesign of MultiPromptify according to the 
 
 ```
 src/multipromptify/
-├── __init__.py           # Package exports
-├── api.py               # High-level Python API (MultiPromptifier)
-├── engine.py            # Main MultiPromptify engine class
-├── template_parser.py   # Template parsing with variation annotations
-├── cli.py               # Command-line interface
-├── models.py            # Data models and configurations
-├── exceptions.py        # Custom exceptions
+├── core/               # Core logic and main classes
+│   ├── api.py               # High-level Python API (MultiPromptifier)
+│   ├── engine.py            # Main MultiPromptify engine class
+│   ├── template_parser.py   # Template parsing with variation annotations
+│   ├── template_keys.py     # Template keys and constants
+│   ├── models.py            # Data models and configurations
+│   ├── exceptions.py        # Custom exceptions
+│   └── __init__.py          # Core module exports
 ├── generation/          # Variation generation modules
 ├── augmentations/       # Text augmentation modules
 ├── validators/          # Template and data validators
 ├── utils/               # Utility functions
 ├── shared/              # Shared resources
-└── ui/                  # Streamlit web interface
-    ├── main.py          # UI entry point
-    ├── pages/           # UI pages
-    └── utils/           # UI utilities
-
-examples/
-├── api_example.py       # API usage examples
-└── sample data files    # Sample data for testing
-
-pyproject.toml           # Modern package configuration
+├── ui/                  # Streamlit web interface
+│   └── utils/           # UI utilities
+├── examples/            # API usage examples
+│   └── api_example.py   # API usage example
+└── pyproject.toml           # Modern package configuration
 README.md                # Comprehensive documentation
 requirements.txt         # Dependencies
 ```
@@ -106,11 +102,11 @@ requirements.txt         # Dependencies
 ### Command Line
 ```bash
 # Basic usage
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer"}' \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
                --data data.csv
 
 # With few-shot examples and output
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
                --data data.csv \
                --output variations.json
 ```
@@ -128,7 +124,7 @@ data = pd.DataFrame({
 template = {
     'instruction_template': '{instruction}: {question}\nOptions: {options}',
     'instruction': ['semantic'],
-    'question': ['paraphrase'],
+    'question': ['paraphrase_with_llm'],
     'options': ['surface'],
     'gold': 'answer'
 }
@@ -138,6 +134,30 @@ mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(max_rows=2, variations_per_field=3)
 variations = mp.generate(verbose=True)
+```
+
+## Minimal Example (No gold, no few_shot)
+
+```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'question': ['What is 2+2?', 'What is the capital of France?'],
+    'answer': ['4', 'Paris']
+})
+
+template = {
+    'instruction_template': 'Q: {question}\nA: {answer}',
+    'question': ['surface']
+}
+
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=2, variations_per_field=2)
+variations = mp.generate(verbose=True)
+print(variations)
 ```
 
 ## 🔄 Backward Compatibility
@@ -182,7 +202,7 @@ variations = mp.generate(verbose=True)
 
 ### Core Architecture
 - **MultiPromptifier**: High-level interface for easy programmatic usage
-- **MultiPromptify**: Main engine class (in engine.py)
+- **MultiPromptify**: Main engine class (in core/engine.py)
 - **TemplateParser**: Handles f-string parsing and validation
 - **VariationGenerator**: Generates variations based on type specifications (in generation/)
 - **CLI**: Click-based command-line interface

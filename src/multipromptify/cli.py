@@ -6,20 +6,21 @@ import click
 import json
 import pandas as pd
 from pathlib import Path
-from multipromptify.engine import MultiPromptify
+from multipromptify.core.engine import MultiPromptify
 from multipromptify import __version__
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
 )
+from multipromptify.shared.constants import GenerationDefaults
 
 @click.command()
 @click.option('--template', '-t', required=True, help='Template dictionary as JSON string or file path')
 @click.option('--data', '-d', required=True, help='Input data file (CSV or JSON)')
 @click.option('--output', '-o', default='variations.json', help='Output file path')
 @click.option('--format', '-f', type=click.Choice(['json', 'csv', 'txt']), default='json', help='Output format')
-@click.option('--max-variations', '-m', default=100, help='Maximum number of variations to generate')
-@click.option('--variations-per-field', '-v', default=3, help='Number of variations per field')
+@click.option('--max-variations', '-m', default=GenerationDefaults.MAX_VARIATIONS, help='Maximum number of variations to generate')
+@click.option('--variations-per-field', '-v', default=GenerationDefaults.VARIATIONS_PER_FIELD, help='Number of variations per field')
 @click.option('--api-key', '-k', envvar='TOGETHER_API_KEY', help='API key for paraphrase generation')
 @click.version_option(version=__version__)
 def main(template, data, output, format, max_variations, variations_per_field, api_key):

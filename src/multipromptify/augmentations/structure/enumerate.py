@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
-from multipromptify.exceptions import (
+from multipromptify.core.exceptions import (
     EnumeratorLengthMismatchError
 )
 

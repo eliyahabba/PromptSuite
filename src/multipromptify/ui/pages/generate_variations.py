@@ -7,8 +7,8 @@ import time
 import streamlit as st
 from dotenv import load_dotenv
 from multipromptify import MultiPromptify
-from multipromptify.shared.constants import GenerationInterfaceConstants
-from multipromptify.template_keys import (
+from multipromptify.shared.constants import GenerationInterfaceConstants, GenerationDefaults
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
 )
@@ -112,7 +112,7 @@ def configure_generation():
 
         # Max variations setting
         if 'max_variations' not in st.session_state:
-            st.session_state.max_variations = GenerationInterfaceConstants.DEFAULT_MAX_VARIATIONS
+            st.session_state.max_variations = GenerationDefaults.MAX_VARIATIONS
 
         max_variations = st.number_input(
             "🎯 Maximum variations to generate",
@@ -124,23 +124,33 @@ def configure_generation():
 
         # Max rows setting
         df = st.session_state.uploaded_data
+        # Ensure max_rows is initialized before use
         if 'max_rows' not in st.session_state:
-            st.session_state.max_rows = min(GenerationInterfaceConstants.DEFAULT_MAX_ROWS, len(df))
+            st.session_state.max_rows = None
+        max_rows_options = [("All rows (default)", None)] + [(str(i), i) for i in range(1, len(df) + 1)]
+        max_rows_labels = [label for label, _ in max_rows_options]
+        max_rows_values = [value for _, value in max_rows_options]
 
-        max_rows = st.number_input(
+        if st.session_state.max_rows is None:
+            max_rows_index = 0
+        else:
+            max_rows_index = max_rows_values.index(st.session_state.max_rows)
+
+        selected_label = st.selectbox(
             "📊 Maximum rows from data to use",
-            min_value=1,
-            max_value=len(df),
-            key='max_rows',
-            help=f"Use only the first N rows from your data (total: {len(df)} rows)"
+            options=max_rows_labels,
+            index=max_rows_index,
+            key='max_rows_label',
+            help=f"Select how many rows to use (total: {len(df)} rows)."
         )
+        st.session_state.max_rows = max_rows_values[max_rows_labels.index(selected_label)]
 
     with col2:
         st.markdown("**⚙️ Generation Settings**")
 
         # Variations per field
         if 'variations_per_field' not in st.session_state:
-            st.session_state.variations_per_field = GenerationInterfaceConstants.DEFAULT_VARIATIONS_PER_FIELD
+            st.session_state.variations_per_field = GenerationDefaults.VARIATIONS_PER_FIELD
 
         variations_per_field = st.number_input(
             "🔄 Variations per field",
@@ -155,7 +165,7 @@ def configure_generation():
         use_seed = st.checkbox("🔒 Use random seed for reproducible results")
         if use_seed:
             if 'random_seed' not in st.session_state:
-                st.session_state.random_seed = GenerationInterfaceConstants.DEFAULT_RANDOM_SEED
+                st.session_state.random_seed = GenerationDefaults.RANDOM_SEED
             seed = st.number_input("🌱 Random seed", min_value=0, key='random_seed')
         else:
             st.session_state.random_seed = None
@@ -163,21 +173,9 @@ def configure_generation():
     # Check if template uses paraphrase variations
     template = st.session_state.get('selected_template', '')
 
-    # Handle new template format (dictionary) vs old format (string)
-    # template_text = ''
-    # if isinstance(template, dict):
-    #     if 'template' in template:
-    #         template_text = template['template']
-    #     elif 'combined' in template:
-    #         template_text = template['combined']
-    #     else:
-    #         template_text = str(template)
-    # else:
-    #     template_text = template
-
     needs_api_key = False
     for k, v in template.items():
-        if isinstance(v, list) and ('paraphrase' in v or 'context' in v):
+        if isinstance(v, list) and (PARAPHRASE_WITH_LLM in v or CONTEXT_VARIATION in v):
             needs_api_key = True
 
     if needs_api_key:
@@ -196,14 +194,14 @@ def configure_generation():
             # Platform selection
             platform = st.selectbox(
                 "🌐 Platform",
-                ["TogetherAI", "OpenAI"],
+                [GenerationDefaults.API_PLATFORM, "OpenAI"],
                 index=0,
                 help="Choose the AI platform for paraphrase generation"
             )
             st.session_state.api_platform = platform
 
             # Model name with default value directly in the text box
-            default_model = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+            default_model = GenerationDefaults.MODEL_NAME
             current_model = st.session_state.get('model_name', default_model)
             model_name = st.text_input(
                 "🧠 Model Name",
@@ -245,7 +243,7 @@ def generate_variations_interface():
     max_rows = st.session_state.max_rows
 
     # Use only the selected number of rows for estimation
-    effective_rows = min(max_rows, len(df))
+    effective_rows = len(df) if max_rows is None else min(max_rows, len(df))
 
     # Estimate total variations
     mp = MultiPromptify()
@@ -321,7 +319,7 @@ def generate_all_variations():
                 max_rows = st.session_state.max_rows
 
                 # Limit data to selected number of rows
-                if max_rows < len(df):
+                if max_rows is not None and max_rows < len(df):
                     df = df.head(max_rows)
                     details_text.info(
                         f"📊 Using first {max_rows} rows out of {len(st.session_state.uploaded_data)} total rows")
@@ -410,7 +408,7 @@ def generate_all_variations():
                     status_text.text("❌ Generation Failed")
                     details_text.error(f"❌ Error: {str(e)}")
                     st.error(f"❌ Error generating variations: {str(e)}")
-                    
+
                     # Show debug info outside the expander to avoid nesting
                     import traceback
                     st.text("🔍 Debug Information:")

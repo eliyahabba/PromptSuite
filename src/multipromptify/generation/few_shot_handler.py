@@ -9,12 +9,12 @@ from dataclasses import dataclass
 
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
-from multipromptify.models import VariationContext, FieldVariation, FewShotContext
+from multipromptify.core.models import VariationContext, FieldVariation, FewShotContext
 from multipromptify.utils.formatting import format_field_value
-from multipromptify.exceptions import (
+from multipromptify.core.exceptions import (
     FewShotGoldFieldMissingError, FewShotDataInsufficientError, FewShotConfigurationError
 )
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
     GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
@@ -175,8 +175,8 @@ class FewShotHandler:
         
         field_values = dict(zip(varying_fields, combination))
         instruction_variant = field_values.get(
-            'instruction', 
-            variation_context.field_variations.get('instruction', [FieldVariation(data='', gold_update=None)])[0]
+            INSTRUCTION_KEY, 
+            variation_context.field_variations.get(INSTRUCTION_KEY, [FieldVariation(data='', gold_update=None)])[0]
         ).data
         
         # Extract row values and gold updates

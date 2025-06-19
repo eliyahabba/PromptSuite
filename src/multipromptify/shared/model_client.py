@@ -8,8 +8,8 @@ from together import Together
 import together
 from dotenv import load_dotenv
 
-from multipromptify.shared.constants import DEFAULT_MODEL
-from multipromptify.exceptions import APIKeyMissingError
+from multipromptify.shared.constants import GenerationDefaults
+from multipromptify.core.exceptions import APIKeyMissingError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,7 +24,7 @@ if API_KEY:
     client = Together()
 
 
-def get_model_response(messages: List[Dict[str, str]], model_name: str = DEFAULT_MODEL) -> str:
+def get_model_response(messages: List[Dict[str, str]], model_name: str = GenerationDefaults.MODEL_NAME) -> str:
     """
     Get a response from the language model.
 
@@ -46,7 +46,7 @@ def get_model_response(messages: List[Dict[str, str]], model_name: str = DEFAULT
     return response.choices[0].message.content
 
 
-def get_completion(prompt: str, model_name: str = DEFAULT_MODEL) -> str:
+def get_completion(prompt: str, model_name: str = GenerationDefaults.MODEL_NAME) -> str:
     """
     Get a completion from the language model using a simple prompt.
     
@@ -63,7 +63,7 @@ def get_completion(prompt: str, model_name: str = DEFAULT_MODEL) -> str:
     return get_model_response(messages, model_name)
 
 
-def get_completion_with_key(prompt: str, api_key: str, model_name: str = DEFAULT_MODEL) -> str:
+def get_completion_with_key(prompt: str, api_key: str, model_name: str = GenerationDefaults.MODEL_NAME) -> str:
     """
     Get a completion from the language model using a simple prompt with provided API key.
     

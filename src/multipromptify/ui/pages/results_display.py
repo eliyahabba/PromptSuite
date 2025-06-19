@@ -8,8 +8,8 @@ import json
 import pandas as pd
 import streamlit as st
 
-from multipromptify.engine import MultiPromptify
-from multipromptify.template_keys import (
+from multipromptify.core.engine import MultiPromptify
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
     GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
@@ -306,7 +306,7 @@ def display_single_variation(variation, variation_num, original_data):
             template_config = variation.get('template_config', {})
 
             for field, value in field_values.items():
-                if field == 'instruction':
+                if field == INSTRUCTION_KEY:
                     # Get the original instruction template value
                     original_val = None
                     operation_type = None
@@ -326,8 +326,8 @@ def display_single_variation(variation, variation_num, original_data):
 
                     # Check what operation was applied to instruction
                     for template_source in [template_config, original_template]:
-                        if isinstance(template_source, dict) and 'instruction' in template_source:
-                            instruction_config = template_source['instruction']
+                        if isinstance(template_source, dict) and INSTRUCTION_KEY in template_source:
+                            instruction_config = template_source[INSTRUCTION_KEY]
                             if isinstance(instruction_config, list) and instruction_config:
                                 operation_type = instruction_config[0]  # e.g., 'paraphrase'
                                 break
@@ -358,7 +358,7 @@ def display_single_variation(variation, variation_num, original_data):
                         </div>
                         """, unsafe_allow_html=True)
 
-                elif field == 'few_shot':
+                elif field == FEW_SHOT_KEY:
                     # Show few-shot info
                     if value:
                         few_shot_count = value.count('\n\n') + 1 if value else 0

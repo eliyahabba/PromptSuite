@@ -2,9 +2,9 @@ import random
 from typing import List, Dict, Any
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
-from multipromptify.shared.constants import ShuffleConstants
-from multipromptify.exceptions import AugmentationConfigurationError, InvalidAugmentationInputError, ShuffleIndexError
-from multipromptify.template_keys import (
+from multipromptify.shared.constants import BaseAugmenterConstants
+from multipromptify.core.exceptions import AugmentationConfigurationError, InvalidAugmentationInputError, ShuffleIndexError
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
     GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
@@ -23,7 +23,7 @@ class ShuffleAugmenter(BaseAxisAugmenter):
     Input must be a Python list. If you have string data, convert it to list first.
     """
 
-    def __init__(self, n_augments=ShuffleConstants.DEFAULT_N_SHUFFLES):
+    def __init__(self, n_augments=BaseAugmenterConstants.DEFAULT_N_AUGMENTS):
         """Initialize the shuffle augmenter."""
         super().__init__(n_augments=n_augments)
     

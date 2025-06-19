@@ -5,7 +5,7 @@ Prompt Builder: Handles building prompts from templates and filling placeholders
 from typing import Dict
 import pandas as pd
 from multipromptify.utils.formatting import format_field_value
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
     GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD

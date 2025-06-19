@@ -10,7 +10,7 @@ from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 from multipromptify.augmentations.text.context import ContextAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
 from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION
 )
 
