@@ -60,6 +60,7 @@ def example_with_sample_data2():
 
     # Show info
     mp.info()
+
 def example_with_enumerate():
     """Example demonstrating the new enumerate functionality."""
 
@@ -536,6 +537,57 @@ def example_environment_variables():
         print(f"   {platform}: {'✅ API key found' if key_found else '❌ No API key'}")
 
 
+def example_with_simple_qa():
+    """Example loading 5 examples from simple_qa_test.csv (simple QA format)."""
+    import os
+    print("\n" + "=" * 50)
+    print("📄 Simple QA CSV Example (simple_qa_test.csv)")
+    print("=" * 50)
+
+    # Path to the CSV file
+    csv_path = os.path.join(os.path.dirname(__file__), '../../data/simple_qa_test.csv')
+    csv_path = os.path.abspath(csv_path)
+
+    # Load the first 5 rows from the CSV
+    df = pd.read_csv(csv_path).head(5)
+    print(f"Loaded {len(df)} rows from {csv_path}")
+    print(df[['problem', 'answer']])
+
+    # Initialize the API
+    mp = MultiPromptifyAPI()
+    mp.load_dataframe(df)
+
+    # Set a simple QA template
+    template = {
+        'instruction_template': 'Question: {problem}\nAnswer: {answer}',
+        'problem': ['surface'],
+        'gold': 'answer',
+        'few_shot': {
+            'count': 2,
+            'format': 'rotating',
+            'split': 'all'
+        }
+    }
+    mp.set_template(template)
+
+    # Configure and generate
+    mp.configure(max_rows=5, variations_per_field=2)
+    variations = mp.generate(verbose=True)
+
+    print(f"\n✅ Generated {len(variations)} variations from simple_qa_test.csv")
+    print("\n" + "=" * 50)
+    for i, var in enumerate(variations[:3]):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(var['prompt'])
+        print("-" * 50)
+
+    # Export results
+    mp.export("simple_qa_example.json", format="json")
+    print("\n✅ Exported to simple_qa_example.json")
+    mp.info()
+
+
 if __name__ == "__main__":
     # Run the examples
     example_with_sample_data()
@@ -549,7 +601,7 @@ if __name__ == "__main__":
     # example_different_templates()
     # example_gold_field_formats()
     # example_environment_variables()
-    
+    # example_with_simple_qa()
     print("\n🎉 All examples completed!")
     print("\nNext steps:")
     print("1. Install datasets library: pip install datasets")
