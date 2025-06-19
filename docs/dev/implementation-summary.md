@@ -50,7 +50,7 @@ Successfully implemented a complete redesign of MultiPromptify according to the 
 ```
 src/multipromptify/
 ├── __init__.py           # Package exports
-├── api.py               # High-level Python API (MultiPromptifyAPI)
+├── api.py               # High-level Python API (MultiPromptifier)
 ├── engine.py            # Main MultiPromptify engine class
 ├── template_parser.py   # Template parsing with variation annotations
 ├── cli.py               # Command-line interface

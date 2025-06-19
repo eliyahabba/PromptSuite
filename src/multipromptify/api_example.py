@@ -2,16 +2,16 @@
 """
 MultiPromptify API Example Script
 
-This script demonstrates how to use the MultiPromptifyAPI class for programmatic
+This script demonstrates how to use the MultiPromptifier class for programmatic
 generation of prompt variations.
 """
 
 import pandas as pd
-from multipromptify import MultiPromptifyAPI
+from multipromptify import MultiPromptifier
 
 def example_with_sample_data2():
     # Create instance
-    mp = MultiPromptifyAPI()
+    mp = MultiPromptifier()
 
     # Load data with at least 4 examples for few-shot
     data = pd.DataFrame({
@@ -68,7 +68,7 @@ def example_with_enumerate():
     print("=" * 50)
 
     # Initialize the API
-    mp = MultiPromptifyAPI()
+    mp = MultiPromptifier()
 
     # Create sample data
     sample_data = [
@@ -157,7 +157,7 @@ def example_enumerate_types():
     print("🔢 Different Enumerate Types Example")
     print("=" * 50)
     
-    mp = MultiPromptifyAPI()
+    mp = MultiPromptifier()
     
     # Simple data
     data = [{
@@ -206,7 +206,7 @@ def example_with_sample_data():
     print("=" * 50)
     
     # Initialize the API
-    mp = MultiPromptifyAPI()
+    mp = MultiPromptifier()
     
     # Create sample data - NOTE: answers are indices (0-based) not the actual text
     # because we use 'type': 'index' in the gold configuration
@@ -308,7 +308,7 @@ def example_platform_switching():
     print("=" * 50)
     
     # Initialize API
-    mp = MultiPromptifyAPI()
+    mp = MultiPromptifier()
     
     # Create simple data
     data = [{"question": "What is AI?", "answer": "Artificial Intelligence"}]
@@ -350,7 +350,7 @@ def example_with_huggingface():
     
     try:
         # Initialize API
-        mp = MultiPromptifyAPI()
+        mp = MultiPromptifier()
         
         # Load from HuggingFace (this will fail if datasets library is not installed)
         print("\n1. Loading HuggingFace dataset...")
@@ -524,7 +524,7 @@ def example_environment_variables():
     print(f"   OPENAI_API_KEY: {'✅ Set' if openai_key else '❌ Not set'}")
     
     # Initialize API and show how keys are automatically selected
-    mp = MultiPromptifyAPI()
+    mp = MultiPromptifier()
     
     print(f"\nDefault platform API key detection:")
     print(f"   Platform: {mp.config['api_platform']}")
@@ -554,7 +554,7 @@ def example_with_simple_qa():
     print(df[['problem', 'answer']])
 
     # Initialize the API
-    mp = MultiPromptifyAPI()
+    mp = MultiPromptifier()
     mp.load_dataframe(df)
 
     # Set a simple QA template

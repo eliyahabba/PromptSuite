@@ -6,14 +6,14 @@ Quick test for GitHub Actions
 def test_basic_functionality():
     """Test basic functionality without requiring API keys"""
     try:
-        from multipromptify import MultiPromptifyAPI
+        from multipromptify import MultiPromptifier
         import pandas as pd
         
         # Test 1: Basic import
         print("✅ Import successful")
         
         # Test 2: Create instance
-        mp = MultiPromptifyAPI()
+        mp = MultiPromptifier()
         print("✅ Instance creation successful")
         
         # Test 3: Load data

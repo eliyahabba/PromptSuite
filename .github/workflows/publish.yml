@@ -30,14 +30,14 @@ jobs:
     
     - name: Test import
       run: |
-        python -c "from multipromptify import MultiPromptifyAPI; print('Import successful')"
+        python -c "from multipromptify import MultiPromptifier; print('Import successful')"
     
     - name: Run API example (quick test)
       run: |
         python -c "
-        from multipromptify import MultiPromptifyAPI
+        from multipromptify import MultiPromptifier
         import pandas as pd
-        mp = MultiPromptifyAPI()
+        mp = MultiPromptifier()
         data = [{'question': 'Test?', 'answer': 'Yes'}]
         mp.load_dataframe(pd.DataFrame(data))
         template = {'instruction_template': 'Q: {question}\nA: {answer}', 'gold': 'answer'}
