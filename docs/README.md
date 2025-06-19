@@ -107,7 +107,7 @@ data = pd.DataFrame({
 
 template = {
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['surface']
+    'question': ['rewording']
 }
 
 mp = MultiPromptifier()
@@ -296,8 +296,8 @@ variations = mp.generate(verbose=True)
 template = {
     'instruction_template': 'Answer the multiple choice question:\nContext: {context}\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
     'context': ['paraphrase_with_llm'],
-    'question': ['surface'],
-    'options': ['shuffle', 'surface'],
+    'question': ['rewording'],
+    'options': ['shuffle', 'rewording'],
     'gold': {
         'field': 'answer',
         'type': 'index',

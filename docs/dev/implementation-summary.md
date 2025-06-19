@@ -125,7 +125,7 @@ template = {
     'instruction_template': '{instruction}: {question}\nOptions: {options}',
     'instruction': ['semantic'],
     'question': ['paraphrase_with_llm'],
-    'options': ['surface'],
+    'options': ['rewording'],
     'gold': 'answer'
 }
 
@@ -149,7 +149,7 @@ data = pd.DataFrame({
 
 template = {
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['surface']
+    'question': ['rewording']
 }
 
 mp = MultiPromptifier()

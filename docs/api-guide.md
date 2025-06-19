@@ -31,7 +31,7 @@ mp.load_dataframe(pd.DataFrame(data))
 # Configure template
 template = {
     'instruction_template': 'Question: {question}\nAnswer: {answer}',
-    'question': ['surface'],
+    'question': ['rewording'],
     'gold': 'answer'
 }
 mp.set_template(template)
@@ -59,7 +59,7 @@ data = pd.DataFrame({
 
 template = {
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['surface']
+    'question': ['rewording']
 }
 
 mp = MultiPromptifier()
@@ -120,8 +120,8 @@ Set the template configuration using dictionary format.
 template = {
     'instruction_template': 'Answer the question: {question}\nAnswer: {answer}',
     'instruction': ['paraphrase_with_llm'],           # Vary the instruction
-    'question': ['surface'],                 # Apply surface variations to question
-    'options': ['shuffle', 'surface'],       # Shuffle and vary options
+    'question': ['rewording'],                 # Apply surface variations to question
+    'options': ['shuffle', 'rewording'],       # Shuffle and vary options
     'gold': {                                # Gold answer configuration
         'field': 'answer',
         'type': 'index',                     # 'value' or 'index'
@@ -217,7 +217,7 @@ The API uses dictionary templates with the following structure:
 
 ### Optional Fields
 
-- Field names with variation lists (e.g., `'question': ['surface', 'paraphrase_with_llm']`)
+- Field names with variation lists (e.g., `'question': ['rewording', 'paraphrase_with_llm']`)
 - `gold`: Gold answer configuration for tracking correct answers
 - `few_shot`: Few-shot examples configuration
 - `instruction`: Variations to apply to the instruction template itself
@@ -266,8 +266,8 @@ Question: {question}
 Options: {options}
 Answer: {answer}''',
     'instruction': ['paraphrase_with_llm'],
-    'question': ['surface'],
-    'options': ['shuffle', 'surface'],
+    'question': ['rewording'],
+    'options': ['shuffle', 'rewording'],
     'gold': {
         'field': 'answer',
         'type': 'index',
@@ -289,8 +289,8 @@ template = {
 Question: {question}
 Answer: {answer}''',
     'instruction': ['paraphrase_with_llm'],
-    'context': ['surface'],
-    'question': ['surface', 'paraphrase_with_llm'],
+    'context': ['rewording'],
+    'question': ['rewording', 'paraphrase_with_llm'],
     'gold': 'answer',
     'few_shot': {
         'count': 1,
@@ -305,7 +305,7 @@ Answer: {answer}''',
 ```python
 template = {
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['surface'],
+    'question': ['rewording'],
     'gold': 'answer'
 }
 ```
