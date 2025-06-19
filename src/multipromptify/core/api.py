@@ -14,17 +14,19 @@ import pandas as pd
 from pathlib import Path
 
 from .engine import MultiPromptify
-from multipromptify.template_parser import TemplateParser
-from multipromptify.exceptions import (
+from multipromptify.core.template_parser import TemplateParser
+from multipromptify.core.exceptions import (
     DatasetLoadError, FileNotFoundError, DataParsingError, InvalidDataFormatError,
     InvalidTemplateError, InvalidConfigurationError, UnknownConfigurationError,
     DataNotLoadedError, MissingTemplateError, NoResultsToExportError,
     UnsupportedExportFormatError, ExportWriteError
 )
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
     PARAPHRASE_WITH_LLM, REWORDING
 )
+from multipromptify.shared.constants import GenerationDefaults
+from multipromptify.core.exceptions import GenerationError
 
 # Try to load environment variables
 from dotenv import load_dotenv
@@ -72,13 +74,13 @@ class MultiPromptifier:
         self.data = None
         self.template = None
         self.config = {
-            'max_rows': 1,
-            'variations_per_field': 3,
-            'max_variations': 50,
-            'random_seed': None,
-            'api_platform': 'TogetherAI',  # Default platform
+            'max_rows': GenerationDefaults.MAX_ROWS,
+            'variations_per_field': GenerationDefaults.VARIATIONS_PER_FIELD,
+            'max_variations': GenerationDefaults.MAX_VARIATIONS,
+            'random_seed': GenerationDefaults.RANDOM_SEED,
+            'api_platform': GenerationDefaults.API_PLATFORM,
             'api_key': None,  # Will be set based on platform
-            'model_name': "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+            'model_name': GenerationDefaults.MODEL_NAME
         }
         # Set API key based on default platform
         self.config['api_key'] = self._get_api_key_for_platform(self.config['api_platform'])
@@ -318,7 +320,10 @@ class MultiPromptifier:
                 print(f"📊 Step 2/5: Preparing data... (using first {self.config['max_rows']} rows)")
             
             # Limit data to selected number of rows
-            data_subset = self.data.head(self.config['max_rows']).copy()
+            if self.config['max_rows'] is not None:
+                data_subset = self.data.head(self.config['max_rows']).copy()
+            else:
+                data_subset = self.data.copy()
             
             # Ensure data types are consistent to avoid pandas array comparison issues
             for col in data_subset.columns:
@@ -361,7 +366,6 @@ class MultiPromptifier:
                 print(f"❌ Error details: {error_msg}")
                 print("🔍 Full traceback:")
                 traceback.print_exc()
-            from multipromptify.exceptions import GenerationError
             raise GenerationError(str(e), "generation", str(e))
     
     def export(self, filepath: Union[str, Path], format: str = "json") -> None:

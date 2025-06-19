@@ -2,6 +2,7 @@ from multipromptify.augmentations.base import BaseAxisAugmenter
 from typing import List
 import ast
 from multipromptify.shared.model_client import get_completion
+from multipromptify.template_keys import PARAPHRASE_WITH_LLM
 
 
 #moran's gpt3.5 templates, changes to general LLM and {k} times and the

@@ -1,5 +1,6 @@
 """Constants for the Multi-Prompt Evaluation Tool."""
 from pathlib import Path
+from multipromptify.template_keys import PARAPHRASE_WITH_LLM, REWORDING
 
 # Model configuration
 DEFAULT_MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"

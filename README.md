@@ -68,7 +68,7 @@ The web UI provides:
 ### Command Line Interface
 
 ```bash
-multipromptify --template '{"instruction_template": "{instruction}: {text}", "text": ["paraphrase"], "gold": "label"}' \
+multipromptify --template '{"instruction_template": "{instruction}: {text}", "text": ["paraphrase_with_llm"], "gold": "label"}' \
                --data data.csv
 ```
 
@@ -87,14 +87,20 @@ mp.load_dataframe(pd.DataFrame(data))
 
 # Configure template with variation specifications
 template = {
-    'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['paraphrase'],
-    'gold': 'answer'
+    'instruction_template': 'Q: {question}\nA: ',
+    'question': ['paraphrase_with_llm'],
 }
 mp.set_template(template)
 
 # Configure and generate
-mp.configure(max_rows=1, variations_per_field=3)
+mp.configure(
+    max_rows=GenerationDefaults.MAX_ROWS,
+    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+    max_variations=GenerationDefaults.MAX_VARIATIONS,
+    random_seed=GenerationDefaults.RANDOM_SEED,
+    api_platform=GenerationDefaults.API_PLATFORM,
+    model_name=GenerationDefaults.MODEL_NAME
+)
 variations = mp.generate(verbose=True)
 
 # Export results
@@ -106,16 +112,16 @@ mp.export("output.json", format="json")
 Templates use Python f-string syntax with custom variation annotations:
 
 ```python
-"{instruction:semantic}: {few_shot}\n Question: {question:paraphrase}\n Options: {options:non-semantic}"
+"{instruction:semantic}: {few_shot}\n Question: {question:paraphrase_with_llm}\n Options: {options:non-semantic}"
 ```
 
 Supported variation types:
-- `:semantic` - Semantic variations (meaning-preserving)
-- `:paraphrase` - Paraphrasing variations
-- `:non-semantic` - Non-semantic variations (formatting, etc.)
-- `:lexical` - Word choice variations
-- `:syntactic` - Sentence structure variations
-- `:surface` - Surface-level formatting variations
+- `:paraphrase_with_llm` - Paraphrasing variations (LLM-based)
+- `:rewording` - Surface-level/wording variations (non-LLM)
+- `:context` - Context-based variations
+- `:shuffle` - Shuffle options/elements (for multiple choice)
+- `:multidoc` - Multi-document/context variations
+- `:enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4.)
 
 ## Features
 
@@ -160,11 +166,11 @@ few_shot = ("Example 1", "Example 2")
 
 ```bash
 # Basic usage
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer"}' \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
                --data data.csv
 
 # With output file
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer"}' \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
                --data data.csv \
                --output variations.json
 
@@ -178,7 +184,7 @@ multipromptify --template '{"instruction_template": "{instruction}: {question}",
 
 ```bash
 # With few-shot examples
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
+multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
                --data data.csv \
                --max-variations 50
 
@@ -236,14 +242,21 @@ data = pd.DataFrame({
 template = {
     'instruction_template': 'Classify the sentiment: "{text}"\nSentiment: {label}',
     'instruction': ['semantic'],
-    'text': ['paraphrase'],
+    'text': ['paraphrase_with_llm'],
     'gold': 'label'
 }
 
 mp = MultiPromptifier()
 mp.load_dataframe(data)
 mp.set_template(template)
-mp.configure(max_rows=2, variations_per_field=3)
+mp.configure(
+    max_rows=GenerationDefaults.MAX_ROWS,
+    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+    max_variations=GenerationDefaults.MAX_VARIATIONS,
+    random_seed=GenerationDefaults.RANDOM_SEED,
+    api_platform=GenerationDefaults.API_PLATFORM,
+    model_name=GenerationDefaults.MODEL_NAME
+)
 variations = mp.generate(verbose=True)
 ```
 
@@ -252,7 +265,7 @@ variations = mp.generate(verbose=True)
 ```python
 template = {
     'instruction_template': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
-    'instruction': ['paraphrase'],
+    'instruction': ['paraphrase_with_llm'],
     'question': ['semantic'],
     'gold': 'answer',
     'few_shot': {
@@ -265,7 +278,14 @@ template = {
 mp = MultiPromptifier()
 mp.load_dataframe(qa_data)
 mp.set_template(template)
-mp.configure(max_rows=5, variations_per_field=3)
+mp.configure(
+    max_rows=GenerationDefaults.MAX_ROWS,
+    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+    max_variations=GenerationDefaults.MAX_VARIATIONS,
+    random_seed=GenerationDefaults.RANDOM_SEED,
+    api_platform=GenerationDefaults.API_PLATFORM,
+    model_name=GenerationDefaults.MODEL_NAME
+)
 variations = mp.generate(verbose=True)
 ```
 
@@ -275,7 +295,7 @@ variations = mp.generate(verbose=True)
 template = {
     'instruction_template': 'Answer the multiple choice question:\nContext: {context}\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
     'instruction': ['semantic'],
-    'context': ['paraphrase'],
+    'context': ['paraphrase_with_llm'],
     'question': ['surface'],
     'options': ['shuffle', 'surface'],
     'gold': {
@@ -288,7 +308,14 @@ template = {
 mp = MultiPromptifier()
 mp.load_dataframe(mc_data)
 mp.set_template(template)
-mp.configure(max_rows=3, variations_per_field=2)
+mp.configure(
+    max_rows=GenerationDefaults.MAX_ROWS,
+    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+    max_variations=GenerationDefaults.MAX_VARIATIONS,
+    random_seed=GenerationDefaults.RANDOM_SEED,
+    api_platform=GenerationDefaults.API_PLATFORM,
+    model_name=GenerationDefaults.MODEL_NAME
+)
 variations = mp.generate(verbose=True)
 ```
 
@@ -336,4 +363,50 @@ The MultiPromptify 2.0 web interface provides an intuitive **3-step workflow**:
 
 ## License
 
-MIT License - see LICENSE file for details. 
+MIT License - see LICENSE file for details.
+
+## Project Structure (Updated)
+
+The main core files are now located under `src/multipromptify/core/`:
+- `core/engine.py` – Main MultiPromptify engine class
+- `core/api.py` – High-level Python API (MultiPromptifier)
+- `core/template_parser.py` – Template parsing with variation annotations
+- `core/template_keys.py` – Template keys and constants
+- `core/models.py` – Data models and configurations
+- `core/exceptions.py` – Custom exceptions
+- `core/__init__.py` – Core module exports
+
+Other folders:
+- `generation/` – Variation generation modules
+- `augmentations/` – Text augmentation modules
+- `validators/` – Template and data validators
+- `utils/` – Utility functions
+- `shared/` – Shared resources
+- `ui/` – Streamlit web interface
+- `examples/` – API usage examples (e.g., `api_example.py`)
+
+You can still import main classes directly from `multipromptify` (e.g., `from multipromptify import MultiPromptify`), as the package root re-exports them for convenience.
+
+## Minimal Example (No gold, no few_shot)
+
+```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'question': ['What is 2+2?', 'What is the capital of France?'],
+    'answer': ['4', 'Paris']
+})
+
+template = {
+    'instruction_template': 'Q: {question}\nA: {answer}',
+    'question': ['surface']
+}
+
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=2, variations_per_field=2)
+variations = mp.generate(verbose=True)
+print(variations)
+``` 

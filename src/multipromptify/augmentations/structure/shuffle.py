@@ -4,6 +4,11 @@ from typing import List, Dict, Any
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.shared.constants import ShuffleConstants
 from multipromptify.exceptions import AugmentationConfigurationError, InvalidAugmentationInputError, ShuffleIndexError
+from multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
+    GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+)
 
 
 class ShuffleAugmenter(BaseAxisAugmenter):

@@ -5,6 +5,10 @@ Template Builder for MultiPromptify - Dictionary Format Only
 import streamlit as st
 
 from multipromptify import MultiPromptify
+from multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
+)
 
 
 def render():
@@ -221,7 +225,7 @@ def template_builder_interface(available_columns):
         """, unsafe_allow_html=True)
 
     # Available variation types
-    variation_types = ["paraphrase", "surface", "context", "shuffle", "multidoc"]
+    variation_types = [PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION]
 
     # Initialize template state
     if 'template_config' not in st.session_state:

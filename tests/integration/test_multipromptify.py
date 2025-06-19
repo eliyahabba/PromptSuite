@@ -11,6 +11,10 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from multipromptify import MultiPromptify
+from src.multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION, GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+)
 
 
 def test_basic_functionality():
@@ -26,7 +30,7 @@ def test_basic_functionality():
         })
         
         # Template with variations
-        template = "{instruction:semantic}: {context:paraphrase}\nQuestion: {question:paraphrase}\nAnswer: {answer}"
+        template = "{instruction:semantic}: {context:paraphrase_with_llm}\nQuestion: {question:paraphrase_with_llm}\nAnswer: {answer}"
         
         # Initialize MultiPromptify
         mp = MultiPromptify(max_variations=20)
@@ -70,9 +74,9 @@ def test_template_parsing():
         
         # Test valid templates
         valid_templates = [
-            "{instruction:semantic}: {question:paraphrase}",
+            "{instruction:semantic}: {question:paraphrase_with_llm}",
             "{instruction}: {context:non-semantic} {question}",
-            "{few_shot}\n{question:lexical} -> {answer:surface}"
+            "{few_shot}\n{question:lexical} -> {answer:rewording}"
         ]
         
         for template in valid_templates:
@@ -110,7 +114,7 @@ def test_few_shot_examples():
             'answer': ['5']
         })
         
-        template = "{instruction:paraphrase}: {few_shot}\n\nQuestion: {question}\nAnswer: {answer}"
+        template = "{instruction:paraphrase_with_llm}: {few_shot}\n\nQuestion: {question}\nAnswer: {answer}"
         
         mp = MultiPromptify(max_variations=10)
         
@@ -152,7 +156,7 @@ def test_file_io():
         test_data.to_csv(test_file, index=False)
         
         mp = MultiPromptify(max_variations=5)
-        template = "{instruction:semantic}: '{text:paraphrase}'\nSentiment: {sentiment}"
+        template = "{instruction:semantic}: '{text:paraphrase_with_llm}'\nSentiment: {sentiment}"
         
         # Load from file
         variations = mp.generate_variations(

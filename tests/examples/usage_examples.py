@@ -11,6 +11,10 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from multipromptify import MultiPromptify
+from src.multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION, GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+)
 
 
 def example_1_basic_usage():
@@ -24,7 +28,7 @@ def example_1_basic_usage():
     })
     
     # Template with semantic and paraphrase variations
-    template = "{instruction:semantic}: '{text:paraphrase}'\nSentiment: {label}"
+    template = "{instruction:semantic}: '{text:{REWORDING}}'\nSentiment: {label}"
     
     mp = MultiPromptify(max_variations=15)
     variations = mp.generate_variations(
@@ -52,7 +56,7 @@ def example_2_question_answering():
     })
     
     # Template with few-shot examples
-    template = "{instruction:paraphrase}: {few_shot}\n\nContext: {context:non-semantic}\nQuestion: {question:semantic}\nAnswer: {answer}"
+    template = "{instruction:paraphrase}: {few_shot}\n\nContext: {context:non-semantic}\nQuestion: {question:{PARAPHRASE_WITH_LLM}}\nAnswer: {answer}"
     
     # Few-shot examples
     few_shot_examples = [
@@ -86,7 +90,7 @@ def example_3_multiple_choice():
     })
     
     # Template with different variation types
-    template = "{instruction:semantic}:\n\nSubject: {subject:lexical}\nQuestion: {question:paraphrase}\nOptions: {options:non-semantic}\n\nAnswer: {answer}"
+    template = "{instruction:semantic}:\n\nSubject: {subject:lexical}\nQuestion: {question:{PARAPHRASE_WITH_LLM}}\nOptions: {options:non-semantic}\n\nAnswer: {answer}"
     
     mp = MultiPromptify(max_variations=8)
     variations = mp.generate_variations(
@@ -107,7 +111,7 @@ def example_4_file_operations():
     # Use the sample CSV file
     csv_file = os.path.join(os.path.dirname(__file__), 'sample_data.csv')
     
-    template = "{instruction:semantic}: {context:paraphrase}\nQ: {question:paraphrase}\nA: {answer}"
+    template = "{instruction:semantic}: {context:{REWORDING}}\nQ: {question:{PARAPHRASE_WITH_LLM}}\nA: {answer}"
     
     mp = MultiPromptify(max_variations=6)
     
@@ -149,7 +153,7 @@ def example_5_advanced_features():
         'target_lang': ['French', 'Spanish']
     }
     
-    template = "{instruction:semantic}: {task:paraphrase}\nText: '{text:surface}'\nTarget Language: {target_lang}"
+    template = "{instruction:semantic}: {task:{PARAPHRASE_WITH_LLM}}\nText: '{text:{REWORDING}}'\nTarget Language: {target_lang}"
     
     mp = MultiPromptify(max_variations=8)
     variations = mp.generate_variations(

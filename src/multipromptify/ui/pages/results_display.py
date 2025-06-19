@@ -9,6 +9,11 @@ import pandas as pd
 import streamlit as st
 
 from multipromptify.engine import MultiPromptify
+from multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
+    GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+)
 
 # Helper function to inject JavaScript for clipboard functionality
 def _copy_to_clipboard_js():

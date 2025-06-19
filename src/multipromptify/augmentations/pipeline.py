@@ -12,6 +12,9 @@ from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
 from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
 from multipromptify.shared.constants import AugmentationPipelineConstants, BaseAugmenterConstants
+from multipromptify.template_keys import (
+    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION
+)
 
 
 class AugmentationPipeline:

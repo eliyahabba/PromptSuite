@@ -16,9 +16,10 @@ from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
 from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 
-
 # Other augmenters
 from multipromptify.augmentations.other import OtherAugmenter
+
+from multipromptify.template_keys import PARAPHRASE_WITH_LLM, REWORDING
 
 __all__ = [
     "BaseAxisAugmenter",

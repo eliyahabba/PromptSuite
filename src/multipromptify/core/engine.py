@@ -14,21 +14,22 @@ import json
 from typing import Dict, List, Any, Union
 
 import pandas as pd
-from multipromptify.template_parser import TemplateParser
-from multipromptify.models import (
+from multipromptify.core.template_parser import TemplateParser
+from multipromptify.core.models import (
     GoldFieldConfig, VariationConfig, VariationContext
 )
 from multipromptify.generation import VariationGenerator, PromptBuilder, FewShotHandler
-from multipromptify.exceptions import (
+from multipromptify.core.exceptions import (
     InvalidTemplateError, MissingInstructionTemplateError, 
     UnsupportedFileFormatError, UnsupportedExportFormatError
 )
 from pathlib import Path
 import ast
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
     PARAPHRASE_WITH_LLM, REWORDING
 )
+from multipromptify.shared.constants import GenerationDefaults
 
 
 class MultiPromptify:
@@ -49,7 +50,7 @@ class MultiPromptify:
     }
     """
 
-    def __init__(self, max_variations: int = 100):
+    def __init__(self, max_variations: int = GenerationDefaults.MAX_VARIATIONS):
         """Initialize MultiPromptify with maximum variations limit."""
         self.max_variations = max_variations
         self.template_parser = TemplateParser()
@@ -63,7 +64,7 @@ class MultiPromptify:
             self,
             template: dict,
             data: pd.DataFrame,
-            variations_per_field: int = 3,
+            variations_per_field: int = GenerationDefaults.VARIATIONS_PER_FIELD,
             api_key: str = None,
             **kwargs
     ) -> List[Dict[str, Any]]:

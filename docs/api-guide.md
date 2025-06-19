@@ -46,6 +46,30 @@ variations = mp.generate(verbose=True)
 mp.export("output.json", format="json")
 ```
 
+## Minimal Example (No gold, no few_shot)
+
+```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'question': ['What is 2+2?', 'What is the capital of France?'],
+    'answer': ['4', 'Paris']
+})
+
+template = {
+    'instruction_template': 'Q: {question}\nA: {answer}',
+    'question': ['surface']
+}
+
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=2, variations_per_field=2)
+variations = mp.generate(verbose=True)
+print(variations)
+```
+
 ## API Reference
 
 ### Initialization
@@ -95,7 +119,7 @@ Set the template configuration using dictionary format.
 ```python
 template = {
     'instruction_template': 'Answer the question: {question}\nAnswer: {answer}',
-    'instruction': ['paraphrase'],           # Vary the instruction
+    'instruction': ['paraphrase_with_llm'],           # Vary the instruction
     'question': ['surface'],                 # Apply surface variations to question
     'options': ['shuffle', 'surface'],       # Shuffle and vary options
     'gold': {                                # Gold answer configuration
@@ -193,17 +217,19 @@ The API uses dictionary templates with the following structure:
 
 ### Optional Fields
 
-- Field names with variation lists (e.g., `'question': ['surface', 'paraphrase']`)
+- Field names with variation lists (e.g., `'question': ['surface', 'paraphrase_with_llm']`)
 - `gold`: Gold answer configuration for tracking correct answers
 - `few_shot`: Few-shot examples configuration
 - `instruction`: Variations to apply to the instruction template itself
 
 ### Variation Types
 
-- `surface`: Surface-level text variations (synonyms, etc.)
-- `paraphrase`: AI-generated paraphrases (requires API key)
+- `paraphrase_with_llm`: Paraphrasing variations (LLM-based)
+- `rewording`: Surface-level/wording variations (non-LLM)
 - `context`: Context-based variations
 - `shuffle`: Shuffle options/elements (for multiple choice)
+- `multidoc`: Multi-document/context variations
+- `enumerate`: Enumerate list fields (e.g., 1. 2. 3. 4.)
 
 ### Gold Field Configuration
 
@@ -239,7 +265,7 @@ template = {
 Question: {question}
 Options: {options}
 Answer: {answer}''',
-    'instruction': ['paraphrase'],
+    'instruction': ['paraphrase_with_llm'],
     'question': ['surface'],
     'options': ['shuffle', 'surface'],
     'gold': {
@@ -262,9 +288,9 @@ template = {
     'instruction_template': '''Context: {context}
 Question: {question}
 Answer: {answer}''',
-    'instruction': ['paraphrase'],
+    'instruction': ['paraphrase_with_llm'],
     'context': ['surface'],
-    'question': ['surface', 'paraphrase'],
+    'question': ['surface', 'paraphrase_with_llm'],
     'gold': 'answer',
     'few_shot': {
         'count': 1,
@@ -374,3 +400,25 @@ You can easily migrate from the web interface to the API by:
 2. Loading your data using the appropriate `load_*` method
 3. Using the same generation parameters
 4. Running `generate()` to get identical results 
+
+## Project Structure (Updated)
+
+The main core files are now located under `src/multipromptify/core/`:
+- `core/engine.py` – Main MultiPromptify engine class
+- `core/api.py` – High-level Python API (MultiPromptifier)
+- `core/template_parser.py` – Template parsing with variation annotations
+- `core/template_keys.py` – Template keys and constants
+- `core/models.py` – Data models and configurations
+- `core/exceptions.py` – Custom exceptions
+- `core/__init__.py` – Core module exports
+
+Other folders:
+- `generation/` – Variation generation modules
+- `augmentations/` – Text augmentation modules
+- `validators/` – Template and data validators
+- `utils/` – Utility functions
+- `shared/` – Shared resources
+- `ui/` – Streamlit web interface
+- `examples/` – API usage examples (e.g., `api_example.py`)
+
+You can still import main classes directly from `multipromptify` (e.g., `from multipromptify import MultiPromptify`), as the package root re-exports them for convenience. 

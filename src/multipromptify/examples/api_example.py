@@ -8,9 +8,10 @@ generation of prompt variations.
 
 import pandas as pd
 from multipromptify import MultiPromptifier
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION, GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION, GOLD_FIELD,
+    INSTRUCTION_TEMPLATE_FIELD
 )
 
 def example_with_sample_data2():
@@ -588,6 +589,47 @@ def example_with_simple_qa():
     # Export results
     mp.export("simple_qa_example.json", format="json")
     print("\n✅ Exported to simple_qa_example.json")
+    mp.info()
+
+
+def example_answer_the_question_prompt_only():
+    """Example: Prompt instructs to answer the question, but does not include the answer (no gold, no few-shot)."""
+    print("\n" + "=" * 50)
+    print("📝 Example: 'Answer the question' Prompt Only (No Gold, No Few-shot)")
+    print("=" * 50)
+
+    # Sample data: question + answer, but we use only the question in the prompt
+    data = [
+        {"question": "What is the capital of France?", "answer": "Paris"},
+        {"question": "How many days are in a week?", "answer": "7"},
+        {"question": "Who wrote Romeo and Juliet?", "answer": "Shakespeare"}
+    ]
+    import pandas as pd
+    from multipromptify import MultiPromptifier
+
+    df = pd.DataFrame(data)
+    mp = MultiPromptifier()
+    mp.load_dataframe(df)
+
+    # Template: instructs to answer the question, but does not include the answer
+    template = {
+        INSTRUCTION_TEMPLATE_KEY: 'Please answer the following question:\n{question}',
+        QUESTION_KEY: [REWORDING]
+    }
+    mp.set_template(template)
+
+    mp.configure(max_rows=3, variations_per_field=2)
+    variations = mp.generate(verbose=True)
+
+    print(f"\n✅ Generated {len(variations)} variations (prompt only, no gold, no few-shot)")
+    for i, var in enumerate(variations[:3]):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(var['prompt'])
+        print("-" * 50)
+
+    mp.export("answer_the_question_prompt_only.json", format="json")
+    print("\n✅ Exported to answer_the_question_prompt_only.json")
     mp.info()
 
 

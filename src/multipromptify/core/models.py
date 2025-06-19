@@ -5,10 +5,11 @@ Data models for MultiPromptify to manage parameters and context.
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional
 import pandas as pd
-from multipromptify.template_keys import (
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
 )
+from multipromptify.shared.constants import GenerationDefaults
 
 
 @dataclass
@@ -38,9 +39,9 @@ class GoldFieldConfig:
 @dataclass
 class VariationConfig:
     """Configuration for generating variations."""
-    variations_per_field: int = 3
+    variations_per_field: int = GenerationDefaults.VARIATIONS_PER_FIELD
     api_key: Optional[str] = None
-    max_variations: int = 100
+    max_variations: int = GenerationDefaults.MAX_VARIATIONS
 
 
 @dataclass

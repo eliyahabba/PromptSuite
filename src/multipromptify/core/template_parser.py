@@ -4,8 +4,8 @@ Template parser for MultiPromptify templates with dictionary format.
 
 from typing import Dict, List, Tuple, Set, Optional, Union
 from dataclasses import dataclass
-from multipromptify.exceptions import InvalidTemplateFieldError
-from multipromptify.template_keys import (
+from multipromptify.core.exceptions import InvalidTemplateFieldError
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
     PARAPHRASE_WITH_LLM, REWORDING
 )

@@ -8,6 +8,10 @@ import pandas as pd
 from pathlib import Path
 from multipromptify.engine import MultiPromptify
 from multipromptify import __version__
+from multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
+)
 
 @click.command()
 @click.option('--template', '-t', required=True, help='Template dictionary as JSON string or file path')

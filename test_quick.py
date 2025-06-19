@@ -3,6 +3,11 @@
 Quick test for GitHub Actions
 """
 
+from src.multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION
+)
+
 def test_basic_functionality():
     """Test basic functionality without requiring API keys"""
     try:

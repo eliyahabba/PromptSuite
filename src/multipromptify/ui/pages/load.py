@@ -15,6 +15,10 @@ from multipromptify.ui.utils.debug_helpers import (
     load_demo_data_for_step
 )
 from multipromptify.ui.utils.progress_indicator import show_progress_indicator
+from multipromptify.template_keys import (
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
+)
 
 
 def main():
@@ -102,8 +106,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Basic Sentiment Analysis',
                         'template': {
                             'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
-                            'instruction': ['paraphrase'],
-                            'text': ['surface'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'text': [REWORDING],
                             'gold': {
                                 'field': 'label',
                                 'type': 'value'
@@ -119,8 +123,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Advanced Sentiment with Few-shot',
                         'template': {
                             'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
-                            'instruction': ['paraphrase', 'surface'],
-                            'text': ['surface', 'context'],
+                            'instruction': [PARAPHRASE_WITH_LLM, REWORDING],
+                            'text': [REWORDING, CONTEXT_KEY],
                             'gold': {
                                 'field': 'label',
                                 'type': 'value'
@@ -149,8 +153,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Basic Q&A',
                         'template': {
                             'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
-                            'instruction': ['paraphrase'],
-                            'question': ['surface'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'question': [REWORDING],
                             'gold': {
                                 'field': 'answer',
                                 'type': 'value'
@@ -166,9 +170,9 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Q&A with Context and Few-shot',
                         'template': {
                             'instruction_template': 'Based on the context, answer the question:\nContext: {context}\nQuestion: {question}\nAnswer: {answer}',
-                            'instruction': ['paraphrase'],
-                            'question': ['surface', 'paraphrase'],
-                            'context': ['context'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'question': [REWORDING, PARAPHRASE_WITH_LLM],
+                            'context': [CONTEXT_KEY],
                             'gold': {
                                 'field': 'answer',
                                 'type': 'value'
@@ -198,8 +202,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Basic Multiple Choice',
                         'template': {
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': ['surface'],
-                            'question': ['surface'],
+                            'instruction': [REWORDING],
+                            'question': [REWORDING],
                             'options': ['shuffle'],
                             'gold': {
                                 'field': 'answer',
@@ -218,9 +222,9 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Complex Multiple Choice with Few-shot',
                         'template': {
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': ['paraphrase'],
-                            'question': ['surface'],
-                            'options': ['shuffle', 'surface'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'question': [REWORDING],
+                            'options': ['shuffle', REWORDING],
                             'gold': {
                                 'field': 'answer',
                                 'type': 'index',
@@ -243,8 +247,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Enumerated Multiple Choice',
                         'template': {
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': ['paraphrase'],
-                            'question': ['surface'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'question': [REWORDING],
                             'gold': {
                                 'field': 'answer',
                                 'type': 'index',
@@ -266,8 +270,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Lettered Multiple Choice with Enumerate',
                         'template': {
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': ['paraphrase'],
-                            'question': ['surface'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'question': [REWORDING],
                             'gold': {
                                 'field': 'answer',
                                 'type': 'index',
@@ -297,8 +301,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Basic Text Classification',
                         'template': {
                             'instruction_template': 'Classify the following text into a category:\nText: "{text}"\nCategory: {category}',
-                            'instruction': ['paraphrase'],
-                            'text': ['surface'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'text': [REWORDING],
                             'gold': {
                                 'field': 'category',
                                 'type': 'value'
@@ -314,8 +318,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Multi-field Text Classification',
                         'template': {
                             'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
-                            'instruction': ['paraphrase', 'surface'],
-                            'text': ['surface', 'context'],
+                            'instruction': [PARAPHRASE_WITH_LLM, REWORDING],
+                            'text': [REWORDING, CONTEXT_KEY],
                             'category': [],  # No variations for output
                             'gold': {
                                 'field': 'category',
@@ -332,8 +336,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Text Classification with Few-shot',
                         'template': {
                             'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
-                            'instruction': ['paraphrase'],
-                            'text': ['surface'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'text': [REWORDING],
                             'gold': {
                                 'field': 'category',
                                 'type': 'value'
@@ -362,8 +366,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Multi-Variation Classification',
                         'template': {
                             'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nLabel: {label}',
-                            'instruction': ['paraphrase', 'surface'],
-                            'text': ['surface', 'context'],
+                            'instruction': [PARAPHRASE_WITH_LLM, REWORDING],
+                            'text': [REWORDING, CONTEXT_KEY],
                             'label': [],
                             'gold': {
                                 'field': 'label',
@@ -385,8 +389,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Complex Q&A with Fixed Examples',
                         'template': {
                             'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
-                            'instruction': ['paraphrase'],
-                            'question': ['surface', 'paraphrase'],
+                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'question': [REWORDING, PARAPHRASE_WITH_LLM],
                             'answer': [],
                             'gold': {
                                 'field': 'answer',

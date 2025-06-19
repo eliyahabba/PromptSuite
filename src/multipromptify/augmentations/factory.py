@@ -10,6 +10,9 @@ from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 from multipromptify.augmentations.text.context import ContextAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
 from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
+from multipromptify.template_keys import (
+    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION
+)
 
 
 class AugmenterFactory:
@@ -19,10 +22,10 @@ class AugmenterFactory:
     """
     
     _registry = {
-        "paraphrase": Paraphrase,
-        "surface": TextSurfaceAugmenter,
+        PARAPHRASE_WITH_LLM: Paraphrase,
+        REWORDING: TextSurfaceAugmenter,
         "context": ContextAugmenter,
-        "shuffle": ShuffleAugmenter,
+        SHUFFLE_VARIATION: ShuffleAugmenter,
         "fewshot": FewShotAugmenter,
         "enumerate": EnumeratorAugmenter,
     }
