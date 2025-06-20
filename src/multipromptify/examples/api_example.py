@@ -14,7 +14,7 @@ from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_FIELD
 )
 
-def example_with_sample_data2():
+def example_with_sample_data_few_shot():
     # Create instance
     mp = MultiPromptifier()
 
@@ -251,11 +251,11 @@ def example_with_sample_data():
             'type': 'index',  # This means answer field contains indices, not text
             'options_field': 'options'
         },
-        FEW_SHOT_KEY: {
-            'count': 2,
-            'format': 'fixed',
-            'split': 'all'
-        }
+        # FEW_SHOT_KEY: {
+        #     'count': 2,
+        #     'format': 'fixed',
+        #     'split': 'all'
+        # }
     }
     
     mp.set_template(template)
@@ -652,14 +652,14 @@ def example_answer_the_question_prompt_only():
 
 if __name__ == "__main__":
     # Run the examples
-    example_with_sample_data()
+    # example_with_sample_data()
     # example_with_enumerate()
     # example_enumerate_types()
     
     # Uncomment other examples as needed:
-    # example_with_sample_data2()
+    example_with_sample_data_few_shot()
     # example_platform_switching()
-    example_with_huggingface()
+    # example_with_huggingface()
     # example_different_templates()
     # example_gold_field_formats()
     # example_environment_variables()

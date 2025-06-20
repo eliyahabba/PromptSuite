@@ -107,6 +107,54 @@ variations = mp.generate(verbose=True)
 mp.export("output.json", format="json")
 ```
 
+### Example Output Format
+
+A typical output from `mp.generate()` or the exported JSON file looks like this (for a multiple choice template):
+
+```json
+[
+  {
+    "prompt": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: 3, 4, 5, 6\nAnswer:",
+    "original_row_index": 1,
+    "variation_count": 1,
+    "template_config": {
+      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "options": ["shuffle"],
+      "gold": {
+        "field": "answer",
+        "type": "index",
+        "options_field": "options"
+      },
+      "few_shot": {
+        "count": 1,
+        "format": "fixed",
+        "split": "all"
+      }
+    },
+    "field_values": {
+      "options": "3, 4, 5, 6"
+    },
+    "gold_updates": {
+      "answer": "1"
+    },
+    "conversation": [
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is 2+2?\nOptions: 3, 4, 5, 6\nAnswer:"
+      },
+      {
+        "role": "assistant",
+        "content": "1"
+      },
+      {
+        "role": "user",
+        "content": "Answer the following multiple choice question:\nQuestion: What is the capital of France?\nOptions: London, Berlin, Paris, Madrid\nAnswer:"
+      }
+    ]
+  }
+]
+```
+
 ## Template Format
 
 Templates use Python f-string syntax with custom variation annotations:

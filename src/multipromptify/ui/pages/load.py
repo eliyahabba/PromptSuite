@@ -222,7 +222,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Complex Multiple Choice with Few-shot',
                         'template': {
                             'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'instruction': [REWORDING],
                             'question': [REWORDING],
                             'options': ['shuffle', REWORDING],
                             'gold': {

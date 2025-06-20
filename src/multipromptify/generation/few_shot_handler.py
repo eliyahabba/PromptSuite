@@ -191,7 +191,7 @@ class FewShotHandler:
         
         # Create main input
         main_input = self._create_main_input(
-            instruction_variant, row_values, variation_context.gold_config, prompt_builder
+            instruction_variant, row_values, variation_context.gold_config, variation_context, prompt_builder
         )
         
         # Format conversation and prompt
@@ -252,7 +252,8 @@ class FewShotHandler:
                 if field_data.gold_update:
                     gold_updates.update(field_data.gold_update)
             elif variation_context.gold_config.field and col == variation_context.gold_config.field:
-                continue  # Skip gold field
+                # Skip gold field from main prompt - it should only appear in few-shot examples
+                continue
             else:
                 processed_value = format_field_value(variation_context.row_data[col])
                 
@@ -320,16 +321,19 @@ class FewShotHandler:
         instruction_variant: str, 
         row_values: Dict[str, str], 
         gold_config, 
+        variation_context: VariationContext,
         prompt_builder
     ) -> str:
         """Create the main input by filling template with row values."""
+        # Gold field conversion is now handled in _extract_row_values_and_updates
         main_input = prompt_builder.fill_template_placeholders(instruction_variant, row_values)
         
-        # Remove gold field placeholder if present
-        if gold_config.field:
+        # Remove gold field placeholder if it wasn't included for some reason
+        if gold_config.field and gold_config.field not in row_values:
             main_input = main_input.replace(f'{{{gold_config.field}}}', '')
         
         return main_input.strip()
+
 
     def _format_conversation(
         self, 

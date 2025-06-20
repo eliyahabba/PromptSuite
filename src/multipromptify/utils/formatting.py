@@ -2,7 +2,8 @@
 Formatting utilities for MultiPromptify.
 """
 
-from typing import Any
+from typing import Any, Optional
+import pandas as pd
 from multipromptify.core.exceptions import GoldFieldExtractionError
 
 
@@ -60,4 +61,48 @@ def extract_gold_value(row, gold_field):
         try:
             return row[gold_field]
         except Exception as e:
-            raise GoldFieldExtractionError(gold_field, row, str(e)) 
+            raise GoldFieldExtractionError(gold_field, row, str(e))
+
+
+def convert_index_to_value(row: pd.Series, gold_field: str, gold_type: str, options_field: str = None) -> str:
+    """
+    Convert gold index to actual value from options field.
+    
+    This utility function consolidates the logic for converting an index-based gold field
+    to its corresponding value from an options field.
+    
+    Args:
+        row: pandas Series containing the data row
+        gold_field: Name of the gold field column
+        gold_type: Type of gold field ('value' or 'index')
+        options_field: Name of the options field column (required for index type)
+        
+    Returns:
+        String representation of the gold value (converted from index if needed)
+    """
+    if not gold_field or gold_field not in row.index:
+        return format_field_value(row.get(gold_field, ''))
+
+    gold_value = row[gold_field]
+
+    # If gold_type is 'value', return as is
+    if gold_type == 'value':
+        return format_field_value(gold_value)
+    
+    # If gold_type is 'index', try to extract from options
+    if gold_type == 'index' and options_field and options_field in row.index:
+        try:
+            options_text = str(row[options_field])
+            # Parse options using the same logic as ShuffleAugmenter
+            options_list = [item.strip() for item in options_text.split(',')]
+
+            index = int(gold_value)
+            if 0 <= index < len(options_list):
+                # Return the actual option text, cleaned up
+                return options_list[index].strip()
+
+        except (ValueError, IndexError, Exception):
+            pass
+
+    # Fallback: return the gold value as string
+    return format_field_value(gold_value) 

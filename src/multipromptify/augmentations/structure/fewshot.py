@@ -135,7 +135,8 @@ This augmenter handles few-shot examples for NLP tasks.
                 # Assume clean data - process all columns
                 if gold_field and col == gold_field:
                     # Extract the output value separately for the output field
-                    output_value = self._extract_answer_from_options(
+                    from multipromptify.utils.formatting import convert_index_to_value
+                    output_value = convert_index_to_value(
                         example_row, gold_field, gold_type, options_field
                     )
                 else:
@@ -159,39 +160,7 @@ This augmenter handles few-shot examples for NLP tasks.
         
         return examples
 
-    def _extract_answer_from_options(self, row: pd.Series, gold_field: str, gold_type: str,
-                                   options_field: str = None) -> str:
-        """Extract the actual answer text from options based on the gold field."""
 
-        if not gold_field or gold_field not in row.index:
-            return format_field_value(row.get(gold_field, ''))
-
-        gold_value = row[gold_field]
-
-        # If gold_type is 'value', return as is
-        if gold_type == 'value':
-            return format_field_value(gold_value)
-    
-        # If gold_type is 'index', try to extract from options
-        if gold_type == 'index' and options_field and options_field in row.index:
-            try:
-                # Import here to avoid circular imports
-                from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
-                shuffle_augmenter = ShuffleAugmenter()
-
-                options_text = str(row[options_field])
-                options_list = shuffle_augmenter._parse_input_to_list(options_text)
-
-                index = int(gold_value)
-                if 0 <= index < len(options_list):
-                    # Return the actual option text, cleaned up
-                    return options_list[index].strip()
-
-            except (ValueError, IndexError, Exception):
-                pass
-
-        # Fallback: return the gold value as string
-        return format_field_value(gold_value)
 
     def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
         """Fill template placeholders with values."""
