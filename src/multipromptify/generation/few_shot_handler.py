@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 from multipromptify.core.models import VariationContext, FieldVariation, FewShotContext
-from multipromptify.utils.formatting import format_field_value
+from multipromptify.utils.formatting import format_field_value, extract_gold_value
 from multipromptify.core.exceptions import (
     FewShotGoldFieldMissingError, FewShotDataInsufficientError, FewShotConfigurationError
 )
@@ -204,6 +204,18 @@ class FewShotHandler:
             for field_name, field_data in field_values.items()
         }
         
+        # # Always set gold_updates: if no updates, set to original gold value
+        # gold_field = variation_context.gold_config.field
+        # if gold_field:
+        #     # if not gold_updates:
+        #     #     # Use the value from row_values (already formatted)
+        #     #     gold_value = row_values.get(gold_field)
+        #     #     gold_updates_final = {gold_field: gold_value}
+        #     # else:
+        #     gold_updates_final = gold_updates
+        # else:
+        #     gold_updates_final = gold_updates if gold_updates else None
+
         return {
             'prompt': final_prompt,
             'conversation': conversation_messages,
@@ -211,7 +223,7 @@ class FewShotHandler:
             'variation_count': variation_count,
             'template_config': variation_context.template,
             'field_values': output_field_values,  # Formatted values for display in prompts
-            'gold_updates': gold_updates if gold_updates else None,
+            'gold_updates': gold_updates,
         }
 
     def _extract_row_values_and_updates(
@@ -248,6 +260,12 @@ class FewShotHandler:
                 processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
                 
                 row_values[col] = processed_value
+        
+        # Always set gold_updates to the original value if not already set
+        gold_field = variation_context.gold_config.field
+        if gold_field and gold_field in variation_context.row_data:
+            if not gold_updates or gold_field not in gold_updates:
+                gold_updates[gold_field] = format_field_value(variation_context.row_data[gold_field])
         
         return row_values, gold_updates
 

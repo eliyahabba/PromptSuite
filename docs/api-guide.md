@@ -233,15 +233,30 @@ The API uses dictionary templates with the following structure:
 
 ### Gold Field Configuration
 
-For tracking correct answers in multiple choice questions:
+You can specify the gold field (the correct answer/output) in two ways:
 
+1. **Simple column name** (for flat data):
+   ```python
+   'gold': 'answer'
+   ```
+2. **Python expression** (for nested/complex data):
+   ```python
+   'gold': "answers['text'][0]"  # Extracts the first answer from a dict/list (e.g., SQuAD)
+   ```
+   This expression is evaluated with each row as the context, so you can access nested fields, lists, or even do simple computations (e.g., `meta['label']['value']`, `options[2]`).
+
+**Example for SQuAD:**
 ```python
-'gold': {
-    'field': 'answer',           # Column containing the correct answer
-    'type': 'index',             # 'value' for exact match, 'index' for position
-    'options_field': 'options'   # Column containing the options (for index type)
+template = {
+    'instruction_template': 'Read the context and answer the question.\nContext: {context}\nQuestion: {question}\nAnswer:',
+    'instruction': ['paraphrase_with_llm'],
+    'context': ['rewording'],
+    'question': [],
+    'gold': "answers['text'][0]"  # Extracts the first answer text from the SQuAD answers dict
 }
 ```
+
+If extraction fails (e.g., invalid expression or missing key), a `GoldFieldExtractionError` will be raised with details.
 
 ### Few-Shot Configuration
 

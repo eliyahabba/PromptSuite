@@ -189,6 +189,16 @@ class InsufficientDataError(DataError):
         super().__init__(message, "DATA_INSUFFICIENT", context, suggestion)
 
 
+class GoldFieldExtractionError(DataError):
+    """Raised when extracting the gold field value fails (e.g., invalid expression or missing key)."""
+    def __init__(self, gold_field: str, row: dict, original_error: str):
+        context = {"gold_field": gold_field, "row_keys": list(row.keys())}
+        message = f"Failed to extract gold field '{gold_field}' from row. Error: {original_error}"
+        suggestion = ("Check that your gold field expression is valid for your data. "
+                      "For nested fields, use Python expressions like answers['text'][0]. ")
+        super().__init__(message, "GOLD_EXTRACTION_ERROR", context, suggestion)
+
+
 # Few-shot related exceptions  
 class FewShotError(MultiPromptifyError):
     """Base class for few-shot related errors."""

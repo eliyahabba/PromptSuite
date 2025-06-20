@@ -245,7 +245,7 @@ def example_with_sample_data():
     print("\n2. Setting template...")
     template = {
         INSTRUCTION_TEMPLATE_KEY: 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-        OPTIONS_KEY: [REWORDING, REWORDING],
+        OPTIONS_KEY: [REWORDING, SHUFFLE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',  # This means answer field contains indices, not text
@@ -346,24 +346,41 @@ def example_platform_switching():
 
 
 def example_with_huggingface():
-    """Example using HuggingFace datasets (requires datasets library)."""
-    
+    """Example using HuggingFace datasets (SQuAD) with classic QA template and gold field expression extraction."""
     print("\n" + "=" * 50)
-    print("🤗 HuggingFace Dataset Example")
+    print("🤗 HuggingFace Dataset Example (SQuAD, zero-shot, classic QA, gold field expression)")
     print("=" * 50)
-    
+
     try:
-        # Initialize API
+        from multipromptify import MultiPromptifier
         mp = MultiPromptifier()
-        
-        # Load from HuggingFace (this will fail if datasets library is not installed)
-        print("\n1. Loading HuggingFace dataset...")
-        # Uncomment the line below to try loading from HuggingFace
-        mp.load_dataset("squad", split="train")
-        
-        # print("⚠️ Skipping HuggingFace example - uncomment the load_dataset line to try it")
-        # print("   (Requires: pip install datasets)")
-        
+
+        # Load 3 examples from SQuAD directly
+        print("\n1. Loading SQuAD dataset (3 samples)...")
+        mp.load_dataset("rajpurkar/squad", split="train[:3]")
+
+        # Classic QA template with gold field expression for SQuAD
+        template = {
+            "instruction_template": "Read the context and answer the question.\\nContext: {context}\\nQuestion: {question}\\nAnswer:",
+            # "instruction": ["paraphrase_with_llm"],  # Paraphrase the instruction
+            "context": ["rewording"],                # Reword the context
+            "question": [],
+            # Use a Python expression to extract the first answer text from the dict
+            "gold": "answers['text'][0]"
+        }
+        mp.set_template(template)
+        mp.configure(max_rows=3, variations_per_field=1, max_variations=1)
+
+        print("\n2. Generating variations...")
+        variations = mp.generate(verbose=True)
+
+        print(f"\n✅ Generated {len(variations)} variations\n")
+        for i, v in enumerate(variations):
+            print(f"Prompt {i+1}:")
+            print(v["prompt"])
+            print("Expected answer:", v["answers['text'][0]"])
+            print("-" * 40)
+
     except Exception as e:
         print(f"❌ HuggingFace example failed: {e}")
 
@@ -636,13 +653,13 @@ def example_answer_the_question_prompt_only():
 if __name__ == "__main__":
     # Run the examples
     example_with_sample_data()
-    example_with_enumerate()
-    example_enumerate_types()
+    # example_with_enumerate()
+    # example_enumerate_types()
     
     # Uncomment other examples as needed:
     # example_with_sample_data2()
     # example_platform_switching()
-    # example_with_huggingface()
+    example_with_huggingface()
     # example_different_templates()
     # example_gold_field_formats()
     # example_environment_variables()

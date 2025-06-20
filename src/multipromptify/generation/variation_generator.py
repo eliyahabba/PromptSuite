@@ -9,7 +9,7 @@ from multipromptify.augmentations.factory import AugmenterFactory
 from multipromptify.core.models import (
     VariationConfig, FieldVariation, FieldAugmentationData
 )
-from multipromptify.utils.formatting import format_field_value
+from multipromptify.utils.formatting import format_field_value, extract_gold_value
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
@@ -105,8 +105,6 @@ class VariationGenerator:
             # Assume clean data - process all fields that exist in the row
             if field_name in row.index:
                 field_value = format_field_value(row[field_name])
-                
-                # Create field augmentation data
                 field_data = FieldAugmentationData(
                     field_name=field_name,
                     field_value=field_value,
@@ -115,11 +113,13 @@ class VariationGenerator:
                     row_data=row,
                     gold_config=gold_config
                 )
-                
                 field_variations[field_name] = self.generate_field_variations(field_data)
             else:
                 # If field not in data, use empty variations
                 field_variations[field_name] = [FieldVariation(data='', gold_update=None)]
+
+        # Special handling for shuffle augmenter (and others) - update gold value extraction
+        # (No direct row[gold_config.field] here, but if you add, use extract_gold_value)
 
         return field_variations
 
@@ -131,7 +131,12 @@ class VariationGenerator:
 
         # Start with original - ensure it's formatted even if no variations are applied
         original_formatted = format_field_value(field_data.field_value)
-        all_variations = [FieldVariation(data=original_formatted, gold_update=None)]
+        # If this is the gold field, set gold_update to the original value
+        if field_data.gold_config and field_data.gold_config.field == field_data.field_name:
+            original_gold_update = {field_data.field_name: original_formatted}
+        else:
+            original_gold_update = None
+        all_variations = [FieldVariation(data=original_formatted, gold_update=original_gold_update)]
 
         for variation_type in field_data.variation_types:
             try:
@@ -152,7 +157,7 @@ class VariationGenerator:
                     if field_data.gold_config.type == 'index':
                         # For index-based gold, pass the index directly
                         try:
-                            gold_index = int(field_data.row_data[field_data.gold_config.field])
+                            gold_index = int(extract_gold_value(field_data.row_data, field_data.gold_config.field))
                             identification_data = {
                                 'gold_field': field_data.gold_config.field,
                                 'gold_value': str(gold_index)
@@ -165,7 +170,7 @@ class VariationGenerator:
                         # For value-based gold, pass the value and let augmenter find the index
                         identification_data = {
                             'gold_field': field_data.gold_config.field,
-                            'gold_value': str(field_data.row_data[field_data.gold_config.field])
+                            'gold_value': str(extract_gold_value(field_data.row_data, field_data.gold_config.field))
                         }
 
                     variations = AugmenterFactory.augment_with_special_handling(

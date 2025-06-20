@@ -243,27 +243,12 @@ def display_single_conversation(conversation, conversation_num, original_variati
             st.code(conversation_json, language="json")
 
         with col2:
-            # Get correct answer from metadata or original variation
+            # Get correct answer from gold_updates (always exists)
             correct_answer = None
-
-            # Try metadata first
-            if metadata and 'correct_answer' in metadata:
-                correct_answer = metadata['correct_answer']
-
-            # If not in metadata, try to get from original variation
-            if correct_answer is None:
-                # Check for gold_updates first (updated answer)
-                gold_updates = original_variation.get('gold_updates')
-                if gold_updates:
-                    for gold_field, gold_value in gold_updates.items():
-                        correct_answer = gold_value
-                        break
-
-                # If no updates, use original answer
-                if correct_answer is None:
-                    original_answer = original_variation.get('original_answer')
-                    if original_answer is not None:
-                        correct_answer = str(original_answer)
+            gold_updates = original_variation['gold_updates']
+            if gold_updates:
+                # Get the first (and usually only) gold field update
+                correct_answer = next(iter(gold_updates.values()))
 
             # Display correct answer (should always be available now)
             if correct_answer is not None and str(correct_answer).strip():
@@ -401,23 +386,27 @@ def display_single_variation(variation, variation_num, original_data):
 
             # Show gold field updates (when fields like options are shuffled)
             gold_updates = variation.get('gold_updates', {})
-            if gold_updates is None:
-                gold_updates = {}
-
-            if gold_updates:
-                for gold_field, new_value in gold_updates.items():
-                    if original_row is not None and gold_field in original_row.index:
-                        original_val = str(original_row[gold_field])
-                        st.markdown(f"""
-                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #e74c3c;">
-                            <strong style="color: #c0392b;">{gold_field} (updated):</strong><br>
-                            <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
-                            <span style="background: #ffebee; padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #e74c3c;">→ {new_value}</span>
-                        </div>
-                        """, unsafe_allow_html=True)
+            for gold_field, new_value in gold_updates.items():
+                original_val = str(original_row[gold_field]) if original_row is not None and gold_field in original_row.index else None
+                if original_val is not None and str(new_value) != str(original_val):
+                    st.markdown(f"""
+                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #e74c3c;">
+                        <strong style="color: #c0392b;">{gold_field} (updated):</strong><br>
+                        <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; opacity: 0.7;">{original_val}</span><br>
+                        <span style="background: #ffebee; padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #e74c3c;">→ {new_value}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #4caf50;">
+                        <strong style="color: #388e3c;">{gold_field}:</strong>
+                        <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{new_value}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
 
             # Show any additional fields from original data that weren't used in field_values
             if original_row is not None:
+                gold_updates = variation.get('gold_updates', {})
                 for col in original_row.index:
                     if col not in field_values and col not in gold_updates and str(original_row[col]).strip():
                         original_val = str(original_row[col])

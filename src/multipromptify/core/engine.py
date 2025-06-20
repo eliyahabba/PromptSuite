@@ -21,7 +21,7 @@ from multipromptify.core.models import (
 from multipromptify.generation import VariationGenerator, PromptBuilder, FewShotHandler
 from multipromptify.core.exceptions import (
     InvalidTemplateError, MissingInstructionTemplateError, 
-    UnsupportedFileFormatError, UnsupportedExportFormatError
+    UnsupportedFileFormatError, UnsupportedExportFormatError, GoldFieldExtractionError
 )
 from pathlib import Path
 import ast
@@ -30,6 +30,8 @@ from multipromptify.core.template_keys import (
     PARAPHRASE_WITH_LLM, REWORDING
 )
 from multipromptify.shared.constants import GenerationDefaults
+import re
+from multipromptify.utils.formatting import extract_gold_value
 
 
 class MultiPromptify:
