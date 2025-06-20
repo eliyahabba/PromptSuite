@@ -49,7 +49,7 @@ multipromptify-ui
 python src/multipromptify/ui/main.py
 
 # Alternative: using the runner script
-python run_ui.py
+python scripts/run_ui.py
 ```
 
 The web UI provides:

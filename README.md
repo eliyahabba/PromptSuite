@@ -57,7 +57,7 @@ multipromptify-ui
 python src/multipromptify/ui/main.py
 
 # Alternative: using the runner script
-python run_ui.py
+python scripts/run_ui.py
 ```
 
 The web UI provides:
@@ -410,6 +410,7 @@ Other folders:
 - `shared/` – Shared resources
 - `ui/` – Streamlit web interface
 - `examples/` – API usage examples (e.g., `api_example.py`)
+- `scripts/` – Utility scripts for development and UI launching
 
 You can still import main classes directly from `multipromptify` (e.g., `from multipromptify import MultiPromptify`), as the package root re-exports them for convenience.
 

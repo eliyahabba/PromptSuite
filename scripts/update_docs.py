@@ -1,6 +1,14 @@
 import re
+import sys
 from pathlib import Path
-from src.multipromptify.core.template_keys import (
+
+# Add src to Python path for imports
+script_dir = Path(__file__).parent
+project_root = script_dir.parent
+src_path = project_root / "src"
+sys.path.insert(0, str(src_path))
+
+from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
@@ -26,17 +34,16 @@ REPLACEMENTS = {
 }
 
 DOCS_ROOTS = [
-    'README.md',
-    'docs',
+    project_root / 'README.md',
+    project_root / 'docs',
 ]
 
 def update_docs():
     for root in DOCS_ROOTS:
-        path = Path(root)
-        if path.is_file():
-            files = [path]
-        elif path.is_dir():
-            files = list(path.rglob('*.md'))
+        if root.is_file():
+            files = [root]
+        elif root.is_dir():
+            files = list(root.rglob('*.md'))
         else:
             print(f"Skipping {root} (not found)")
             continue

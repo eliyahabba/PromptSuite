@@ -12,5 +12,4 @@ recursive-exclude tests *
 exclude .gitignore
 exclude .env
 exclude .env.example
-exclude build_and_test.py
-exclude run_ui.py
+recursive-exclude scripts *

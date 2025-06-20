@@ -163,7 +163,7 @@ multipromptify-ui
 python src/multipromptify/ui/main.py
 
 # Using the runner script
-python run_ui.py
+python scripts/run_ui.py
 ```
 
 ### URL Parameters
