@@ -28,7 +28,7 @@ def test_basic_functionality():
         
         # Test 4: Set template (without AI variations)
         template = {
-            'instruction_template': 'Q: {question}\nA: {answer}',
+            'instruction': 'Q: {question}\nA: {answer}',
             'question': ['surface'],  # Non-AI variation
             'gold': 'answer'
         }
