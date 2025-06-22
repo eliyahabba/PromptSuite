@@ -17,7 +17,7 @@ from multipromptify.core.exceptions import (
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY
 )
 
 
@@ -163,14 +163,25 @@ class FewShotHandler:
         main_input = self._create_main_input(
             instruction_variant, row_values, variation_context.gold_config, prompt_builder
         )
-        # Get system prompt template if present, and fill with row values
-        system_prompt_template = variation_context.template.get('system_prompt_template')
-        if system_prompt_template:
-            # Fill placeholders in system prompt using row values
-            system_prompt_template = prompt_builder.fill_template_placeholders(system_prompt_template, row_values)
-        # Format conversation and prompt
-        conversation_messages = self._format_conversation(few_shot_examples, main_input, system_prompt_template)
-        final_prompt = self._format_final_prompt(few_shot_examples, main_input, system_prompt_template)
+        # Determine which system prompt to use for this variation
+        default_system_prompt_template = variation_context.template.get('system_prompt_template')
+        system_prompt_variant = field_values.get('system_prompt', None)
+        if system_prompt_variant:
+            system_prompt_template = system_prompt_variant.data or default_system_prompt_template
+        else:
+            system_prompt_template = default_system_prompt_template
+
+        # Format conversation and prompt using the selected system prompt
+        conversation_messages = self._format_conversation(
+            few_shot_examples,
+            main_input,
+            system_prompt_template
+        )
+        final_prompt = self._format_final_prompt(
+            few_shot_examples,
+            main_input,
+            system_prompt_template
+        )
         # Prepare output field values
         output_field_values = {
             field_name: field_data.data 

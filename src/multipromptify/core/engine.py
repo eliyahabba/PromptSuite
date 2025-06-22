@@ -107,6 +107,7 @@ class MultiPromptify:
             api_key=api_key,
             max_variations=self.max_variations
         )
+        system_prompt_template = self.template_parser.get_system_prompt_template()
 
         # Get instruction template from user - required
         instruction_template = self.template_parser.get_instruction_template()
@@ -125,7 +126,12 @@ class MultiPromptify:
 
             # Generate variations for all fields
             field_variations = self.variation_generator.generate_all_field_variations(
-                instruction_template, variation_fields, row, variation_config, gold_config
+                instruction_template,
+                system_prompt_template,
+                variation_fields,
+                row,
+                variation_config,
+                gold_config
             )
 
             # Create variation context

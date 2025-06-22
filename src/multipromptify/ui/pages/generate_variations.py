@@ -10,7 +10,8 @@ from multipromptify import MultiPromptify
 from multipromptify.shared.constants import GenerationInterfaceConstants, GenerationDefaults
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
+    SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
 )
 
 from .results_display import display_full_results

@@ -10,7 +10,7 @@ sys.path.insert(0, str(src_path))
 
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD,
+    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
 )
 
@@ -24,7 +24,7 @@ REPLACEMENTS = {
     'context': CONTEXT_KEY,
     'problem': PROBLEM_KEY,
     'gold_field': GOLD_FIELD,
-    'instruction_template_field': INSTRUCTION_TEMPLATE_FIELD,
+    'instruction_template_field': INSTRUCTION_TEMPLATE_KEY,
     'paraphrase': PARAPHRASE_WITH_LLM,
     'surface': REWORDING,
     'context_variation': CONTEXT_VARIATION,

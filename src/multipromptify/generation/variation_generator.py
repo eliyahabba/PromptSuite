@@ -13,7 +13,7 @@ from multipromptify.utils.formatting import format_field_value, extract_gold_val
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
 )
 
 
@@ -30,10 +30,10 @@ class VariationGenerator:
     ) -> List[str]:
         """Generate variations of the instruction template."""
 
-        if 'instruction' not in variation_fields or not variation_fields['instruction']:
+        if INSTRUCTION_KEY not in variation_fields or not variation_fields[INSTRUCTION_KEY]:
             return [instruction_template]
 
-        variation_types = variation_fields['instruction']
+        variation_types = variation_fields[INSTRUCTION_KEY]
         all_variations = []
 
         # Generate variations for each type
@@ -75,9 +75,48 @@ class VariationGenerator:
 
         return unique_variations[:variation_config.variations_per_field + 1]
 
+    def generate_system_prompt_variations(
+            self,
+            system_prompt_template: str,
+            variation_fields: Dict[str, List[str]],
+            variation_config: VariationConfig
+    ) -> List[str]:
+        """Generate variations of the system prompt template."""
+        if SYSTEM_PROMPT_KEY not in variation_fields or not variation_fields[SYSTEM_PROMPT_KEY]:
+            return [system_prompt_template]
+        variation_types = variation_fields[SYSTEM_PROMPT_KEY]
+        all_variations = []
+        for variation_type in variation_types:
+            try:
+                augmenter = AugmenterFactory.create(
+                    variation_type=variation_type,
+                    n_augments=variation_config.variations_per_field,
+                    api_key=variation_config.api_key
+                )
+                variations = AugmenterFactory.augment_with_special_handling(
+                    augmenter=augmenter,
+                    text=system_prompt_template,
+                    variation_type=variation_type
+                )
+                string_variations = AugmenterFactory.extract_text_from_result(variations, variation_type)
+                all_variations.extend(string_variations[:variation_config.variations_per_field])
+            except Exception as e:
+                print(f"⚠️ Error generating {variation_type} variations for system_prompt: {e}")
+                continue
+        unique_variations = []
+        seen = set()
+        for var in all_variations:
+            if var not in seen:
+                unique_variations.append(var)
+                seen.add(var)
+        if system_prompt_template not in unique_variations:
+            unique_variations.insert(0, system_prompt_template)
+        return unique_variations[:variation_config.variations_per_field]
+
     def generate_all_field_variations(
             self,
             instruction_template: str,
+            system_prompt_template: str,
             variation_fields: Dict[str, List[str]],
             row: pd.Series,
             variation_config: VariationConfig,
@@ -88,19 +127,34 @@ class VariationGenerator:
         field_variations = {}
 
         # Generate instruction variations
-        if 'instruction' in variation_fields and variation_fields['instruction']:
+        if INSTRUCTION_KEY in variation_fields and variation_fields[INSTRUCTION_KEY]:
             instruction_vars = self.generate_instruction_variations(
                 instruction_template, variation_fields, variation_config
             )
             # Convert to FieldVariation objects
-            field_variations['instruction'] = [FieldVariation(data=var, gold_update=None) for var in instruction_vars]
+            field_variations[INSTRUCTION_KEY] = [FieldVariation(data=var, gold_update=None) for var in instruction_vars]
         else:
-            field_variations['instruction'] = [FieldVariation(data=instruction_template, gold_update=None)]
+            field_variations[INSTRUCTION_KEY] = [FieldVariation(data=instruction_template, gold_update=None)]
 
-        # Generate variations for other fields
+        # Generate variations for other fields (including system_prompt)
         for field_name, variation_types in variation_fields.items():
-            if field_name == 'instruction':
+            if field_name == INSTRUCTION_KEY:
                 continue  # Already handled above
+
+            # Special handling for system_prompt variations – הם פועלים על הטמפלט, לא על ערך שורה
+            if field_name == SYSTEM_PROMPT_KEY:
+                # If system_prompt_template is not provided, skip
+                if system_prompt_template is None:
+                    continue
+
+                sys_prompt_vars = self.generate_system_prompt_variations(
+                    system_prompt_template,
+                    variation_fields,
+                    variation_config
+                )
+
+                field_variations[SYSTEM_PROMPT_KEY] = [FieldVariation(data=var, gold_update=None) for var in sys_prompt_vars]
+                continue
 
             # Assume clean data - process all fields that exist in the row
             if field_name in row.index:
@@ -232,7 +286,7 @@ class VariationGenerator:
                 print(f"⚠️ Error generating {variation_type} variations for field {field_data.field_name}: {e}")
                 continue
 
-        # Remove duplicates while preserving order and limit to variations_per_field + 1 (original)
+        # Remove duplicates while preserving order and limit to variations_per_field (original)
         unique_variations = []
         seen = set()
         for var in all_variations:
@@ -241,4 +295,4 @@ class VariationGenerator:
                 unique_variations.append(var)
                 seen.add(var_key)
 
-        return unique_variations[:field_data.variation_config.variations_per_field + 1] 
+        return unique_variations[:field_data.variation_config.variations_per_field] 

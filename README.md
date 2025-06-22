@@ -156,6 +156,39 @@ A typical output from `mp.generate()` or the exported JSON file looks like this 
 ]
 ```
 
+### Full Example: Using All Main Template Keys
+
+Below is a recommended way to define a template using all the main template keys from `multipromptify.core.template_keys`:
+
+```python
+from multipromptify.core.template_keys import (
+    SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY,
+    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY,
+    QUESTION_KEY, OPTIONS_KEY, GOLD_KEY, FEW_SHOT_KEY
+)
+
+template = {
+    SYSTEM_PROMPT_TEMPLATE_KEY: "You are a helpful assistant. Please answer the following questions.",
+    SYSTEM_PROMPT_KEY: ["rewording"],  # Variation types for the system prompt
+    INSTRUCTION_TEMPLATE_KEY: "Q: {question}\nOptions: {options}\nA: {answer}",
+    INSTRUCTION_KEY: ["paraphrase_with_llm"],  # Variation types for the instruction
+    QUESTION_KEY: ["rewording"],
+    OPTIONS_KEY: ["shuffle"],
+    GOLD_KEY: {
+        'field': 'answer',
+        'type': 'index',
+        'options_field': 'options'
+    },
+    FEW_SHOT_KEY: {
+        'count': 2,
+        'format': 'rotating',
+        'split': 'all'
+    }
+}
+```
+
+This template demonstrates how to use all the main keys for maximum flexibility and clarity. You can import these keys from `multipromptify.core.template_keys` to avoid typos and ensure consistency.
+
 ## Template Format
 
 Templates use Python f-string syntax with custom variation annotations:

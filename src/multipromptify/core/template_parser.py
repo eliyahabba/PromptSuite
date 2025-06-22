@@ -53,6 +53,7 @@ class TemplateParser:
         self.fields: List[TemplateField] = []
         self.instruction_template: Optional[str] = None
         self.system_prompt_template: Optional[str] = None
+        self.system_prompt_variations: List[str] = []
         
     def parse(self, template: dict) -> List[TemplateField]:
         """
@@ -70,10 +71,17 @@ class TemplateParser:
         self.fields = []
         self.instruction_template = None
         self.system_prompt_template = None
+        self.system_prompt_variations = []
         
         # Extract instruction template if provided
         if INSTRUCTION_TEMPLATE_KEY in template:
             self.instruction_template = template[INSTRUCTION_TEMPLATE_KEY]
+        
+        if SYSTEM_PROMPT_TEMPLATE_KEY in template:
+            self.system_prompt_template = template[SYSTEM_PROMPT_TEMPLATE_KEY]
+        
+        if SYSTEM_PROMPT_KEY in template:
+            self.system_prompt_variations = template[SYSTEM_PROMPT_KEY] if isinstance(template[SYSTEM_PROMPT_KEY], list) else [template[SYSTEM_PROMPT_KEY]]
         
         for field_name, config in template.items():
             if field_name == INSTRUCTION_TEMPLATE_KEY:
@@ -147,6 +155,9 @@ class TemplateParser:
     def get_system_prompt_template(self) -> Optional[str]:
         """Get the system prompt template string."""
         return self.system_prompt_template
+    
+    def get_system_prompt_variations(self) -> List[str]:
+        return self.system_prompt_variations
     
     def get_required_columns(self, template: dict = None) -> Set[str]:
         """

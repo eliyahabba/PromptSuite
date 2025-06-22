@@ -1,6 +1,20 @@
+"""
+Template keys for MultiPromptify templates.
+
+Each key is used in template dictionaries to specify a particular field or configuration.
+These constants should be used instead of hardcoded strings for clarity and consistency.
+
+- SYSTEM_PROMPT_TEMPLATE_KEY: The system prompt shown at the top of each prompt (optional, can include placeholders).
+- SYSTEM_PROMPT_KEY: List of variation types to apply to the system prompt (e.g., [REWORDING]).
+- INSTRUCTION_TEMPLATE_KEY: The main instruction template for each example (usually contains placeholders for fields).
+- INSTRUCTION_KEY: List of variation types to apply to the instruction template (e.g., [PARAPHRASE_WITH_LLM]).
+"""
+
 # Template keys
-INSTRUCTION_TEMPLATE_KEY = "instruction_template"
-INSTRUCTION_KEY = "instruction"
+SYSTEM_PROMPT_TEMPLATE_KEY = "system_prompt_template"  # System prompt at the top of each prompt (optional)
+SYSTEM_PROMPT_KEY = "system_prompt"                    # Variation types for the system prompt
+INSTRUCTION_TEMPLATE_KEY = "instruction_template"      # Main instruction template for each example
+INSTRUCTION_KEY = "instruction"                        # Variation types for the instruction template
 QUESTION_KEY = "question"
 GOLD_KEY = "gold"
 FEW_SHOT_KEY = "few_shot"
@@ -8,9 +22,7 @@ OPTIONS_KEY = "options"
 CONTEXT_KEY = "context"
 PROBLEM_KEY = "problem"
 GOLD_FIELD = "gold"
-INSTRUCTION_TEMPLATE_FIELD = "instruction_template"
-SYSTEM_PROMPT_TEMPLATE_KEY = "system_prompt_template"
-SYSTEM_PROMPT_KEY = "system_prompt"
+
 
 # Variation types (values)
 PARAPHRASE_WITH_LLM = "paraphrase_with_llm"  # replaces 'paraphrase'

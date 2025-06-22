@@ -7,7 +7,8 @@ import streamlit as st
 from multipromptify.core import MultiPromptify
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
+    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
+    SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
 )
 from multipromptify.shared.constants import FEW_SHOT_DYNAMIC_DEFAULT
 
@@ -243,7 +244,7 @@ def template_builder_interface(available_columns):
 
     # Available columns display
     st.markdown("**Available data columns:**")
-    filtered_columns = [col for col in available_columns if col not in ['system_prompt_template', 'system_prompt']]
+    filtered_columns = [col for col in available_columns if col not in [SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY]]
     cols = st.columns(min(len(filtered_columns), 4))
     for i, col in enumerate(filtered_columns):
         with cols[i % 4]:
@@ -253,7 +254,7 @@ def template_builder_interface(available_columns):
     configured_fields = {}
 
     # Use tabs for better organization
-    field_tabs = st.tabs(["📝 Instruction", "📊 Data Fields", "🏆 Gold Field", "🔢 Enumerate", "🎯 Few-shot"])
+    field_tabs = st.tabs(["📝 Instruction", "📊 Data Fields", "🏆 Gold Field", "🔢 Enumerate", "🎯 Few-shot", "⚙️ System Prompt"])
 
     with field_tabs[0]:
         # Instruction configuration
@@ -264,9 +265,9 @@ def template_builder_interface(available_columns):
         st.markdown("**1. Instruction Template (Required)**")
         instruction_template = st.text_area(
             "Enter your instruction template with placeholders:",
-            value=st.session_state.template_config.get('instruction_template', ''),
-            key="instruction_template",
-            help="Use {field_name} for placeholders. Example: 'Answer the following question: {question}\\nAnswer: {answer}'. Remember to specify the 'gold' field for the answer column.",
+            value=st.session_state.template_config.get(INSTRUCTION_TEMPLATE_KEY, ''),
+            key=INSTRUCTION_TEMPLATE_KEY,
+            help="Use {field_name} for placeholders. Example: 'Answer the following question: {question}\nAnswer: {answer}'. Remember to specify the 'gold' field for the answer column.",
             placeholder="Answer the following question: {question}\nAnswer: {answer}"
         )
 
@@ -280,19 +281,19 @@ def template_builder_interface(available_columns):
                 st.warning("⚠️ No placeholders found in template")
 
         if instruction_template:
-            configured_fields['instruction_template'] = instruction_template
+            configured_fields[INSTRUCTION_TEMPLATE_KEY] = instruction_template
 
         st.markdown("**2. Instruction Variations (Optional)**")
         selected_variations = st.multiselect(
             "Variation types for instruction",
             options=variation_types,
-            default=st.session_state.template_config.get('instruction', []),
+            default=st.session_state.template_config.get(INSTRUCTION_KEY, []),
             key="instruction_variations",
             help="Select variation types to apply to the instruction"
         )
 
         if selected_variations:
-            configured_fields['instruction'] = selected_variations
+            configured_fields[INSTRUCTION_KEY] = selected_variations
 
     with field_tabs[1]:
         # Data fields configuration
@@ -348,7 +349,7 @@ def template_builder_interface(available_columns):
 
             if gold_format == "Simple":
                 # Simple format - just the field name
-                configured_fields['gold'] = gold_field
+                configured_fields[GOLD_KEY] = gold_field
 
                 # Show preview
                 df = st.session_state.uploaded_data
@@ -398,20 +399,20 @@ def template_builder_interface(available_columns):
                 if gold_type == "value":
                     # Simple format for value type
                     if options_field:
-                        configured_fields['gold'] = {
+                        configured_fields[GOLD_KEY] = {
                             'field': gold_field,
                             'type': gold_type,
                             'options_field': options_field
                         }
                     else:
-                        configured_fields['gold'] = {
+                        configured_fields[GOLD_KEY] = {
                             'field': gold_field,
                             'type': gold_type
                         }
                 else:
                     # Index type requires options field
                     if options_field:
-                        configured_fields['gold'] = {
+                        configured_fields[GOLD_KEY] = {
                             'field': gold_field,
                             'type': gold_type,
                             'options_field': options_field
@@ -507,7 +508,7 @@ def template_builder_interface(available_columns):
                 "Number of examples",
                 min_value=0,
                 max_value=min(10, available_rows - 1) if available_rows > 1 else 0,
-                value=st.session_state.template_config.get('few_shot', {}).get('count', dynamic_default),
+                value=st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('count', dynamic_default),
                 key="few_shot_count",
                 help=f"Set to 0 to disable few-shot examples. Max available: {available_rows - 1 if available_rows > 1 else 0} (keeping 1 row for generation)"
             )
@@ -516,7 +517,7 @@ def template_builder_interface(available_columns):
             few_shot_format = st.selectbox(
                 "Example selection",
                 options=["rotating", "fixed"],
-                index=0 if st.session_state.template_config.get('few_shot', {}).get('format',
+                index=0 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format',
                                                                                     'rotating') == 'rotating' else 1,
                 key="few_shot_format",
                 help="Rotating: different examples per row, Fixed: same examples for all rows"
@@ -532,11 +533,35 @@ def template_builder_interface(available_columns):
             )
 
         if few_shot_count > 0:
-            configured_fields['few_shot'] = {
+            configured_fields[FEW_SHOT_KEY] = {
                 'count': few_shot_count,
                 'format': few_shot_format,
                 'split': few_shot_split
             }
+
+    # System prompt configuration (new tab)
+    with field_tabs[5]:
+        st.markdown("**System Prompt Configuration**")
+        st.write("Configure the system prompt for your template (optional):")
+
+        system_prompt_template = st.text_area(
+            "System prompt template (optional):",
+            value=st.session_state.template_config.get(SYSTEM_PROMPT_TEMPLATE_KEY, ''),
+            key=SYSTEM_PROMPT_TEMPLATE_KEY,
+            help="System prompt for the model, e.g. 'You are a helpful assistant.'"
+        )
+        if system_prompt_template:
+            configured_fields[SYSTEM_PROMPT_TEMPLATE_KEY] = system_prompt_template
+
+        system_prompt_variations = st.multiselect(
+            "Variation types for system prompt (optional):",
+            options=variation_types,
+            default=st.session_state.template_config.get(SYSTEM_PROMPT_KEY, []),
+            key="system_prompt_variations",
+            help="Select variation types to apply to the system prompt"
+        )
+        if system_prompt_variations:
+            configured_fields[SYSTEM_PROMPT_KEY] = system_prompt_variations
 
     # Template preview and validation
     st.markdown("### 2. Template Preview")
@@ -561,9 +586,9 @@ def template_builder_interface(available_columns):
             # Show field summary
             field_summary = []
             for field_name, config in configured_fields.items():
-                if field_name == 'few_shot':
+                if field_name == FEW_SHOT_KEY:
                     summary = f"**{field_name}**: {config['count']} {config['format']} examples from {config['split']} data"
-                elif field_name == 'gold':
+                elif field_name == GOLD_KEY:
                     if isinstance(config, str):
                         summary = f"**{field_name}**: {config} (simple format)"
                     elif isinstance(config, dict):
@@ -576,6 +601,15 @@ def template_builder_interface(available_columns):
                         summary = f"**{field_name}**: {config}"
                 elif field_name == 'enumerate':
                     summary = f"**{field_name}**: {config['field']} field with {config['type']} enumeration"
+                elif field_name == SYSTEM_PROMPT_TEMPLATE_KEY:
+                    st.markdown(f"""
+                    <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
+                                border-radius: 6px; border-left: 3px solid #1976d2;">
+                        <strong style="color: #1976d2;">⚙️ {field_name}:</strong>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    quoted_value = f'"{config}"'
+                    st.code(quoted_value, language="text")
                 else:
                     variations = ', '.join(config) if isinstance(config, list) else str(config)
                     summary = f"**{field_name}**: {variations}"
@@ -597,13 +631,13 @@ def template_builder_interface(available_columns):
     template_errors = []
 
     # Check if few-shot is configured and gold is required
-    if 'few_shot' in configured_fields:
-        few_shot_count = configured_fields['few_shot'].get('count', 0)
-        if few_shot_count > 0 and 'gold' not in configured_fields:
+    if FEW_SHOT_KEY in configured_fields:
+        few_shot_count = configured_fields[FEW_SHOT_KEY].get('count', 0)
+        if few_shot_count > 0 and GOLD_KEY not in configured_fields:
             template_errors.append("Gold field is required when using few-shot examples")
 
     # Check if instruction template is provided
-    if 'instruction_template' not in configured_fields:
+    if INSTRUCTION_TEMPLATE_KEY not in configured_fields:
         template_errors.append("Instruction template is required")
 
     # Display validation errors
@@ -651,7 +685,7 @@ def display_selected_template_details(available_columns):
 
     # Display template in a clean, expanded format with colors
     for key, value in template.items():
-        if key == 'instruction_template':
+        if key == INSTRUCTION_TEMPLATE_KEY:
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
                         border-radius: 6px; border-left: 3px solid #2196f3;">
@@ -662,7 +696,7 @@ def display_selected_template_details(available_columns):
             quoted_value = f'"{value}"'
             st.code(quoted_value, language="text")
 
-        elif key == 'few_shot' and isinstance(value, dict):
+        elif key == FEW_SHOT_KEY and isinstance(value, dict):
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%); 
                         border-radius: 6px; border-left: 3px solid #9c27b0;">
@@ -671,7 +705,7 @@ def display_selected_template_details(available_columns):
             </div>
             """, unsafe_allow_html=True)
 
-        elif key == 'gold':
+        elif key == GOLD_KEY:
             if isinstance(value, str):
                 gold_text = f"{value} (simple format)"
             elif isinstance(value, dict):
@@ -701,7 +735,16 @@ def display_selected_template_details(available_columns):
             </div>
             """, unsafe_allow_html=True)
 
-        elif isinstance(value, list):
+        elif key == SYSTEM_PROMPT_TEMPLATE_KEY:
+            st.markdown(f"""
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
+                        border-radius: 6px; border-left: 3px solid #1976d2;">
+                <strong style="color: #1976d2;">⚙️ {key}:</strong>
+            </div>
+            """, unsafe_allow_html=True)
+            quoted_value = f'"{value}"'
+            st.code(quoted_value, language="text")
+        elif key == SYSTEM_PROMPT_KEY:
             variations_text = ', '.join(value)
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%); 
@@ -710,7 +753,6 @@ def display_selected_template_details(available_columns):
                 <span style="color: #1b5e20;">{variations_text}</span>
             </div>
             """, unsafe_allow_html=True)
-
         else:
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%); 

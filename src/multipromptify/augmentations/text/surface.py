@@ -8,7 +8,7 @@ import numpy as np
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.shared.constants import TextSurfaceAugmenterConstants
-from multipromptify.core.template_keys import REWORDING, INSTRUCTION_TEMPLATE_FIELD
+from multipromptify.core.template_keys import REWORDING, INSTRUCTION_TEMPLATE_KEY
 
 
 class TextSurfaceAugmenter(BaseAxisAugmenter):
