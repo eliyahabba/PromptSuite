@@ -33,10 +33,11 @@ def example_with_sample_data_few_shot():
 
     # Set template with few-shot configuration
     template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Answer the math question:\nQuestion: {question}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING],  # surface variations
-        GOLD_KEY: 'answer',
-        FEW_SHOT_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about math.',
+        'instruction_template': 'Question: {question}\nAnswer: {answer}',
+        'question': [REWORDING],  # surface variations
+        'gold': 'answer',
+        'few_shot': {
             'count': 2,  # Use 2 examples
             'format': 'rotating',  # Different examples each time
             'split': 'all'  # Use all data for examples
@@ -104,9 +105,10 @@ def example_with_enumerate():
     # Configure template with enumerate
     print("\n2. Setting template with enumerate...")
     template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING],
-        GOLD_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        'question': [REWORDING],
+        'gold': {
             'field': 'answer',
             'type': 'index',
             'options_field': 'options'
@@ -184,8 +186,14 @@ def example_enumerate_types():
         print(f"\n--- {description} ({enum_type}) ---")
         
         template = {
-            INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-            GOLD_KEY: {'field': 'answer', 'type': 'index', 'options_field': 'options'},
+            'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+            'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+            'question': [REWORDING],
+            'gold': {
+                'field': 'answer',
+                'type': 'index',
+                'options_field': 'options'
+            },
             ENUMERATE_VARIATION: {
                 'field': 'options',
                 'type': enum_type
@@ -244,9 +252,10 @@ def example_with_sample_data():
     # Configure template (dictionary format)
     print("\n2. Setting template...")
     template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-        OPTIONS_KEY: [REWORDING, SHUFFLE_VARIATION],
-        GOLD_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        'options': [REWORDING, SHUFFLE_VARIATION],
+        'gold': {
             'field': 'answer',
             'type': 'index',  # This means answer field contains indices, not text
             'options_field': 'options'
@@ -320,9 +329,10 @@ def example_platform_switching():
     
     # Simple template with paraphrase (requires API key)
     template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nAnswer: {answer}',
-        INSTRUCTION_KEY: [PARAPHRASE_WITH_LLM],
-        GOLD_KEY: 'answer'  # Simple format - just the field name
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Question: {question}\nAnswer: {answer}',
+        'question': [PARAPHRASE_WITH_LLM],
+        'gold': 'answer'  # Simple format - just the field name
     }
     mp.set_template(template)
     
@@ -361,12 +371,11 @@ def example_with_huggingface():
 
         # Classic QA template with gold field expression for SQuAD
         template = {
-            "instruction_template": "Read the context and answer the question.\\nContext: {context}\\nQuestion: {question}\\nAnswer:",
-            # "instruction": ["paraphrase_with_llm"],  # Paraphrase the instruction
-            "context": ["rewording"],                # Reword the context
-            "question": [],
-            # Use a Python expression to extract the first answer text from the dict
-            "gold": "answers['text'][0]"
+            'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+            'instruction_template': 'Read the context and answer the question.\\nContext: {context}\\nQuestion: {question}\\nAnswer:',
+            'context': [REWORDING],                # Reword the context
+            'question': [],
+            'gold': "answers['text'][0]"
         }
         mp.set_template(template)
         mp.configure(max_rows=3, variations_per_field=1, max_variations=1)
@@ -394,17 +403,19 @@ def example_different_templates():
     
     # Simple QA template (text-based answers)
     simple_template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING],
-        GOLD_KEY: 'answer'  # Simple format for text answers
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Question: {question}\nAnswer: {answer}',
+        'question': [REWORDING],
+        'gold': 'answer'  # Simple format for text answers
     }
     
     # Multiple choice template (index-based answers)
     multiple_choice_template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Choose the correct answer:\nQ: {question}\nOptions: {options}\nA: {answer}',
-        QUESTION_KEY: [REWORDING, REWORDING],
-        OPTIONS_KEY: [REWORDING, REWORDING],
-        GOLD_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Choose the correct answer:\nQ: {question}\nOptions: {options}\nA: {answer}',
+        'question': [REWORDING, REWORDING],
+        'options': [REWORDING, REWORDING],
+        'gold': {
             'field': 'answer',
             'type': 'index',  # Answer is index in options
             'options_field': 'options'
@@ -413,11 +424,11 @@ def example_different_templates():
     
     # Complex template with multiple variations
     complex_template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
-        INSTRUCTION_KEY: [PARAPHRASE_WITH_LLM],
-        CONTEXT_KEY: [REWORDING, PARAPHRASE_WITH_LLM],
-        QUESTION_KEY: [REWORDING],
-        GOLD_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
+        'context': [REWORDING, PARAPHRASE_WITH_LLM],
+        'question': [REWORDING],
+        'gold': {
             'field': 'answer',
             'type': 'value'  # Answer is text value
         },
@@ -431,16 +442,16 @@ def example_different_templates():
     # Platform-specific template with different configurations
     platform_templates = {
         'TogetherAI': {
-            INSTRUCTION_TEMPLATE_KEY: 'Using Llama model: {question}\nAnswer: {answer}',
-            INSTRUCTION_KEY: [PARAPHRASE_WITH_LLM],
-            QUESTION_KEY: [REWORDING],
-            GOLD_KEY: 'answer'
+            'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+            'instruction_template': 'Using Llama model: {question}\nAnswer: {answer}',
+            'question': [REWORDING],
+            'gold': 'answer'
         },
         'OpenAI': {
-            INSTRUCTION_TEMPLATE_KEY: 'Using GPT model: {question}\nAnswer: {answer}',
-            INSTRUCTION_KEY: [PARAPHRASE_WITH_LLM],
-            QUESTION_KEY: [REWORDING],
-            GOLD_KEY: 'answer'
+            'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+            'instruction_template': 'Using GPT model: {question}\nAnswer: {answer}',
+            'question': [REWORDING],
+            'gold': 'answer'
         }
     }
     
@@ -482,14 +493,15 @@ def example_gold_field_formats():
     print("   Data:", index_data[0])
     
     index_template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Q: {question}\nOptions: {options}\nA: {answer}',
-        GOLD_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Q: {question}\nOptions: {options}\nA: {answer}',
+        'gold': {
             'field': 'answer',
             'type': 'index',
             'options_field': 'options'
         }
     }
-    print("   Template gold config:", index_template[GOLD_KEY])
+    print("   Template gold config:", index_template['gold'])
     
     print("\n2. Value-based multiple choice data:")
     value_data = [
@@ -502,29 +514,15 @@ def example_gold_field_formats():
     print("   Data:", value_data[0])
     
     value_template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Q: {question}\nOptions: {options}\nA: {answer}',
-        GOLD_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Q: {question}\nOptions: {options}\nA: {answer}',
+        'gold': {
             'field': 'answer',
             'type': 'value',
             'options_field': 'options'
         }
     }
-    print("   Template gold config:", value_template[GOLD_KEY])
-    
-    print("\n3. Simple text answer data:")
-    text_data = [
-        {
-            "question": "What is the capital of France?",
-            "answer": "Paris"
-        }
-    ]
-    print("   Data:", text_data[0])
-    
-    text_template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Q: {question}\nA: {answer}',
-        GOLD_KEY: 'answer'  # Simple format
-    }
-    print("   Template gold config:", text_template[GOLD_KEY])
+    print("   Template gold config:", value_template['gold'])
 
 
 def example_environment_variables():
@@ -580,10 +578,10 @@ def example_with_simple_qa():
 
     # Set a simple QA template
     template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Question: {problem}\nAnswer: {answer}',
-        PROBLEM_KEY: [REWORDING],
-        GOLD_KEY: 'answer',
-        FEW_SHOT_KEY: {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Question: {problem}\nAnswer: {answer}',
+        'gold': 'answer',
+        'few_shot': {
             'count': 2,
             'format': 'rotating',
             'split': 'all'
@@ -630,8 +628,9 @@ def example_answer_the_question_prompt_only():
 
     # Template: instructs to answer the question, but does not include the answer
     template = {
-        INSTRUCTION_TEMPLATE_KEY: 'Please answer the following question:\n{question}',
-        QUESTION_KEY: [REWORDING]
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about general knowledge.',
+        'instruction_template': 'Please answer the following question:\n{question}',
+        'question': [REWORDING]
     }
     mp.set_template(template)
 
@@ -650,20 +649,147 @@ def example_answer_the_question_prompt_only():
     mp.info()
 
 
+def example_with_system_prompt_few_shot():
+    mp = MultiPromptifier()
+    data = pd.DataFrame({
+        'question': ['What is 2+2?', 'What is 3*3?', 'What is 5+3?'],
+        'answer': ['4', '9', '8']
+    })
+    mp.load_dataframe(data)
+    template = {
+        'system_prompt_template': 'You are a helpful math assistant. Answer clearly.',
+        'instruction_template': 'Question: {question}\nAnswer: {answer}',
+        'question': [REWORDING],
+        'gold': 'answer',
+        'few_shot': {
+            'count': 2,
+            'format': 'rotating',
+            'split': 'all'
+        }
+    }
+    mp.set_template(template)
+    mp.configure(max_rows=3, variations_per_field=1)
+    variations = mp.generate(verbose=True)
+    print("\n=== System Prompt Few-shot Example ===")
+    for v in variations:
+        print(v['prompt'])
+        print("--- Conversation:")
+        for msg in v['conversation']:
+            print(f"[{msg['role']}] {msg['content']}")
+        print("====================\n")
+
+
+def example_system_prompt_with_placeholder():
+    print("\n=== System Prompt with Placeholder Example ===")
+    mp = MultiPromptifier()
+    data = pd.DataFrame({
+        'question': [
+            'What is the largest planet in our solar system?',
+            'Which chemical element has the symbol O?',
+            'What is the fastest land animal?',
+            'What is the smallest prime number?',
+            'Which continent is known as the \"Dark Continent\"?'
+        ],
+        'options': [
+            'Earth, Jupiter, Mars, Venus',
+            'Oxygen, Gold, Silver, Iron',
+            'Lion, Cheetah, Horse, Leopard',
+            '1, 2, 3, 0',
+            'Asia, Africa, Europe, Australia'
+        ],
+        'answer': [1, 0, 1, 1, 1],
+        'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
+    })
+    mp.load_dataframe(data)
+    template = {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
+        'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer:',
+        'question': [REWORDING],
+        'options': ['shuffle'],
+        'gold': {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        }
+    }
+    mp.set_template(template)
+    mp.configure(max_rows=5, variations_per_field=1)
+    variations = mp.generate(verbose=True)
+    for i, var in enumerate(variations):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(var['prompt'])
+        print("-" * 50)
+
+
+def example_system_prompt_with_placeholder_and_few_shot():
+    print("\n=== System Prompt with Placeholder + Few-shot Example ===")
+    mp = MultiPromptifier()
+    data = pd.DataFrame({
+        'question': [
+            'What is the largest planet in our solar system?',
+            'Which chemical element has the symbol O?',
+            'What is the fastest land animal?',
+            'What is the smallest prime number?',
+            'Which continent is known as the \"Dark Continent\"?'
+        ],
+        'options': [
+            'Earth, Jupiter, Mars, Venus',
+            'Oxygen, Gold, Silver, Iron',
+            'Lion, Cheetah, Horse, Leopard',
+            '1, 2, 3, 0',
+            'Asia, Africa, Europe, Australia'
+        ],
+        'answer': [1, 0, 1, 1, 1],
+        'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
+    })
+    mp.load_dataframe(data)
+    template = {
+        'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
+        'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer:',
+        'question': [REWORDING],
+        'options': ['shuffle'],
+        'gold': {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        'few_shot': {
+            'count': 2,
+            'format': 'rotating',
+            'split': 'all'
+        }
+    }
+    mp.set_template(template)
+    mp.configure(max_rows=5, variations_per_field=1)
+    variations = mp.generate(verbose=True)
+    for i, var in enumerate(variations):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(var['prompt'])
+        print("--- Conversation:")
+        for msg in var['conversation']:
+            print(f"[{msg['role']}] {msg['content']}")
+        print("-" * 50)
+
+
 if __name__ == "__main__":
     # Run the examples
     # example_with_sample_data()
     # example_with_enumerate()
     # example_enumerate_types()
-    
+
     # Uncomment other examples as needed:
-    example_with_sample_data_few_shot()
+    # example_with_sample_data_few_shot()
+    # example_with_system_prompt_few_shot()
     # example_platform_switching()
     # example_with_huggingface()
     # example_different_templates()
     # example_gold_field_formats()
     # example_environment_variables()
     # example_with_simple_qa()
+    # example_system_prompt_with_placeholder()
+    example_system_prompt_with_placeholder_and_few_shot()
     print("\n🎉 All examples completed!")
     print("\nNext steps:")
     print("1. Install datasets library: pip install datasets")
@@ -672,4 +798,4 @@ if __name__ == "__main__":
     print("   export OPENAI_API_KEY='your_openai_key'")
     print("3. Try the new enumerate feature in your templates:")
     print("   'enumerate': {'field': 'options', 'type': '1234'}")
-    print("4. Try with your own data and templates") 
+    print("4. Try with your own data and templates")

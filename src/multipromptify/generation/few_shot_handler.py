@@ -45,23 +45,9 @@ class FewShotHandler:
         gold_field: str, 
         few_shot_fields: list
     ) -> None:
-        """
-        Validate that gold field is provided when needed for few-shot examples.
-        Centralized validation logic from engine.py and fewshot.py.
-        """
-        needs_gold_field = False
-        
-        # Check if few-shot is configured (needs to separate input from output)
-        if few_shot_fields and len(few_shot_fields) > 0:
-            needs_gold_field = True
-        
-        # Check if instruction template has the gold field placeholder
-        if instruction_template and gold_field:
-            gold_placeholder = f'{{{gold_field}}}'
-            if gold_placeholder in instruction_template:
-                needs_gold_field = True
-        
-        if needs_gold_field and not gold_field:
+        """Validate that gold field is provided when needed for few-shot examples."""
+        # Simple check: if we have few-shot fields but no gold field, that's an error
+        if few_shot_fields and not gold_field:
             raise FewShotGoldFieldMissingError()
 
     def validate_data_sufficiency(
@@ -70,21 +56,9 @@ class FewShotHandler:
         few_shot_config: FewShotConfig,
         current_row_idx: int
     ) -> None:
-        """
-        Check if we have enough data for few-shot examples.
-        Centralized from fewshot.py data sufficiency checking.
-        """
-        if data is None or len(data) == 0:
-            raise FewShotDataInsufficientError(few_shot_config.count, 0)
-        
-        # Get available data based on split configuration
-        available_data = self._filter_data_by_split(data, few_shot_config.split)
-        
-        # Remove current row to avoid data leakage
-        available_data = available_data.drop(current_row_idx, errors='ignore')
-        
-        if len(available_data) < few_shot_config.count:
-            raise FewShotDataInsufficientError(few_shot_config.count, len(available_data), few_shot_config.split)
+        """Check if we have enough data for few-shot examples."""
+        if data is None or len(data) <= few_shot_config.count:
+            raise FewShotDataInsufficientError(few_shot_config.count, len(data) if data is not None else 0)
 
     def parse_few_shot_config(self, config: dict) -> FewShotConfig:
         """
@@ -172,50 +146,36 @@ class FewShotHandler:
         variation_count: int
     ) -> Optional[Dict[str, Any]]:
         """Build a single variation from a combination of field values."""
-        
         field_values = dict(zip(varying_fields, combination))
         instruction_variant = field_values.get(
             INSTRUCTION_KEY, 
             variation_context.field_variations.get(INSTRUCTION_KEY, [FieldVariation(data='', gold_update=None)])[0]
         ).data
-        
         # Extract row values and gold updates
         row_values, gold_updates = self._extract_row_values_and_updates(
             variation_context, field_values
         )
-        
         # Generate few-shot examples
         few_shot_examples = self._generate_few_shot_examples(
             few_shot_field, instruction_variant, variation_context
         )
-        
         # Create main input
         main_input = self._create_main_input(
-            instruction_variant, row_values, variation_context.gold_config, variation_context, prompt_builder
+            instruction_variant, row_values, variation_context.gold_config, prompt_builder
         )
-        
+        # Get system prompt template if present, and fill with row values
+        system_prompt_template = variation_context.template.get('system_prompt_template')
+        if system_prompt_template:
+            # Fill placeholders in system prompt using row values
+            system_prompt_template = prompt_builder.fill_template_placeholders(system_prompt_template, row_values)
         # Format conversation and prompt
-        conversation_messages = self._format_conversation(few_shot_examples, main_input)
-        final_prompt = self._format_final_prompt(few_shot_examples, main_input)
-        
+        conversation_messages = self._format_conversation(few_shot_examples, main_input, system_prompt_template)
+        final_prompt = self._format_final_prompt(few_shot_examples, main_input, system_prompt_template)
         # Prepare output field values
         output_field_values = {
             field_name: field_data.data 
             for field_name, field_data in field_values.items()
         }
-        
-        # # Always set gold_updates: if no updates, set to original gold value
-        # gold_field = variation_context.gold_config.field
-        # if gold_field:
-        #     # if not gold_updates:
-        #     #     # Use the value from row_values (already formatted)
-        #     #     gold_value = row_values.get(gold_field)
-        #     #     gold_updates_final = {gold_field: gold_value}
-        #     # else:
-        #     gold_updates_final = gold_updates
-        # else:
-        #     gold_updates_final = gold_updates if gold_updates else None
-
         return {
             'prompt': final_prompt,
             'conversation': conversation_messages,
@@ -299,7 +259,7 @@ class FewShotHandler:
         instruction_variant: str, 
         variation_context: VariationContext
     ) -> List[Dict[str, str]]:
-        """Generate few-shot examples if configured."""
+        """Generate few-shot examples if configured, with system prompt support."""
         if not few_shot_field or variation_context.data is None:
             return []
         
@@ -310,26 +270,28 @@ class FewShotHandler:
             current_row_idx=variation_context.row_index,
             gold_config=variation_context.gold_config
         )
-        
-        return self.few_shot_augmenter.augment(
+        examples = self.few_shot_augmenter.augment(
             instruction_variant, 
             few_shot_context.to_identification_data()
         )
+        # Inject system prompt only in the first example if present
+        system_prompt_template = variation_context.template.get('system_prompt_template')
+        if system_prompt_template and examples:
+            examples[0]['system_prompt'] = system_prompt_template
+        return examples
 
     def _create_main_input(
         self, 
         instruction_variant: str, 
         row_values: Dict[str, str], 
         gold_config, 
-        variation_context: VariationContext,
         prompt_builder
     ) -> str:
         """Create the main input by filling template with row values."""
-        # Gold field conversion is now handled in _extract_row_values_and_updates
         main_input = prompt_builder.fill_template_placeholders(instruction_variant, row_values)
         
-        # Remove gold field placeholder if it wasn't included for some reason
-        if gold_config.field and gold_config.field not in row_values:
+        # Remove gold field placeholder (it's always excluded from row_values)
+        if gold_config.field:
             main_input = main_input.replace(f'{{{gold_config.field}}}', '')
         
         return main_input.strip()
@@ -338,11 +300,17 @@ class FewShotHandler:
     def _format_conversation(
         self, 
         few_shot_examples: List[Dict[str, str]], 
-        main_input: str
+        main_input: str,
+        system_prompt_template: str = None
     ) -> List[Dict[str, str]]:
-        """Format few-shot examples and main input as conversation messages."""
+        """Format few-shot examples and main input as conversation messages, with system prompt support."""
         conversation_messages = []
-        
+        # Always add system prompt if present
+        if system_prompt_template:
+            conversation_messages.append({
+                "role": "system",
+                "content": system_prompt_template
+            })
         # Add few-shot examples as conversation pairs
         for example in few_shot_examples:
             conversation_messages.append({
@@ -353,29 +321,28 @@ class FewShotHandler:
                 "role": "assistant",
                 "content": example["output"]
             })
-        
         # Add main input as final user message
         if main_input:
             conversation_messages.append({
                 "role": "user",
                 "content": main_input
             })
-        
         return conversation_messages
 
     def _format_final_prompt(
         self, 
         few_shot_examples: List[Dict[str, str]], 
-        main_input: str
+        main_input: str,
+        system_prompt_template: str = None
     ) -> str:
-        """Format few-shot examples and main input as a single prompt string."""
+        """Format few-shot examples and main input as a single prompt string, with system prompt support."""
         prompt_parts = []
-        
+        # Always add system prompt if present
+        if system_prompt_template:
+            prompt_parts.append(system_prompt_template)
         if few_shot_examples:
             few_shot_content = self.few_shot_augmenter.format_few_shot_as_string(few_shot_examples)
             prompt_parts.append(few_shot_content)
-        
         if main_input:
             prompt_parts.append(main_input)
-        
         return '\n\n'.join(prompt_parts) 

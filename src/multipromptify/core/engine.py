@@ -27,7 +27,7 @@ from pathlib import Path
 import ast
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING
+    PARAPHRASE_WITH_LLM, REWORDING, SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
 )
 from multipromptify.shared.constants import GenerationDefaults
 import re

@@ -9,6 +9,8 @@ CONTEXT_KEY = "context"
 PROBLEM_KEY = "problem"
 GOLD_FIELD = "gold"
 INSTRUCTION_TEMPLATE_FIELD = "instruction_template"
+SYSTEM_PROMPT_TEMPLATE_KEY = "system_prompt_template"
+SYSTEM_PROMPT_KEY = "system_prompt"
 
 # Variation types (values)
 PARAPHRASE_WITH_LLM = "paraphrase_with_llm"  # replaces 'paraphrase'

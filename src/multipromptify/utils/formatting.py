@@ -101,7 +101,7 @@ def convert_index_to_value(row: pd.Series, gold_field: str, gold_type: str, opti
                 # Return the actual option text, cleaned up
                 return options_list[index].strip()
 
-        except (ValueError, IndexError, Exception):
+        except (ValueError, IndexError):
             pass
 
     # Fallback: return the gold value as string

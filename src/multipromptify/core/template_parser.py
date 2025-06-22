@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from multipromptify.core.exceptions import InvalidTemplateFieldError
 from multipromptify.core.template_keys import (
     INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING
+    PARAPHRASE_WITH_LLM, REWORDING, SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
 )
 
 
@@ -52,6 +52,7 @@ class TemplateParser:
     def __init__(self):
         self.fields: List[TemplateField] = []
         self.instruction_template: Optional[str] = None
+        self.system_prompt_template: Optional[str] = None
         
     def parse(self, template: dict) -> List[TemplateField]:
         """
@@ -68,6 +69,7 @@ class TemplateParser:
         
         self.fields = []
         self.instruction_template = None
+        self.system_prompt_template = None
         
         # Extract instruction template if provided
         if INSTRUCTION_TEMPLATE_KEY in template:
@@ -76,6 +78,18 @@ class TemplateParser:
         for field_name, config in template.items():
             if field_name == INSTRUCTION_TEMPLATE_KEY:
                 # Skip - already handled above
+                continue
+            elif field_name == SYSTEM_PROMPT_TEMPLATE_KEY:
+                self.system_prompt_template = config
+                continue
+            elif field_name == SYSTEM_PROMPT_KEY:
+                # Accept as a variation field
+                field = TemplateField(
+                    name=SYSTEM_PROMPT_KEY,
+                    variation_types=config if isinstance(config, list) else [config],
+                    is_literal=False
+                )
+                self.fields.append(field)
                 continue
             elif field_name == GOLD_KEY:
                 # Skip - gold is metadata, not a field
@@ -129,6 +143,10 @@ class TemplateParser:
     def get_instruction_template(self) -> Optional[str]:
         """Get the instruction template string."""
         return self.instruction_template
+    
+    def get_system_prompt_template(self) -> Optional[str]:
+        """Get the system prompt template string."""
+        return self.system_prompt_template
     
     def get_required_columns(self, template: dict = None) -> Set[str]:
         """

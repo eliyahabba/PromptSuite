@@ -100,8 +100,13 @@ def template_suggestions_interface(available_columns):
             for template in category_info['templates']:
                 # Get required fields from new dictionary format
                 template_dict = template['template']
-                required_fields = [k for k in template_dict.keys() if
-                                   k not in ['instruction', 'few_shot', 'instruction_template', 'gold', 'enumerate']]
+                required_fields = [
+                    k for k in template_dict.keys()
+                    if k not in [
+                        'instruction', 'few_shot', 'instruction_template', 'gold', 'enumerate',
+                        'system_prompt_template', 'system_prompt'
+                    ]
+                ]
 
                 # Check if gold field value exists in columns
                 if GOLD_KEY in template_dict:
@@ -238,8 +243,9 @@ def template_builder_interface(available_columns):
 
     # Available columns display
     st.markdown("**Available data columns:**")
-    cols = st.columns(min(len(available_columns), 4))
-    for i, col in enumerate(available_columns):
+    filtered_columns = [col for col in available_columns if col not in ['system_prompt_template', 'system_prompt']]
+    cols = st.columns(min(len(filtered_columns), 4))
+    for i, col in enumerate(filtered_columns):
         with cols[i % 4]:
             st.code(col, language="text")
 
@@ -293,7 +299,7 @@ def template_builder_interface(available_columns):
         st.markdown("**Data Fields Configuration**")
         st.write("Configure variations for your data columns:")
 
-        for field_name in available_columns:
+        for field_name in filtered_columns:
             with st.expander(f"Configure '{field_name}' field"):
                 selected_variations = st.multiselect(
                     f"Variations for {field_name}",

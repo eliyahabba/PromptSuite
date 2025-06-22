@@ -101,8 +101,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Sentiment Analysis',
                         'template': {
-                            'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'Classify the sentiment of the following text.',
+                            'instruction_template': 'Text: "{text}"\nSentiment: {label}',
                             'text': [REWORDING],
                             'gold': {
                                 'field': 'label',
@@ -118,8 +118,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Advanced Sentiment with Few-shot',
                         'template': {
-                            'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nSentiment: {label}',
-                            'instruction': [PARAPHRASE_WITH_LLM, REWORDING],
+                            'system_prompt_template': 'Classify the sentiment of the following text.',
+                            'instruction_template': 'Text: "{text}"\nSentiment: {label}',
                             'text': [REWORDING, CONTEXT_KEY],
                             'gold': {
                                 'field': 'label',
@@ -149,8 +149,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Q&A',
                         'template': {
-                            'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'Please answer the following question.',
+                            'instruction_template': 'question: {question}\nanswer: {answer}',
                             'question': [REWORDING],
                             'gold': {
                                 'field': 'answer',
@@ -167,8 +167,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Q&A with Context and Few-shot',
                         'template': {
-                            'instruction_template': 'Based on the context, answer the question:\nContext: {context}\nQuestion: {question}\nAnswer: {answer}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'Based on the context, answer the question.',
+                            'instruction_template': 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
                             'question': [REWORDING, PARAPHRASE_WITH_LLM],
                             'context': [CONTEXT_KEY],
                             'gold': {
@@ -200,8 +200,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Multiple Choice',
                         'template': {
-                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': [REWORDING],
+                            'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
+                            'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             'question': [REWORDING],
                             'options': ['shuffle'],
                             'gold': {
@@ -221,8 +221,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Complex Multiple Choice with Few-shot',
                         'template': {
-                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': [REWORDING],
+                            'system_prompt_template': 'The following are multiple choice questions (with answers).',
+                            'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             'question': [REWORDING],
                             'options': ['shuffle', REWORDING],
                             'gold': {
@@ -248,8 +248,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Enumerated Multiple Choice',
                         'template': {
-                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'The following are multiple choice questions (with answers).',
+                            'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             'question': [REWORDING],
                             'gold': {
                                 'field': 'answer',
@@ -273,8 +273,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Lettered Multiple Choice with Enumerate',
                         'template': {
-                            'instruction_template': 'Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'The following are multiple choice questions (with answers).',
+                            'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             'question': [REWORDING],
                             'gold': {
                                 'field': 'answer',
@@ -306,8 +306,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Text Classification',
                         'template': {
-                            'instruction_template': 'Classify the following text into a category:\nText: "{text}"\nCategory: {category}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'Classify the following text into a category.',
+                            'instruction_template': 'Text: "{text}"\nCategory: {category}',
                             'text': [REWORDING],
                             'gold': {
                                 'field': 'category',
@@ -323,8 +323,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Multi-field Text Classification',
                         'template': {
-                            'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
-                            'instruction': [PARAPHRASE_WITH_LLM, REWORDING],
+                            'system_prompt_template': 'Classify the following text.',
+                            'instruction_template': 'Text: "{text}"\nCategory: {category}',
                             'text': [REWORDING, CONTEXT_KEY],
                             'category': [],  # No variations for output
                             'gold': {
@@ -341,8 +341,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Text Classification with Few-shot',
                         'template': {
-                            'instruction_template': 'Classify the following text:\nText: "{text}"\nCategory: {category}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'Classify the following text.',
+                            'instruction_template': 'Text: "{text}"\nCategory: {category}',
                             'text': [REWORDING],
                             'gold': {
                                 'field': 'category',
@@ -372,8 +372,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Multi-Variation Classification',
                         'template': {
-                            'instruction_template': 'Classify the sentiment of the following text:\nText: "{text}"\nLabel: {label}',
-                            'instruction': [PARAPHRASE_WITH_LLM, REWORDING],
+                            'system_prompt_template': 'Classify the sentiment of the following text.',
+                            'instruction_template': 'Text: "{text}"\nLabel: {label}',
                             'text': [REWORDING, CONTEXT_KEY],
                             'label': [],
                             'gold': {
@@ -395,8 +395,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Complex Q&A with Fixed Examples',
                         'template': {
-                            'instruction_template': 'Answer the following question:\nQuestion: {question}\nAnswer: {answer}',
-                            'instruction': [PARAPHRASE_WITH_LLM],
+                            'system_prompt_template': 'Answer the following question.',
+                            'instruction_template': 'Question: {question}\nAnswer: {answer}',
                             'question': [REWORDING, PARAPHRASE_WITH_LLM],
                             'answer': [],
                             'gold': {
@@ -414,6 +414,33 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'question': ['What is the capital of France?', 'How many days in a week?',
                                          'Who wrote Romeo and Juliet?'],
                             'answer': ['Paris', '7', 'Shakespeare']
+                        }
+                    }
+                ]
+            },
+
+            # Add system prompt support to template suggestions and session state
+            'system_prompt_template': {
+                'category_name': 'System Prompt',
+                'description': 'Templates with a system prompt for the first few-shot example',
+                'templates': [
+                    {
+                        'name': 'Math QA with System Prompt',
+                        'template': {
+                            'system_prompt_template': 'You are a helpful math assistant. Answer clearly.',
+                            'instruction_template': 'Question: {question}\nAnswer: {answer}',
+                            'question': [REWORDING],
+                            'gold': 'answer',
+                            'few_shot': {
+                                'count': 2,
+                                'format': 'rotating',
+                                'split': 'all'
+                            }
+                        },
+                        'description': 'Few-shot QA with a system prompt only in the first example',
+                        'sample_data': {
+                            'question': ['What is 2+2?', 'What is 3*3?', 'What is 5+3?'],
+                            'answer': ['4', '9', '8']
                         }
                     }
                 ]
