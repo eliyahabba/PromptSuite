@@ -161,25 +161,19 @@ A typical output from `mp.generate()` or the exported JSON file looks like this 
 Below is a recommended way to define a template using all the main template keys from `multipromptify.core.template_keys`:
 
 ```python
-from multipromptify.core.template_keys import (
-  INSTRUCTION, INSTRUCTION_VARIATIONS,
-  PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS,
-  QUESTION_KEY, OPTIONS_KEY, GOLD_KEY, FEW_SHOT_KEY
-)
-
 template = {
-  INSTRUCTION: "You are a helpful assistant. Please answer the following questions.",
-  INSTRUCTION_VARIATIONS: ["rewording"],  # Variation types for the instruction
-  PROMPT_FORMAT: "Q: {question}\nOptions: {options}\nA: {answer}",
-  PROMPT_FORMAT_VARIATIONS: ["paraphrase_with_llm"],  # Variation types for the prompt format
-  QUESTION_KEY: ["rewording"],
-  OPTIONS_KEY: ["shuffle"],
-  GOLD_KEY: {
+  "instruction": "You are a helpful assistant. Please answer the following questions.",
+  "instruction variations": ["rewording"],  # Variation types for the instruction
+  "prompt format": "Q: {question}\nOptions: {options}\nA: {answer}",
+  "prompt format variations": ["paraphrase_with_llm"],  # Variation types for the prompt format
+  "question": ["rewording"],
+  "options": ["shuffle"],
+  "gold": {
     'field': 'answer',
     'type': 'index',
     'options_field': 'options'
   },
-  FEW_SHOT_KEY: {
+  "few_shot": {
     'count': 2,
     'format': 'rotating',
     'split': 'all'
