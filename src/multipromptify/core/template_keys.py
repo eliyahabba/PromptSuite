@@ -31,5 +31,6 @@ CONTEXT_VARIATION = "context"
 SHUFFLE_VARIATION = "shuffle"
 MULTIDOC_VARIATION = "multidoc"
 ENUMERATE_VARIATION = "enumerate"
+FEW_SHOT_VARIATION = "fewshot"
 
 # Add more as needed 
