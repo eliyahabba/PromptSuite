@@ -9,14 +9,17 @@ src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
 
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY,
+    PROBLEM_KEY,
+    GOLD_FIELD, INSTRUCTION_VARIATIONS, INSTRUCTION,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
 )
 
 REPLACEMENTS = {
-    'instruction_template': INSTRUCTION_TEMPLATE_KEY,
-    'instruction': INSTRUCTION_KEY,
+    'instruction': INSTRUCTION,
+    'instruction variations': INSTRUCTION_VARIATIONS,
+    'prompt format': PROMPT_FORMAT,
+    'prompt format variations': PROMPT_FORMAT_VARIATIONS,
     'question': QUESTION_KEY,
     'gold': GOLD_KEY,
     'few_shot': FEW_SHOT_KEY,
@@ -24,7 +27,6 @@ REPLACEMENTS = {
     'context': CONTEXT_KEY,
     'problem': PROBLEM_KEY,
     'gold_field': GOLD_FIELD,
-    'instruction_template_field': INSTRUCTION_TEMPLATE_KEY,
     'paraphrase': PARAPHRASE_WITH_LLM,
     'surface': REWORDING,
     'context_variation': CONTEXT_VARIATION,
@@ -37,6 +39,7 @@ DOCS_ROOTS = [
     project_root / 'README.md',
     project_root / 'docs',
 ]
+
 
 def update_docs():
     for root in DOCS_ROOTS:
@@ -55,5 +58,6 @@ def update_docs():
             file.write_text(text, encoding='utf-8')
             print(f"Updated {file}")
 
+
 if __name__ == '__main__':
-    update_docs() 
+    update_docs()
