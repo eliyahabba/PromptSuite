@@ -11,10 +11,10 @@ These constants should be used instead of hardcoded strings for clarity and cons
 """
 
 # Template keys
-SYSTEM_PROMPT_TEMPLATE_KEY = "system_prompt_template"  # System prompt at the top of each prompt (optional)
-SYSTEM_PROMPT_KEY = "system_prompt"                    # Variation types for the system prompt
-INSTRUCTION_TEMPLATE_KEY = "instruction_template"      # Main instruction template for each example
-INSTRUCTION_KEY = "instruction"                        # Variation types for the instruction template
+INSTRUCTION = "instruction"  # System prompt at the top of each prompt (optional)
+INSTRUCTION_VARIATIONS = "instruction variations"                    # Variation types for the system prompt
+PROMPT_FORMAT = "prompt format"      # Main instruction template for each example
+PROMPT_FORMAT_VARIATIONS = "prompt format variations"                         # Variation types for the instruction template
 QUESTION_KEY = "question"
 GOLD_KEY = "gold"
 FEW_SHOT_KEY = "few_shot"
