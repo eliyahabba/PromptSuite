@@ -58,6 +58,7 @@ data = pd.DataFrame({
 })
 
 template = {
+    'system_prompt_template': 'Please answer the following questions.',
     'instruction_template': 'Q: {question}\nA: {answer}',
     'question': ['rewording']
 }
@@ -68,6 +69,57 @@ mp.set_template(template)
 mp.configure(max_rows=2, variations_per_field=2)
 variations = mp.generate(verbose=True)
 print(variations)
+```
+
+## Multiple Choice with Dynamic System Prompt and Few-shot
+
+```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'question': [
+        'What is the largest planet in our solar system?',
+        'Which chemical element has the symbol O?',
+        'What is the fastest land animal?',
+        'What is the smallest prime number?',
+        'Which continent is known as the "Dark Continent"?'
+    ],
+    'options': [
+        'Earth, Jupiter, Mars, Venus',
+        'Oxygen, Gold, Silver, Iron',
+        'Lion, Cheetah, Horse, Leopard',
+        '1, 2, 3, 0',
+        'Asia, Africa, Europe, Australia'
+    ],
+    'answer': [1, 0, 1, 1, 1],
+    'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
+})
+
+template = {
+    'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
+    'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer:',
+    'question': ['rewording'],
+    'options': ['shuffle'],
+    'gold': {
+        'field': 'answer',
+        'type': 'index',
+        'options_field': 'options'
+    },
+    'few_shot': {
+        'count': 2,
+        'format': 'rotating',
+        'split': 'all'
+    }
+}
+
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=5, variations_per_field=1)
+variations = mp.generate(verbose=True)
+for v in variations:
+    print(v['prompt'])
 ```
 
 ## API Reference
@@ -209,7 +261,23 @@ mp.info()
 
 ## Template Format
 
-The API uses dictionary templates with the following structure:
+Templates use Python f-string syntax with custom variation annotations:
+
+```python
+"{instruction:semantic}: {few_shot}\n Question: {question:paraphrase_with_llm}\n Options: {options:non-semantic}"
+```
+
+### System Prompt
+- `system_prompt_template`: (optional) A general instruction that appears at the top of every prompt, before any few-shot or main question. You can use placeholders (e.g., `{subject}`) that will be filled from the data for each row.
+- `instruction_template`: The per-example template, usually containing the main question and placeholders for fields.
+
+Supported variation types:
+- `:paraphrase_with_llm` - Paraphrasing variations (LLM-based)
+- `:rewording` - Surface-level/wording variations (non-LLM)
+- `:context` - Context-based variations
+- `:shuffle` - Shuffle options/elements (for multiple choice)
+- `:multidoc` - Multi-document/context variations
+- `:enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4.)
 
 ### Required Fields
 
@@ -221,15 +289,6 @@ The API uses dictionary templates with the following structure:
 - `gold`: Gold answer configuration for tracking correct answers
 - `few_shot`: Few-shot examples configuration
 - `instruction`: Variations to apply to the instruction template itself
-
-### Variation Types
-
-- `paraphrase_with_llm`: Paraphrasing variations (LLM-based)
-- `rewording`: Surface-level/wording variations (non-LLM)
-- `context`: Context-based variations
-- `shuffle`: Shuffle options/elements (for multiple choice)
-- `multidoc`: Multi-document/context variations
-- `enumerate`: Enumerate list fields (e.g., 1. 2. 3. 4.)
 
 ### Gold Field Configuration
 

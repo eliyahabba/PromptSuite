@@ -87,7 +87,8 @@ mp.load_dataframe(pd.DataFrame(data))
 
 # Configure template with variation specifications
 template = {
-    'instruction_template': 'Q: {question}\nA: ',
+    'system_prompt_template': 'Please answer the following questions.',
+    'instruction_template': 'Q: {question}\nA: {answer}',
     'question': ['paraphrase_with_llm'],
 }
 mp.set_template(template)
@@ -162,6 +163,10 @@ Templates use Python f-string syntax with custom variation annotations:
 ```python
 "{instruction:semantic}: {few_shot}\n Question: {question:paraphrase_with_llm}\n Options: {options:non-semantic}"
 ```
+
+### System Prompt
+- `system_prompt_template`: (optional) A general instruction that appears at the top of every prompt, before any few-shot or main question. You can use placeholders (e.g., `{subject}`) that will be filled from the data for each row.
+- `instruction_template`: The per-example template, usually containing the main question and placeholders for fields.
 
 Supported variation types:
 - `:paraphrase_with_llm` - Paraphrasing variations (LLM-based)
@@ -290,6 +295,7 @@ data = pd.DataFrame({
 })
 
 template = {
+    'system_prompt_template': 'Please answer the following questions.',
     'instruction_template': 'Q: {question}\nA: {answer}',
     'question': ['rewording']
 }
@@ -363,34 +369,55 @@ mp.configure(
 variations = mp.generate(verbose=True)
 ```
 
-### Multiple Choice
+### Multiple Choice with Dynamic System Prompt and Few-shot
 
 ```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'question': [
+        'What is the largest planet in our solar system?',
+        'Which chemical element has the symbol O?',
+        'What is the fastest land animal?',
+        'What is the smallest prime number?',
+        'Which continent is known as the "Dark Continent"?'
+    ],
+    'options': [
+        'Earth, Jupiter, Mars, Venus',
+        'Oxygen, Gold, Silver, Iron',
+        'Lion, Cheetah, Horse, Leopard',
+        '1, 2, 3, 0',
+        'Asia, Africa, Europe, Australia'
+    ],
+    'answer': [1, 0, 1, 1, 1],
+    'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
+})
+
 template = {
-    'instruction_template': 'Answer the multiple choice question:\nContext: {context}\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}',
-    'instruction': ['semantic'],
-    'context': ['paraphrase_with_llm'],
+    'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
+    'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer:',
     'question': ['rewording'],
-    'options': ['shuffle', 'rewording'],
+    'options': ['shuffle'],
     'gold': {
         'field': 'answer',
         'type': 'index',
         'options_field': 'options'
+    },
+    'few_shot': {
+        'count': 2,
+        'format': 'rotating',
+        'split': 'all'
     }
 }
 
 mp = MultiPromptifier()
-mp.load_dataframe(mc_data)
+mp.load_dataframe(data)
 mp.set_template(template)
-mp.configure(
-    max_rows=GenerationDefaults.MAX_ROWS,
-    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
-    max_variations=GenerationDefaults.MAX_VARIATIONS,
-    random_seed=GenerationDefaults.RANDOM_SEED,
-    api_platform=GenerationDefaults.API_PLATFORM,
-    model_name=GenerationDefaults.MODEL_NAME
-)
+mp.configure(max_rows=5, variations_per_field=1)
 variations = mp.generate(verbose=True)
+for v in variations:
+    print(v['prompt'])
 ```
 
 ## Web UI Interface
