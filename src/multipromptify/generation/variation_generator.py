@@ -1,5 +1,5 @@
 """
-Variation Generator: Handles generation of field variations and instruction variations.
+Variation Generator: Handles generation of field variations and prompt_format variations.
 """
 
 from typing import Dict, List, Any
@@ -11,29 +11,29 @@ from multipromptify.core.models import (
 )
 from multipromptify.utils.formatting import format_field_value, extract_gold_value
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
+    GOLD_FIELD, PROMPT_FORMAT, INSTRUCTION_VARIATIONS
 )
 
 
 class VariationGenerator:
     """
-    Handles the generation of variations for fields and instructions.
+    Handles the generation of variations for fields and prompt_formats.
     """
 
-    def generate_instruction_variations(
+    def generate_prompt_format_variations(
             self,
-            instruction_template: str,
+            prompt_format: str,
             variation_fields: Dict[str, List[str]],
             variation_config: VariationConfig
     ) -> List[str]:
-        """Generate variations of the instruction template."""
+        """Generate variations of the prompt_format template."""
 
-        if INSTRUCTION_KEY not in variation_fields or not variation_fields[INSTRUCTION_KEY]:
-            return [instruction_template]
+        if PROMPT_FORMAT_VARIATIONS not in variation_fields or not variation_fields[PROMPT_FORMAT_VARIATIONS]:
+            return [prompt_format]
 
-        variation_types = variation_fields[INSTRUCTION_KEY]
+        variation_types = variation_fields[PROMPT_FORMAT_VARIATIONS]
         all_variations = []
 
         # Generate variations for each type
@@ -49,7 +49,7 @@ class VariationGenerator:
                 # Use Factory to handle augmentation with special cases
                 variations = AugmenterFactory.augment_with_special_handling(
                     augmenter=augmenter,
-                    text=instruction_template,
+                    text=prompt_format,
                     variation_type=variation_type
                 )
 
@@ -70,21 +70,21 @@ class VariationGenerator:
                 seen.add(var)
 
         # Ensure original is included first
-        if instruction_template not in unique_variations:
-            unique_variations.insert(0, instruction_template)
+        if prompt_format not in unique_variations:
+            unique_variations.insert(0, prompt_format)
 
         return unique_variations[:variation_config.variations_per_field + 1]
 
-    def generate_system_prompt_variations(
+    def generate_instruction_variations(
             self,
-            system_prompt_template: str,
+            instruction: str,
             variation_fields: Dict[str, List[str]],
             variation_config: VariationConfig
     ) -> List[str]:
         """Generate variations of the system prompt template."""
-        if SYSTEM_PROMPT_KEY not in variation_fields or not variation_fields[SYSTEM_PROMPT_KEY]:
-            return [system_prompt_template]
-        variation_types = variation_fields[SYSTEM_PROMPT_KEY]
+        if INSTRUCTION_VARIATIONS not in variation_fields or not variation_fields[INSTRUCTION_VARIATIONS]:
+            return [instruction]
+        variation_types = variation_fields[INSTRUCTION_VARIATIONS]
         all_variations = []
         for variation_type in variation_types:
             try:
@@ -95,13 +95,13 @@ class VariationGenerator:
                 )
                 variations = AugmenterFactory.augment_with_special_handling(
                     augmenter=augmenter,
-                    text=system_prompt_template,
+                    text=instruction,
                     variation_type=variation_type
                 )
                 string_variations = AugmenterFactory.extract_text_from_result(variations, variation_type)
                 all_variations.extend(string_variations[:variation_config.variations_per_field])
             except Exception as e:
-                print(f"⚠️ Error generating {variation_type} variations for system_prompt: {e}")
+                print(f"⚠️ Error generating {variation_type} variations for instruction: {e}")
                 continue
         unique_variations = []
         seen = set()
@@ -109,14 +109,14 @@ class VariationGenerator:
             if var not in seen:
                 unique_variations.append(var)
                 seen.add(var)
-        if system_prompt_template not in unique_variations:
-            unique_variations.insert(0, system_prompt_template)
+        if instruction not in unique_variations:
+            unique_variations.insert(0, instruction)
         return unique_variations[:variation_config.variations_per_field]
 
     def generate_all_field_variations(
             self,
-            instruction_template: str,
-            system_prompt_template: str,
+            prompt_format: str,
+            instruction: str,
             variation_fields: Dict[str, List[str]],
             row: pd.Series,
             variation_config: VariationConfig,
@@ -126,35 +126,33 @@ class VariationGenerator:
 
         field_variations = {}
 
-        # Generate instruction variations
-        if INSTRUCTION_KEY in variation_fields and variation_fields[INSTRUCTION_KEY]:
-            instruction_vars = self.generate_instruction_variations(
-                instruction_template, variation_fields, variation_config
+        # Generate prompt_format variations
+        if PROMPT_FORMAT_VARIATIONS in variation_fields and variation_fields[PROMPT_FORMAT_VARIATIONS]:
+            prompt_format_vars = self.generate_prompt_format_variations(
+                prompt_format, variation_fields, variation_config
             )
             # Convert to FieldVariation objects
-            field_variations[INSTRUCTION_KEY] = [FieldVariation(data=var, gold_update=None) for var in instruction_vars]
+            field_variations[PROMPT_FORMAT_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in prompt_format_vars]
         else:
-            field_variations[INSTRUCTION_KEY] = [FieldVariation(data=instruction_template, gold_update=None)]
+            field_variations[PROMPT_FORMAT_VARIATIONS] = [FieldVariation(data=prompt_format, gold_update=None)]
 
-        # Generate variations for other fields (including system_prompt)
+        # Generate prompt_format variations
+        if INSTRUCTION_VARIATIONS in variation_fields and variation_fields[INSTRUCTION_VARIATIONS]:
+            instruction = self.generate_instruction_variations(
+                instruction,
+                variation_fields,
+                variation_config
+            )
+            # Convert to FieldVariation objects
+            field_variations[INSTRUCTION_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in instruction]
+        else:
+            field_variations[INSTRUCTION_VARIATIONS] = [FieldVariation(data=instruction, gold_update=None)]
+
+        # Generate variations for other fields (including prompt format)
         for field_name, variation_types in variation_fields.items():
-            if field_name == INSTRUCTION_KEY:
+            if field_name in [PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS]:
                 continue  # Already handled above
 
-            # Special handling for system_prompt variations – הם פועלים על הטמפלט, לא על ערך שורה
-            if field_name == SYSTEM_PROMPT_KEY:
-                # If system_prompt_template is not provided, skip
-                if system_prompt_template is None:
-                    continue
-
-                sys_prompt_vars = self.generate_system_prompt_variations(
-                    system_prompt_template,
-                    variation_fields,
-                    variation_config
-                )
-
-                field_variations[SYSTEM_PROMPT_KEY] = [FieldVariation(data=var, gold_update=None) for var in sys_prompt_vars]
-                continue
 
             # Assume clean data - process all fields that exist in the row
             if field_name in row.index:

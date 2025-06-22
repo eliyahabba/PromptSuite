@@ -6,9 +6,9 @@ from typing import Dict
 import pandas as pd
 from multipromptify.utils.formatting import format_field_value
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY
+    GOLD_FIELD, PROMPT_FORMAT
 )
 
 
@@ -30,8 +30,8 @@ class PromptBuilder:
 
         return result
 
-    def create_main_input(self, instruction_variant: str, row: pd.Series, gold_field: str = None) -> str:
-        """Create main input by filling instruction with row data (excluding outputs)."""
+    def create_main_input(self, prompt_format_variant: str, row: pd.Series, gold_field: str = None) -> str:
+        """Create main input by filling prompt_format with row data (excluding outputs)."""
 
         row_values = {}
         for col in row.index:
@@ -42,7 +42,7 @@ class PromptBuilder:
                 row_values[col] = format_field_value(row[col])
 
         # Fill template and remove the gold field placeholder completely
-        input_text = self.fill_template_placeholders(instruction_variant, row_values)
+        input_text = self.fill_template_placeholders(prompt_format_variant, row_values)
 
         # Remove any remaining gold field placeholder
         if gold_field:
