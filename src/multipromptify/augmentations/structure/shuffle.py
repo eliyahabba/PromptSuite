@@ -5,9 +5,9 @@ from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.shared.constants import BaseAugmenterConstants
 from multipromptify.core.exceptions import AugmentationConfigurationError, InvalidAugmentationInputError, ShuffleIndexError
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY
+    GOLD_FIELD, PROMPT_FORMAT
 )
 
 

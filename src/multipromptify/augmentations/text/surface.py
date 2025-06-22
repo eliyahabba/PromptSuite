@@ -8,7 +8,7 @@ import numpy as np
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.shared.constants import TextSurfaceAugmenterConstants
-from multipromptify.core.template_keys import REWORDING, INSTRUCTION_TEMPLATE_KEY
+from multipromptify.core.template_keys import REWORDING, PROMPT_FORMAT
 
 
 class TextSurfaceAugmenter(BaseAxisAugmenter):
@@ -425,14 +425,14 @@ if __name__ == "__main__":
 
     # Example 4: Placeholder protection test
     print("\nPlaceholder protection test:")
-    instruction_template = "Answer the following question: {question}\\nOptions: {options}\\nAnswer: {answer}"
-    print(f"Original instruction template: {instruction_template}")
+    prompt_format = "Answer the following question"
+    print(f"Original instruction template: {prompt_format}")
     
     # Test with surface variations - placeholders should remain intact
-    variations3 = augmenter.augment(instruction_template, techniques=["typos", "capitalization"])
+    variations3 = augmenter.augment(prompt_format, techniques=["typos", "capitalization"])
     print(f"\nGenerated {len(variations3)} variations with placeholder protection:")
     for i, variation in enumerate(variations3):
-        if variation == instruction_template:
+        if variation == prompt_format:
             print(f"\nVariation {i+1} (Original):")
         else:
             print(f"\nVariation {i+1}:")

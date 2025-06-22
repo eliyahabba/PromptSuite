@@ -5,9 +5,9 @@ from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.utils.formatting import format_field_value
 from multipromptify.core.exceptions import FewShotGoldFieldMissingError, FewShotDataInsufficientError
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY
+    GOLD_FIELD, PROMPT_FORMAT
 )
 
 
@@ -34,7 +34,7 @@ This augmenter handles few-shot examples for NLP tasks.
         Generate few-shot variations of the prompt for engine use.
         
         Args:
-            prompt: The instruction template to use for few-shot examples
+            prompt: The prompt format template to use for few-shot examples
             identification_data: Dictionary containing:
                 - few_shot_field: TemplateField object with few-shot configuration
                 - data: DataFrame with the dataset
@@ -69,7 +69,7 @@ This augmenter handles few-shot examples for NLP tasks.
         # Return structured examples directly (not formatted strings)
         return structured_examples
 
-    def _validate_gold_field_requirement(self, instruction_template: str, gold_field: str, few_shot_fields: list):
+    def _validate_gold_field_requirement(self, prompt_format_template: str, gold_field: str, few_shot_fields: list):
         """Validate that gold field is provided when needed for separating inputs from outputs."""
         needs_gold_field = False
         
@@ -77,16 +77,16 @@ This augmenter handles few-shot examples for NLP tasks.
         if few_shot_fields and len(few_shot_fields) > 0:
             needs_gold_field = True
         
-        # Check if instruction template has the gold field placeholder
-        if instruction_template and gold_field:
+        # Check if prompt format template has the gold field placeholder
+        if prompt_format_template and gold_field:
             gold_placeholder = f'{{{gold_field}}}'
-            if gold_placeholder in instruction_template:
+            if gold_placeholder in prompt_format_template:
                 needs_gold_field = True
         
         if needs_gold_field and not gold_field:
             raise FewShotGoldFieldMissingError()
 
-    def generate_few_shot_examples_structured(self, few_shot_field, instruction_variant: str, data: pd.DataFrame,
+    def generate_few_shot_examples_structured(self, few_shot_field, prompt_format_variant: str, data: pd.DataFrame,
                                             current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
                                             options_field: str = None) -> List[Dict[str, str]]:
         """Generate few-shot examples using the configured parameters with structured output."""
@@ -144,7 +144,7 @@ This augmenter handles few-shot examples for NLP tasks.
                     input_values[col] = format_field_value(example_row[col])
 
             # Fill template for input (without gold field placeholder)
-            input_template = instruction_variant
+            input_template = prompt_format_variant
             # Remove gold field placeholder from input template
             if gold_field:
                 gold_placeholder = f'{{{gold_field}}}'
