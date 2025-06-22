@@ -68,7 +68,7 @@ The web UI provides:
 ### Command Line Interface
 
 ```bash
-multipromptify --template '{"instruction_template": "{instruction}: {text}", "text": ["paraphrase_with_llm"], "gold": "label"}' \
+multipromptify --template '{"instruction": "{instruction}: {text}", "text": ["paraphrase_with_llm"], "gold": "label"}' \
                --data data.csv
 ```
 
@@ -87,8 +87,8 @@ mp.load_dataframe(pd.DataFrame(data))
 
 # Configure template with variation specifications
 template = {
-    'system_prompt_template': 'Please answer the following questions.',
-    'instruction_template': 'Q: {question}\nA: {answer}',
+    'instruction': 'Please answer the following questions.',
+    'prompt format': 'Q: {question}\nA: {answer}',
     'question': ['paraphrase_with_llm'],
 }
 mp.set_template(template)
@@ -119,7 +119,7 @@ A typical output from `mp.generate()` or the exported JSON file looks like this 
     "original_row_index": 1,
     "variation_count": 1,
     "template_config": {
-      "instruction_template": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
+      "instruction": "Answer the following multiple choice question:\nQuestion: {question}\nOptions: {options}\nAnswer: {answer}",
       "options": ["shuffle"],
       "gold": {
         "field": "answer",
@@ -162,28 +162,28 @@ Below is a recommended way to define a template using all the main template keys
 
 ```python
 from multipromptify.core.template_keys import (
-    SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY,
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY,
-    QUESTION_KEY, OPTIONS_KEY, GOLD_KEY, FEW_SHOT_KEY
+  INSTRUCTION, INSTRUCTION_VARIATIONS,
+  PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS,
+  QUESTION_KEY, OPTIONS_KEY, GOLD_KEY, FEW_SHOT_KEY
 )
 
 template = {
-    SYSTEM_PROMPT_TEMPLATE_KEY: "You are a helpful assistant. Please answer the following questions.",
-    SYSTEM_PROMPT_KEY: ["rewording"],  # Variation types for the system prompt
-    INSTRUCTION_TEMPLATE_KEY: "Q: {question}\nOptions: {options}\nA: {answer}",
-    INSTRUCTION_KEY: ["paraphrase_with_llm"],  # Variation types for the instruction
-    QUESTION_KEY: ["rewording"],
-    OPTIONS_KEY: ["shuffle"],
-    GOLD_KEY: {
-        'field': 'answer',
-        'type': 'index',
-        'options_field': 'options'
-    },
-    FEW_SHOT_KEY: {
-        'count': 2,
-        'format': 'rotating',
-        'split': 'all'
-    }
+  INSTRUCTION: "You are a helpful assistant. Please answer the following questions.",
+  INSTRUCTION_VARIATIONS: ["rewording"],  # Variation types for the instruction
+  PROMPT_FORMAT: "Q: {question}\nOptions: {options}\nA: {answer}",
+  PROMPT_FORMAT_VARIATIONS: ["paraphrase_with_llm"],  # Variation types for the prompt format
+  QUESTION_KEY: ["rewording"],
+  OPTIONS_KEY: ["shuffle"],
+  GOLD_KEY: {
+    'field': 'answer',
+    'type': 'index',
+    'options_field': 'options'
+  },
+  FEW_SHOT_KEY: {
+    'count': 2,
+    'format': 'rotating',
+    'split': 'all'
+  }
 }
 ```
 
@@ -198,8 +198,8 @@ Templates use Python f-string syntax with custom variation annotations:
 ```
 
 ### System Prompt
-- `system_prompt_template`: (optional) A general instruction that appears at the top of every prompt, before any few-shot or main question. You can use placeholders (e.g., `{subject}`) that will be filled from the data for each row.
-- `instruction_template`: The per-example template, usually containing the main question and placeholders for fields.
+- `instruction`: (optional) A general instruction that appears at the top of every prompt, before any few-shot or main question. You can use placeholders (e.g., `{subject}`) that will be filled from the data for each row.
+- `prompt format`: The per-example template, usually containing the main question and placeholders for fields.
 
 Supported variation types:
 - `:paraphrase_with_llm` - Paraphrasing variations (LLM-based)
@@ -252,16 +252,16 @@ few_shot = ("Example 1", "Example 2")
 
 ```bash
 # Basic usage
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
+multipromptify --template '{"instruction": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
                --data data.csv
 
 # With output file
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
+multipromptify --template '{"instruction": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
                --data data.csv \
                --output variations.json
 
 # Specify number of variations
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
+multipromptify --template '{"instruction": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
                --data data.csv \
                --max-variations 50
 ```
@@ -270,12 +270,12 @@ multipromptify --template '{"instruction_template": "{instruction}: {question}",
 
 ```bash
 # With few-shot examples
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
+multipromptify --template '{"instruction": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
                --data data.csv \
                --max-variations 50
 
 # Output in different formats
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
+multipromptify --template '{"instruction": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
                --data data.csv \
                --format csv \
                --output variations.csv
@@ -328,8 +328,8 @@ data = pd.DataFrame({
 })
 
 template = {
-    'system_prompt_template': 'Please answer the following questions.',
-    'instruction_template': 'Q: {question}\nA: {answer}',
+    'instruction': 'Please answer the following questions.',
+    'prompt format': 'Q: {question}\nA: {answer}',
     'question': ['rewording']
 }
 
@@ -353,7 +353,7 @@ data = pd.DataFrame({
 })
 
 template = {
-    'instruction_template': 'Classify the sentiment: "{text}"\nSentiment: {label}',
+    'instruction': 'Classify the sentiment: "{text}"\nSentiment: {label}',
     'instruction': ['semantic'],
     'text': ['paraphrase_with_llm'],
     'gold': 'label'
@@ -377,7 +377,7 @@ variations = mp.generate(verbose=True)
 
 ```python
 template = {
-    'instruction_template': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
+    'instruction': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
     'instruction': ['paraphrase_with_llm'],
     'question': ['semantic'],
     'gold': 'answer',
@@ -428,8 +428,8 @@ data = pd.DataFrame({
 })
 
 template = {
-    'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
-    'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer:',
+    'instruction': 'The following are multiple choice questions (with answers) about {subject}.',
+    'prompt format': 'Question: {question}\nOptions: {options}\nAnswer:',
     'question': ['rewording'],
     'options': ['shuffle'],
     'gold': {
@@ -534,7 +534,7 @@ data = pd.DataFrame({
 })
 
 template = {
-    'instruction_template': 'Q: {question}\nA: {answer}',
+    'prompt format': 'Q: {question}\nA: {answer}',
     'question': ['rewording']
 }
 
