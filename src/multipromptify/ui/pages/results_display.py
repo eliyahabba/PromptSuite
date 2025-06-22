@@ -10,9 +10,9 @@ import streamlit as st
 
 from multipromptify.core.engine import MultiPromptify
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, INSTRUCTION_TEMPLATE_KEY
+    GOLD_FIELD, PROMPT_FORMAT
 )
 
 # Helper function to inject JavaScript for clipboard functionality
@@ -291,37 +291,37 @@ def display_single_variation(variation, variation_num, original_data):
             template_config = variation.get('template_config', {})
 
             for field, value in field_values.items():
-                if field == INSTRUCTION_KEY:
-                    # Get the original instruction template value
+                if field == PROMPT_FORMAT_VARIATIONS:
+                    # Get the original prompt_format template value
                     original_val = None
                     operation_type = None
 
-                    # Try to get the original instruction_template from template_config first, then original_template
+                    # Try to get the original prompt_format_template from template_config first, then original_template
                     for template_source in [template_config, original_template]:
                         if isinstance(template_source, dict):
-                            if 'instruction_template' in template_source:
-                                original_val = template_source['instruction_template']
+                            if PROMPT_FORMAT in template_source:
+                                original_val = template_source[PROMPT_FORMAT]
                                 break
                             elif 'template' in template_source:
                                 # If it's a nested template structure
                                 template_content = template_source['template']
-                                if isinstance(template_content, dict) and 'instruction_template' in template_content:
-                                    original_val = template_content['instruction_template']
+                                if isinstance(template_content, dict) and PROMPT_FORMAT in template_content:
+                                    original_val = template_content[PROMPT_FORMAT]
                                     break
 
-                    # Check what operation was applied to instruction
+                    # Check what operation was applied to prompt_format
                     for template_source in [template_config, original_template]:
-                        if isinstance(template_source, dict) and INSTRUCTION_KEY in template_source:
-                            instruction_config = template_source[INSTRUCTION_KEY]
-                            if isinstance(instruction_config, list) and instruction_config:
-                                operation_type = instruction_config[0]  # e.g., 'paraphrase'
+                        if isinstance(template_source, dict) and PROMPT_FORMAT_VARIATIONS in template_source:
+                            prompt_format_config = template_source[PROMPT_FORMAT_VARIATIONS]
+                            if isinstance(prompt_format_config, list) and prompt_format_config:
+                                operation_type = prompt_format_config[0]  # e.g., 'paraphrase'
                                 break
 
                     # If we couldn't find the original, use the current value
                     if original_val is None:
                         original_val = value
 
-                    # Check if instruction was modified
+                    # Check if prompt_format was modified
                     is_modified = str(value) != str(original_val) and original_val != value
 
                     if is_modified:

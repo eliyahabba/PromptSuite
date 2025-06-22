@@ -6,9 +6,9 @@ import streamlit as st
 
 from multipromptify.core import MultiPromptify
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
+    INSTRUCTION, INSTRUCTION_VARIATIONS
 )
 from multipromptify.shared.constants import FEW_SHOT_DYNAMIC_DEFAULT
 
@@ -104,8 +104,9 @@ def template_suggestions_interface(available_columns):
                 required_fields = [
                     k for k in template_dict.keys()
                     if k not in [
-                        'instruction', 'few_shot', 'instruction_template', 'gold', 'enumerate',
-                        'system_prompt_template', 'system_prompt'
+                        INSTRUCTION,
+                        INSTRUCTION_VARIATIONS, PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS,
+                        FEW_SHOT_KEY, GOLD_KEY, ENUMERATE_VARIATION
                     ]
                 ]
 
@@ -159,36 +160,6 @@ def template_suggestions_interface(available_columns):
                         import json
                         formatted_json = json.dumps(template['template'], indent=2, ensure_ascii=False)
                         st.code(formatted_json, language="json")
-
-                        # Show field analysis
-                        # st.write("**Template fields:**")
-                        # for field_name, config in template['template'].items():
-                        #     if field_name == 'instruction_template':
-                        #         # Instruction template field
-                        #         status = "📝 User-defined"
-                        #         color = "purple"
-                        #         config_info = " (instruction template)"
-                        #     elif field_name == 'few_shot':
-                        #         # Few-shot field
-                        #         status = "⚙️ Few-shot examples"
-                        #         color = "blue"
-                        #         config_info = f" ({config['count']} {config['format']} examples from {config['split']} data)"
-                        #     elif field_name in available_columns:
-                        #         status = "✅ Available"
-                        #         color = "green"
-                        #         config_info = f" (variations: {', '.join(config) if config else 'none'})"
-                        #     elif field_name == 'instruction':
-                        #         status = "⚙️ Generated"
-                        #         color = "blue"
-                        #         config_info = f" (variations: {', '.join(config) if config else 'none'})"
-                        #     else:
-                        #         status = "❌ Missing"
-                        #         color = "red"
-                        #         config_info = ""
-                        #
-                        #     st.markdown(
-                        #         f"- **{field_name}**{config_info}: <span style='color: {color}'>{status}</span>",
-                        #         unsafe_allow_html=True)
 
                         # Button styling based on selection
                         button_key = f"template_{category_key}_{template['name'].lower().replace(' ', '_')}"
@@ -244,7 +215,7 @@ def template_builder_interface(available_columns):
 
     # Available columns display
     st.markdown("**Available data columns:**")
-    filtered_columns = [col for col in available_columns if col not in [SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY]]
+    filtered_columns = [col for col in available_columns if col not in [INSTRUCTION, INSTRUCTION_VARIATIONS]]
     cols = st.columns(min(len(filtered_columns), 4))
     for i, col in enumerate(filtered_columns):
         with cols[i % 4]:
@@ -259,41 +230,41 @@ def template_builder_interface(available_columns):
     with field_tabs[0]:
         # Instruction configuration
         st.markdown("**Instruction Field Configuration**")
-        st.write("The instruction field defines the overall prompt structure.")
+        st.write("The prompt_format field defines the overall prompt structure.")
 
         # Instruction template input
         st.markdown("**1. Instruction Template (Required)**")
-        instruction_template = st.text_area(
-            "Enter your instruction template with placeholders:",
-            value=st.session_state.template_config.get(INSTRUCTION_TEMPLATE_KEY, ''),
-            key=INSTRUCTION_TEMPLATE_KEY,
+        prompt_format_template = st.text_area(
+            "Enter your prompt_format template with placeholders:",
+            value=st.session_state.template_config.get(PROMPT_FORMAT, ''),
+            key=PROMPT_FORMAT,
             help="Use {field_name} for placeholders. Example: 'Answer the following question: {question}\nAnswer: {answer}'. Remember to specify the 'gold' field for the answer column.",
             placeholder="Answer the following question: {question}\nAnswer: {answer}"
         )
 
-        if instruction_template:
+        if prompt_format_template:
             # Show preview of placeholders
             import re
-            placeholders = re.findall(r'\{([^}]+)\}', instruction_template)
+            placeholders = re.findall(r'\{([^}]+)\}', prompt_format_template)
             if placeholders:
                 st.info(f"📋 Found placeholders: {', '.join(set(placeholders))}")
             else:
                 st.warning("⚠️ No placeholders found in template")
 
-        if instruction_template:
-            configured_fields[INSTRUCTION_TEMPLATE_KEY] = instruction_template
+        if prompt_format_template:
+            configured_fields[PROMPT_FORMAT] = prompt_format_template
 
         st.markdown("**2. Instruction Variations (Optional)**")
         selected_variations = st.multiselect(
-            "Variation types for instruction",
+            "Variation types for prompt_format",
             options=variation_types,
-            default=st.session_state.template_config.get(INSTRUCTION_KEY, []),
-            key="instruction_variations",
-            help="Select variation types to apply to the instruction"
+            default=st.session_state.template_config.get(PROMPT_FORMAT_VARIATIONS, []),
+            key="prompt_format_variations",
+            help="Select variation types to apply to the prompt_format"
         )
 
         if selected_variations:
-            configured_fields[INSTRUCTION_KEY] = selected_variations
+            configured_fields[PROMPT_FORMAT_VARIATIONS] = selected_variations
 
     with field_tabs[1]:
         # Data fields configuration
@@ -544,24 +515,24 @@ def template_builder_interface(available_columns):
         st.markdown("**System Prompt Configuration**")
         st.write("Configure the system prompt for your template (optional):")
 
-        system_prompt_template = st.text_area(
+        instruction = st.text_area(
             "System prompt template (optional):",
-            value=st.session_state.template_config.get(SYSTEM_PROMPT_TEMPLATE_KEY, ''),
-            key=SYSTEM_PROMPT_TEMPLATE_KEY,
+            value=st.session_state.template_config.get(INSTRUCTION, ''),
+            key=INSTRUCTION,
             help="System prompt for the model, e.g. 'You are a helpful assistant.'"
         )
-        if system_prompt_template:
-            configured_fields[SYSTEM_PROMPT_TEMPLATE_KEY] = system_prompt_template
+        if instruction:
+            configured_fields[INSTRUCTION] = instruction
 
-        system_prompt_variations = st.multiselect(
+        instruction_variations = st.multiselect(
             "Variation types for system prompt (optional):",
             options=variation_types,
-            default=st.session_state.template_config.get(SYSTEM_PROMPT_KEY, []),
-            key="system_prompt_variations",
+            default=st.session_state.template_config.get(INSTRUCTION_VARIATIONS, []),
+            key="instruction_variations",
             help="Select variation types to apply to the system prompt"
         )
-        if system_prompt_variations:
-            configured_fields[SYSTEM_PROMPT_KEY] = system_prompt_variations
+        if instruction_variations:
+            configured_fields[INSTRUCTION_VARIATIONS] = instruction_variations
 
     # Template preview and validation
     st.markdown("### 2. Template Preview")
@@ -601,7 +572,7 @@ def template_builder_interface(available_columns):
                         summary = f"**{field_name}**: {config}"
                 elif field_name == 'enumerate':
                     summary = f"**{field_name}**: {config['field']} field with {config['type']} enumeration"
-                elif field_name == SYSTEM_PROMPT_TEMPLATE_KEY:
+                elif field_name == INSTRUCTION:
                     st.markdown(f"""
                     <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
                                 border-radius: 6px; border-left: 3px solid #1976d2;">
@@ -636,8 +607,8 @@ def template_builder_interface(available_columns):
         if few_shot_count > 0 and GOLD_KEY not in configured_fields:
             template_errors.append("Gold field is required when using few-shot examples")
 
-    # Check if instruction template is provided
-    if INSTRUCTION_TEMPLATE_KEY not in configured_fields:
+    # Check if prompt_format template is provided
+    if PROMPT_FORMAT not in configured_fields:
         template_errors.append("Instruction template is required")
 
     # Display validation errors
@@ -685,14 +656,14 @@ def display_selected_template_details(available_columns):
 
     # Display template in a clean, expanded format with colors
     for key, value in template.items():
-        if key == INSTRUCTION_TEMPLATE_KEY:
+        if key == PROMPT_FORMAT:
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
                         border-radius: 6px; border-left: 3px solid #2196f3;">
                 <strong style="color: #1976d2;">📝 {key}:</strong>
             </div>
             """, unsafe_allow_html=True)
-            # Add quotes around the instruction template for clarity
+            # Add quotes around the prompt_format template for clarity
             quoted_value = f'"{value}"'
             st.code(quoted_value, language="text")
 
@@ -735,7 +706,7 @@ def display_selected_template_details(available_columns):
             </div>
             """, unsafe_allow_html=True)
 
-        elif key == SYSTEM_PROMPT_TEMPLATE_KEY:
+        elif key == INSTRUCTION:
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
                         border-radius: 6px; border-left: 3px solid #1976d2;">
@@ -744,7 +715,7 @@ def display_selected_template_details(available_columns):
             """, unsafe_allow_html=True)
             quoted_value = f'"{value}"'
             st.code(quoted_value, language="text")
-        elif key == SYSTEM_PROMPT_KEY:
+        elif key == INSTRUCTION_VARIATIONS:
             variations_text = ', '.join(value)
             st.markdown(f"""
             <div style="margin: 0.5rem 0; padding: 0.75rem; background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%); 

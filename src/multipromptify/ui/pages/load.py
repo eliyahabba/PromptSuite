@@ -16,7 +16,7 @@ from multipromptify.ui.utils.progress_indicator import show_progress_indicator
 from multipromptify.core.template_keys import (
     CONTEXT_KEY,
     PARAPHRASE_WITH_LLM, REWORDING,
-    SYSTEM_PROMPT_TEMPLATE_KEY, INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, SYSTEM_PROMPT_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, QUESTION_KEY
+    INSTRUCTION, PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, QUESTION_KEY
 )
 
 
@@ -102,8 +102,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Sentiment Analysis',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Classify the sentiment of the following text.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Text: "{text}"\nSentiment: {label}',
+                            INSTRUCTION: 'Classify the sentiment of the following text.',
+                            PROMPT_FORMAT: 'Text: "{text}"\nSentiment: {label}',
                             'text': [REWORDING],
                             GOLD_KEY: {
                                 'field': 'label',
@@ -119,8 +119,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Advanced Sentiment with Few-shot',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Classify the sentiment of the following text.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Text: "{text}"\nSentiment: {label}',
+                            INSTRUCTION: 'Classify the sentiment of the following text.',
+                            PROMPT_FORMAT: 'Text: "{text}"\nSentiment: {label}',
                             'text': [REWORDING, CONTEXT_KEY],
                             GOLD_KEY: {
                                 'field': 'label',
@@ -150,8 +150,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Q&A',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Please answer the following question.',
-                            INSTRUCTION_TEMPLATE_KEY: 'question: {question}\nanswer: {answer}',
+                            INSTRUCTION: 'Please answer the following question.',
+                            PROMPT_FORMAT: 'question: {question}\nanswer: {answer}',
                             QUESTION_KEY: [REWORDING],
                             GOLD_KEY: {
                                 'field': 'answer',
@@ -168,8 +168,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Q&A with Context and Few-shot',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Based on the context, answer the question.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
+                            INSTRUCTION: 'Based on the context, answer the question.',
+                            PROMPT_FORMAT: 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
                             QUESTION_KEY: [REWORDING, PARAPHRASE_WITH_LLM],
                             CONTEXT_KEY: [CONTEXT_KEY],
                             GOLD_KEY: {
@@ -201,8 +201,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Multiple Choice',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'The following are multiple choice questions (with answers) about {subject}.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             QUESTION_KEY: [REWORDING],
                             OPTIONS_KEY: ['shuffle'],
                             GOLD_KEY: {
@@ -222,10 +222,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Complex Multiple Choice with Few-shot',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'The following are multiple choice questions (with answers).',
-                            INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            SYSTEM_PROMPT_KEY: [REWORDING],
-                            INSTRUCTION_KEY: [REWORDING],
+                            INSTRUCTION: 'The following are multiple choice questions (with answers).',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            INSTRUCTION_VARIATIONS: [REWORDING],
+                            PROMPT_FORMAT_VARIATIONS: [REWORDING],
                             QUESTION_KEY: [REWORDING],
                             OPTIONS_KEY: ['shuffle', REWORDING],
                             GOLD_KEY: {
@@ -251,8 +251,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Enumerated Multiple Choice',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'The following are multiple choice questions (with answers).',
-                            INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            INSTRUCTION: 'The following are multiple choice questions (with answers).',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             QUESTION_KEY: [REWORDING],
                             GOLD_KEY: {
                                 'field': 'answer',
@@ -276,8 +276,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Lettered Multiple Choice with Enumerate',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'The following are multiple choice questions (with answers).',
-                            INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            INSTRUCTION: 'The following are multiple choice questions (with answers).',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             QUESTION_KEY: [REWORDING],
                             GOLD_KEY: {
                                 'field': 'answer',
@@ -309,8 +309,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Basic Text Classification',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Classify the following text into a category.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Text: "{text}"\nCategory: {category}',
+                            INSTRUCTION: 'Classify the following text into a category.',
+                            PROMPT_FORMAT: 'Text: "{text}"\nCategory: {category}',
                             'text': [REWORDING],
                             GOLD_KEY: {
                                 'field': 'category',
@@ -326,8 +326,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Multi-field Text Classification',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Classify the following text.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Text: "{text}"\nCategory: {category}',
+                            INSTRUCTION: 'Classify the following text.',
+                            PROMPT_FORMAT: 'Text: "{text}"\nCategory: {category}',
                             'text': [REWORDING, CONTEXT_KEY],
                             'category': [],  # No variations for output
                             GOLD_KEY: {
@@ -344,8 +344,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Text Classification with Few-shot',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Classify the following text.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Text: "{text}"\nCategory: {category}',
+                            INSTRUCTION: 'Classify the following text.',
+                            PROMPT_FORMAT: 'Text: "{text}"\nCategory: {category}',
                             'text': [REWORDING],
                             GOLD_KEY: {
                                 'field': 'category',
@@ -375,8 +375,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Multi-Variation Classification',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Classify the sentiment of the following text.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Text: "{text}"\nLabel: {label}',
+                            INSTRUCTION: 'Classify the sentiment of the following text.',
+                            PROMPT_FORMAT: 'Text: "{text}"\nLabel: {label}',
                             'text': [REWORDING, CONTEXT_KEY],
                             'label': [],
                             GOLD_KEY: {
@@ -398,8 +398,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                     {
                         'name': 'Complex Q&A with Fixed Examples',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'Answer the following question.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nAnswer: {answer}',
+                            INSTRUCTION: 'Answer the following question.',
+                            PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
                             QUESTION_KEY: [REWORDING, PARAPHRASE_WITH_LLM],
                             'answer': [],
                             GOLD_KEY: {
@@ -423,15 +423,15 @@ def initialize_session_state(start_step=1, debug_mode=False):
             },
 
             # Add system prompt support to template suggestions and session state
-            'system_prompt_template': {
+            INSTRUCTION: {
                 'category_name': 'System Prompt',
                 'description': 'Templates with a system prompt for the first few-shot example',
                 'templates': [
                     {
                         'name': 'Math QA with System Prompt',
                         'template': {
-                            SYSTEM_PROMPT_TEMPLATE_KEY: 'You are a helpful math assistant. Answer clearly.',
-                            INSTRUCTION_TEMPLATE_KEY: 'Question: {question}\nAnswer: {answer}',
+                            INSTRUCTION: 'You are a helpful math assistant. Answer clearly.',
+                            PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
                             QUESTION_KEY: [REWORDING],
                             GOLD_KEY: 'answer',
                             FEW_SHOT_KEY: {

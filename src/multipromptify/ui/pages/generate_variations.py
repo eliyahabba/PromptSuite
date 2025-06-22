@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 from multipromptify import MultiPromptify
 from multipromptify.shared.constants import GenerationInterfaceConstants, GenerationDefaults
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
+    INSTRUCTION, INSTRUCTION_VARIATIONS
 )
 
 from .results_display import display_full_results
@@ -87,11 +87,12 @@ def display_current_setup(df, template, template_name):
 
         # Handle new template format (dictionary) vs old format (string)
         if isinstance(template, dict):
-            if 'instruction' in template and 'template' in template:
-                st.markdown("**Instruction:**")
-                st.code(template['instruction'], language="text")
-                st.markdown("**Processing Template:**")
-                st.code(template['template'], language="text")
+            if INSTRUCTION in template:
+                st.markdown("**Processing Instruction:**")
+                st.code(template[INSTRUCTION], language="text")
+            if PROMPT_FORMAT in template:
+                st.markdown("**Prompt Format:**")
+                st.code(template[PROMPT_FORMAT], language="text")
             else:
                 # Fallback to combined or string representation
                 template_str = template.get('combined', str(template))
@@ -337,7 +338,7 @@ def generate_all_variations():
 
                 # Show configuration details
                 config_details = []
-                # Template instruction is already part of the template, no need for separate instruction
+                # Template prompt_format is already part of the template, no need for separate prompt_format
                 config_details.append(f"🔄 Variations per field: {variations_per_field}")
                 if api_key:
                     config_details.append("🔑 API key configured for advanced variations")
