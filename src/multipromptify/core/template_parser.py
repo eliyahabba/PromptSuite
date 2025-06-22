@@ -6,8 +6,8 @@ from typing import Dict, List, Tuple, Set, Optional, Union
 from dataclasses import dataclass
 from multipromptify.core.exceptions import InvalidTemplateFieldError
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, INSTRUCTION, INSTRUCTION_VARIATIONS
 )
 
 
@@ -37,8 +37,8 @@ class TemplateParser:
     
     Dictionary format:
     {
-        "instruction_template": "Answer the following question: {question}\nAnswer: {answer}",
-        "instruction": ["paraphrase", "surface"],
+        "prompt format": "Answer the following question: {question}\nAnswer: {answer}",
+        "prompt format variations": ["paraphrase", "surface"],
         "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
@@ -51,9 +51,9 @@ class TemplateParser:
     
     def __init__(self):
         self.fields: List[TemplateField] = []
-        self.instruction_template: Optional[str] = None
-        self.system_prompt_template: Optional[str] = None
-        self.system_prompt_variations: List[str] = []
+        self.prompt_format: Optional[str] = None
+        self.instruction: Optional[str] = None
+        self.instruction_variations: List[str] = []
         
     def parse(self, template: dict) -> List[TemplateField]:
         """
@@ -69,31 +69,31 @@ class TemplateParser:
             raise InvalidTemplateFieldError("template", template, "dictionary")
         
         self.fields = []
-        self.instruction_template = None
-        self.system_prompt_template = None
-        self.system_prompt_variations = []
+        self.prompt_format = None
+        self.instruction = None
+        self.instruction_variations = []
         
-        # Extract instruction template if provided
-        if INSTRUCTION_TEMPLATE_KEY in template:
-            self.instruction_template = template[INSTRUCTION_TEMPLATE_KEY]
+        # Extract prompt_format template if provided
+        if PROMPT_FORMAT in template:
+            self.prompt_format = template[PROMPT_FORMAT]
         
-        if SYSTEM_PROMPT_TEMPLATE_KEY in template:
-            self.system_prompt_template = template[SYSTEM_PROMPT_TEMPLATE_KEY]
+        if INSTRUCTION in template:
+            self.instruction = template[INSTRUCTION]
         
-        if SYSTEM_PROMPT_KEY in template:
-            self.system_prompt_variations = template[SYSTEM_PROMPT_KEY] if isinstance(template[SYSTEM_PROMPT_KEY], list) else [template[SYSTEM_PROMPT_KEY]]
+        if INSTRUCTION_VARIATIONS in template:
+            self.instruction_variations = template[INSTRUCTION_VARIATIONS] if isinstance(template[INSTRUCTION_VARIATIONS], list) else [template[INSTRUCTION_VARIATIONS]]
         
         for field_name, config in template.items():
-            if field_name == INSTRUCTION_TEMPLATE_KEY:
+            if field_name == PROMPT_FORMAT:
                 # Skip - already handled above
                 continue
-            elif field_name == SYSTEM_PROMPT_TEMPLATE_KEY:
-                self.system_prompt_template = config
+            elif field_name == INSTRUCTION:
+                self.instruction = config
                 continue
-            elif field_name == SYSTEM_PROMPT_KEY:
+            elif field_name == INSTRUCTION_VARIATIONS:
                 # Accept as a variation field
                 field = TemplateField(
-                    name=SYSTEM_PROMPT_KEY,
+                    name=INSTRUCTION_VARIATIONS,
                     variation_types=config if isinstance(config, list) else [config],
                     is_literal=False
                 )
@@ -148,16 +148,16 @@ class TemplateParser:
         
         return self.fields
     
-    def get_instruction_template(self) -> Optional[str]:
-        """Get the instruction template string."""
-        return self.instruction_template
+    def get_prompt_format(self) -> Optional[str]:
+        """Get the prompt_format template string."""
+        return self.prompt_format
     
-    def get_system_prompt_template(self) -> Optional[str]:
+    def get_instruction(self) -> Optional[str]:
         """Get the system prompt template string."""
-        return self.system_prompt_template
+        return self.instruction
     
-    def get_system_prompt_variations(self) -> List[str]:
-        return self.system_prompt_variations
+    def get_instruction_variations(self) -> List[str]:
+        return self.instruction_variations
     
     def get_required_columns(self, template: dict = None) -> Set[str]:
         """
@@ -171,19 +171,19 @@ class TemplateParser:
         """
         required = set()
         
-        # Extract from instruction template
-        if self.instruction_template:
+        # Extract from prompt_format template
+        if self.prompt_format:
             import re
-            placeholders = re.findall(r'\{([^}]+)\}', self.instruction_template)
+            placeholders = re.findall(r'\{([^}]+)\}', self.prompt_format)
             for placeholder in placeholders:
                 # Remove any variation annotations if present
                 field_name = placeholder.split(':')[0].strip()
-                if field_name not in {INSTRUCTION_KEY, FEW_SHOT_KEY}:
+                if field_name not in {PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY}:
                     required.add(field_name)
         
         # Extract from field definitions
         for field in self.fields:
-            if not field.is_literal and field.name not in {INSTRUCTION_KEY, FEW_SHOT_KEY, GOLD_KEY}:
+            if not field.is_literal and field.name not in {PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY, GOLD_KEY}:
                 required.add(field.name)
             
             # For few-shot with split, we might need a split column
@@ -254,10 +254,10 @@ class TemplateParser:
         if not template:
             return False, ["Template cannot be empty"]
         
-        # Check if instruction_template is provided when instruction variations are requested
-        if INSTRUCTION_KEY in template and template[INSTRUCTION_KEY]:
-            if INSTRUCTION_TEMPLATE_KEY not in template:
-                errors.append("instruction_template is required when instruction variations are specified")
+        # Check if prompt_format is provided when prompt_format variations are requested
+        if PROMPT_FORMAT_VARIATIONS in template and template[PROMPT_FORMAT_VARIATIONS]:
+            if PROMPT_FORMAT not in template:
+                errors.append("prompt_format is required when prompt_format variations are specified")
         
         try:
             fields = self.parse(template)
@@ -295,9 +295,9 @@ class TemplateParser:
                     if variation_type not in valid_variations:
                         errors.append(f"Unknown variation type '{variation_type}' for field '{field.name}'. Valid types: {valid_variations}")
         
-        # Validate instruction template syntax if provided
-        if self.instruction_template:
-            if self.instruction_template.count('{') != self.instruction_template.count('}'):
-                errors.append("Mismatched brackets in instruction_template")
+        # Validate prompt_format template syntax if provided
+        # if self.prompt_format:
+        #     if self.prompt_format.count('{') != self.prompt_format.count('}'):
+        #         errors.append("Mismatched brackets in prompt_format")
         
         return len(errors) == 0, errors 

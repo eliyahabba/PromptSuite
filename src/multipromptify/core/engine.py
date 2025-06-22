@@ -26,8 +26,8 @@ from multipromptify.core.exceptions import (
 from pathlib import Path
 import ast
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, SYSTEM_PROMPT_TEMPLATE_KEY, SYSTEM_PROMPT_KEY
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
+    PARAPHRASE_WITH_LLM, REWORDING, INSTRUCTION, INSTRUCTION_VARIATIONS
 )
 from multipromptify.shared.constants import GenerationDefaults
 import re
@@ -40,8 +40,10 @@ class MultiPromptify:
     
     Template format:
     {
-        "instruction_template": "Process the following input: {input}\nOutput: {output}",
-        "instruction": ["paraphrase", "surface"],
+        "instruction": "Process the following input:\n",
+        "instruction variations": ["paraphrase", "surface"],
+        "prompt format": "{input}\nOutput: {output}",
+        "prompt format variations": ["paraphrase", "surface"],
         "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
@@ -107,15 +109,15 @@ class MultiPromptify:
             api_key=api_key,
             max_variations=self.max_variations
         )
-        system_prompt_template = self.template_parser.get_system_prompt_template()
+        instruction = self.template_parser.get_instruction()
 
-        # Get instruction template from user - required
-        instruction_template = self.template_parser.get_instruction_template()
-        if not instruction_template:
+        # Get prompt_format template from user - required
+        prompt_format = self.template_parser.get_prompt_format()
+        if not prompt_format:
             raise MissingInstructionTemplateError()
 
         # Validate gold field requirement
-        self.few_shot_handler.validate_gold_field_requirement(instruction_template, gold_config.field, few_shot_fields)
+        self.few_shot_handler.validate_gold_field_requirement(prompt_format, gold_config.field, few_shot_fields)
 
         all_variations = []
 
@@ -126,8 +128,8 @@ class MultiPromptify:
 
             # Generate variations for all fields
             field_variations = self.variation_generator.generate_all_field_variations(
-                instruction_template,
-                system_prompt_template,
+                prompt_format,
+                instruction,
                 variation_fields,
                 row,
                 variation_config,
@@ -217,9 +219,9 @@ class MultiPromptify:
 
         # Get field info from template config
         template_config = variations[0].get('template_config', {})
-        field_count = len([k for k in template_config.keys() if k not in ['few_shot', 'instruction_template']])
-        has_few_shot = 'few_shot' in template_config
-        has_custom_instruction = 'instruction_template' in template_config
+        field_count = len([k for k in template_config.keys() if k not in [FEW_SHOT_KEY, PROMPT_FORMAT]])
+        has_few_shot = FEW_SHOT_KEY in template_config
+        has_custom_prompt_format = PROMPT_FORMAT in template_config
 
         return {
             'total_variations': len(variations),
@@ -227,7 +229,7 @@ class MultiPromptify:
             'avg_variations_per_row': sum(row_counts.values()) / len(row_counts) if row_counts else 0,
             'template_fields': field_count,
             'has_few_shot': has_few_shot,
-            'has_custom_instruction': has_custom_instruction,
+            'has_custom_prompt_format': has_custom_prompt_format,
             'min_variations_per_row': min(row_counts.values()) if row_counts else 0,
             'max_variations_per_row': max(row_counts.values()) if row_counts else 0,
         }

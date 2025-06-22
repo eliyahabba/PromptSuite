@@ -11,7 +11,7 @@ Each exception provides:
 
 from typing import List, Dict, Any
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
     PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
 )
 
@@ -61,7 +61,7 @@ class InvalidTemplateError(TemplateError):
 
     def __init__(self, errors: List[str], template: Dict[str, Any] = None):
         context = {"template_keys": list(template.keys()) if template else None}
-        suggestion = "Please check your template format. Required fields: instruction_template. Optional: gold, few_shot, variation fields"
+        suggestion = "Please check your template format. Required fields: prompt_format_template. Optional: gold, few_shot, variation fields"
 
         if len(errors) == 1:
             message = f"Invalid template: {errors[0]}"
@@ -92,16 +92,16 @@ class InvalidTemplateFieldError(TemplateError):
 
 
 class MissingInstructionTemplateError(TemplateError):
-    """Raised when instruction_template is required but not provided."""
+    """Raised when prompt_format_template is required but not provided."""
 
-    def __init__(self, has_instruction_variations: bool = False):
-        message = "instruction_template is required"
-        context = {"has_instruction_variations": has_instruction_variations}
+    def __init__(self, has_prompt_format_variations: bool = False):
+        message = "prompt_format_template is required"
+        context = {"has_prompt_format_variations": has_prompt_format_variations}
 
-        if has_instruction_variations:
-            suggestion = "Add 'instruction_template' to your template when using instruction variations. Example: \"instruction_template\": \"Process: {input}\\nOutput: {output}\""
+        if has_prompt_format_variations:
+            suggestion = "Add 'prompt_format_template' to your template when using prompt_format variations. Example: \"prompt_format_template\": \"Process: {input}\\nOutput: {output}\""
         else:
-            suggestion = "Add 'instruction_template' to your template. Example: \"instruction_template\": \"Process: {input}\\nOutput: {output}\""
+            suggestion = "Add 'prompt_format_template' to your template. Example: \"prompt_format_template\": \"Process: {input}\\nOutput: {output}\""
 
         super().__init__(message, "INSTRUCTION_TEMPLATE_MISSING", context, suggestion)
 

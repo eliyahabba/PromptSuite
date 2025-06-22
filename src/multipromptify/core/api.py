@@ -22,7 +22,7 @@ from multipromptify.core.exceptions import (
     UnsupportedExportFormatError, ExportWriteError
 )
 from multipromptify.core.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
     PARAPHRASE_WITH_LLM, REWORDING
 )
 from multipromptify.shared.constants import GenerationDefaults
@@ -418,7 +418,7 @@ class MultiPromptifier:
         
         # Check if any field has paraphrase variations
         for field_name, variations in self.template.items():
-            if field_name in [INSTRUCTION_TEMPLATE_KEY, GOLD_KEY, FEW_SHOT_KEY]:
+            if field_name in [PROMPT_FORMAT, GOLD_KEY, FEW_SHOT_KEY]:
                 continue
             
             if isinstance(variations, list) and PARAPHRASE_WITH_LLM in variations:
@@ -445,7 +445,7 @@ class MultiPromptifier:
         if self.template:
             print(f"\n📝 Template Fields:")
             for field_name, config in self.template.items():
-                if field_name == INSTRUCTION_TEMPLATE_KEY:
+                if field_name == PROMPT_FORMAT:
                     print(f"   {field_name}: {config[:50]}..." if len(str(config)) > 50 else f"   {field_name}: {config}")
                 else:
                     print(f"   {field_name}: {config}") 
