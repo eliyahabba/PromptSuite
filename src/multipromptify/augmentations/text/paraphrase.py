@@ -22,7 +22,7 @@ talkative_template = (
     "Prompt: '''{prompt}'''"
 )
 
-detailed_template = """You are a prompt rewriting assistant. Your task is to create {n_augments} creative versions of the given prompt template.
+instruction_template = """You are a prompt rewriting assistant. Your task is to create {n_augments} creative versions of the given prompt template.
 
 CRITICAL REQUIREMENTS:
 1. PRESERVE ALL PLACEHOLDERS: Any text within curly braces {{}} must appear EXACTLY as given in all variations
@@ -47,6 +47,19 @@ Original prompt: '''{prompt}'''
 
 Generate {n_augments} creative variations:"""
 
+
+instruction_template = """Can you help me write variations of an instruction prompt to an LLM for the following task description? 
+
+IMPORTANT: The instruction may contain placeholders in curly braces like {{subject}}, {{topic}}, {{field}}, etc. These placeholders MUST be preserved EXACTLY as they appear in ALL variations.
+
+Provide {n_augments} creative versions while:
+1. Preserving the original meaning and intent
+2. Keeping ALL placeholders {{}} unchanged in their exact positions
+3. Varying the instructional language around the placeholders
+
+Output only a Python list of strings with the alternatives. Do not include any explanation or additional text.
+
+Original instruction: '''{prompt}'''"""
 class Paraphrase(BaseAxisAugmenter):
     def __init__(self, n_augments: int = 1, api_key: str = None):
         """
@@ -72,7 +85,7 @@ class Paraphrase(BaseAxisAugmenter):
         Returns:
             List of paraphrased variations
         """
-        rephrasing_prompt = self.build_rephrasing_prompt(detailed_template, self.n_augments, prompt)
+        rephrasing_prompt = self.build_rephrasing_prompt(instruction_template, self.n_augments, prompt)
         response = get_completion(rephrasing_prompt)
         return ast.literal_eval(response)
 

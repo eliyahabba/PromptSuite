@@ -11,7 +11,7 @@ from multipromptify.augmentations.text.context import ContextAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
 from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
 from multipromptify.core.template_keys import (
-    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION
+    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION, CONTEXT_VARIATION, FEW_SHOT_VARIATION, ENUMERATE_VARIATION
 )
 
 
@@ -24,10 +24,10 @@ class AugmenterFactory:
     _registry = {
         PARAPHRASE_WITH_LLM: Paraphrase,
         REWORDING: TextSurfaceAugmenter,
-        "context": ContextAugmenter,
+        CONTEXT_VARIATION: ContextAugmenter,
         SHUFFLE_VARIATION: ShuffleAugmenter,
-        "fewshot": FewShotAugmenter,
-        "enumerate": EnumeratorAugmenter,
+        FEW_SHOT_VARIATION: FewShotAugmenter,
+        ENUMERATE_VARIATION: EnumeratorAugmenter,
     }
 
     @classmethod
@@ -44,7 +44,7 @@ class AugmenterFactory:
         Args:
             variation_type: Type of augmenter to create
             n_augments: Number of augmentations to generate
-            api_key: API key for augmenters that require it (e.g., Paraphrase)
+            api_key: API key for augmenters that require it (e.g., Paraphrase, ContextAugmenter)
             **kwargs: Additional parameters for specific augmenters
             
         Returns:
@@ -69,6 +69,16 @@ class AugmenterFactory:
                 print(f"⚠️ Paraphrase augmenter requires api_key, using TextSurfaceAugmenter as fallback")
                 return TextSurfaceAugmenter(n_augments=n_augments)
                 
+        elif augmenter_class == ContextAugmenter:
+            # ContextAugmenter requires api_key
+            if api_key:
+                print(f"✅ Creating ContextAugmenter with API key")
+                return augmenter_class(n_augments=n_augments)
+            else:
+                print(f"⚠️ ContextAugmenter requires api_key, using TextSurfaceAugmenter as fallback")
+                print(f"   Context variations add background information but need LLM API access")
+                return TextSurfaceAugmenter(n_augments=n_augments)
+                
         elif augmenter_class == FewShotAugmenter:
             # FewShotAugmenter might have different parameters
             return augmenter_class(n_augments=n_augments)
@@ -82,7 +92,7 @@ class AugmenterFactory:
                 return augmenter_class(n_augments=n_augments)
             
         else:
-            # Standard augmenters (TextSurfaceAugmenter, ContextAugmenter, ShuffleAugmenter)
+            # Standard augmenters (TextSurfaceAugmenter, ShuffleAugmenter)
             return augmenter_class(n_augments=n_augments)
 
     @classmethod
@@ -107,7 +117,7 @@ class AugmenterFactory:
             True if API key is required, False otherwise
         """
         augmenter_class = cls._registry.get(variation_type)
-        return augmenter_class == Paraphrase
+        return augmenter_class == Paraphrase or augmenter_class == ContextAugmenter
 
     @classmethod
     def augment_with_special_handling(

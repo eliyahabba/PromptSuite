@@ -107,16 +107,48 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
 
     def augment(self, input_data: str, identification_data: Dict[str, Any] = None) -> List[str]:
         """
-        This method is kept for compatibility but enumerate should be used
-        through the template configuration system, not as a direct field variation.
+        Generate multiple variations with different enumeration types.
+        
+        Args:
+            input_data: The input data to enumerate
+            identification_data: Optional data containing enumeration configuration
+            
+        Returns:
+            List of variations with different enumeration types
         """
-        # For direct usage, use default '1234' enumeration
-        try:
-            result = self.enumerate_field(input_data, '1234')
-            return [result]
-        except Exception as e:
-            print(f"⚠️ Error in enumerate augmentation: {e}")
-            return [input_data]
+        variations = []
+        
+        # Get enumeration type from identification_data if available
+        enum_type = '1234'  # default
+        if identification_data and 'enum_type' in identification_data:
+            enum_type = identification_data['enum_type']
+        
+        # If we have n_augments > 1, generate multiple variations with different types
+        if self.n_augments > 1:
+            # Define different enumeration types to try
+            enum_types = ['1234', 'ABCD', 'abcd', 'roman']
+            
+            # Generate variations with different types (skip the original non-enumerated version)
+            for i in range(min(self.n_augments, len(enum_types))):
+                try:
+                    result = self.enumerate_field(input_data, enum_types[i])
+                    if result not in variations:
+                        variations.append(result)
+                except Exception as e:
+                    print(f"⚠️ Error in enumerate augmentation with type {enum_types[i]}: {e}")
+                    continue
+        else:
+            # Single variation with specified type
+            try:
+                result = self.enumerate_field(input_data, enum_type)
+                variations.append(result)
+            except Exception as e:
+                print(f"⚠️ Error in enumerate augmentation: {e}")
+                # Don't return original input_data for enumerate - it should always enumerate
+                return []
+        
+        # For enumerate, we should always return enumerated versions, not the original
+        return variations
 
 
 def main():
