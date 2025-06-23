@@ -2,20 +2,20 @@
 Variation Generator: Handles generation of field variations and prompt_format variations.
 """
 
-from typing import Dict, List, Any
-import pandas as pd
 import random
+from typing import Dict, List
+
+import pandas as pd
 
 from multipromptify.augmentations.factory import AugmenterFactory
 from multipromptify.core.models import (
     VariationConfig, FieldVariation, FieldAugmentationData
 )
-from multipromptify.utils.formatting import format_field_value, extract_gold_value
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, PROMPT_FORMAT, INSTRUCTION_VARIATIONS
+    PROMPT_FORMAT_VARIATIONS, SHUFFLE_VARIATION, ENUMERATE_VARIATION,
+    INSTRUCTION_VARIATIONS
 )
+from multipromptify.utils.formatting import format_field_value, extract_gold_value
 
 
 class VariationGenerator:
@@ -44,7 +44,8 @@ class VariationGenerator:
                 augmenter = AugmenterFactory.create(
                     variation_type=variation_type,
                     n_augments=variation_config.variations_per_field,
-                    api_key=variation_config.api_key
+                    api_key=variation_config.api_key,
+                    seed=variation_config.seed
                 )
 
                 # Use Factory to handle augmentation with special cases
@@ -74,7 +75,7 @@ class VariationGenerator:
         if prompt_format not in unique_variations:
             unique_variations.insert(0, prompt_format)
 
-        return unique_variations[:variation_config.variations_per_field + 1]
+        return unique_variations[:variation_config.variations_per_field]
 
     def generate_instruction_variations(
             self,
@@ -92,7 +93,8 @@ class VariationGenerator:
                 augmenter = AugmenterFactory.create(
                     variation_type=variation_type,
                     n_augments=variation_config.variations_per_field,
-                    api_key=variation_config.api_key
+                    api_key=variation_config.api_key,
+                    seed=variation_config.seed
                 )
                 variations = AugmenterFactory.augment_with_special_handling(
                     augmenter=augmenter,
@@ -133,7 +135,8 @@ class VariationGenerator:
                 prompt_format, variation_fields, variation_config
             )
             # Convert to FieldVariation objects
-            field_variations[PROMPT_FORMAT_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in prompt_format_vars]
+            field_variations[PROMPT_FORMAT_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in
+                                                          prompt_format_vars]
         else:
             field_variations[PROMPT_FORMAT_VARIATIONS] = [FieldVariation(data=prompt_format, gold_update=None)]
 
@@ -145,7 +148,8 @@ class VariationGenerator:
                 variation_config
             )
             # Convert to FieldVariation objects
-            field_variations[INSTRUCTION_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in instruction]
+            field_variations[INSTRUCTION_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in
+                                                        instruction]
         else:
             field_variations[INSTRUCTION_VARIATIONS] = [FieldVariation(data=instruction, gold_update=None)]
 
@@ -153,7 +157,6 @@ class VariationGenerator:
         for field_name, variation_types in variation_fields.items():
             if field_name in [PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS]:
                 continue  # Already handled above
-
 
             # Assume clean data - process all fields that exist in the row
             if field_name in row.index:
@@ -231,12 +234,14 @@ class VariationGenerator:
                 augmenter = AugmenterFactory.create(
                     variation_type=variation_type,
                     n_augments=field_data.variation_config.variations_per_field,
-                    api_key=field_data.variation_config.api_key
+                    api_key=field_data.variation_config.api_key,
+                    seed=field_data.variation_config.seed
                 )
                 # Special handling for shuffle
                 if variation_type == SHUFFLE_VARIATION:
                     if not field_data.has_gold_field():
-                        print(f"⚠️ Shuffle augmenter requires gold field '{field_data.gold_config.field}' to be present in data")
+                        print(
+                            f"⚠️ Shuffle augmenter requires gold field '{field_data.gold_config.field}' to be present in data")
                         continue
                     # Prepare identification data for shuffle
                     if field_data.gold_config.type == 'index':
@@ -247,7 +252,8 @@ class VariationGenerator:
                                 'gold_value': str(gold_index)
                             }
                         except (ValueError, TypeError):
-                            print(f"⚠️ Gold field '{field_data.gold_config.field}' must contain valid integer indices for shuffle operation")
+                            print(
+                                f"⚠️ Gold field '{field_data.gold_config.field}' must contain valid integer indices for shuffle operation")
                             continue
                     else:
                         identification_data = {
@@ -308,4 +314,4 @@ class VariationGenerator:
         # Deterministically sample the required number of variations using the configured random seed
         sample_seed = getattr(field_data.variation_config, 'random_seed', 42)
         sampled = self.deterministic_sample(unique, field_data.variation_config.variations_per_field, seed=sample_seed)
-        return sampled 
+        return sampled
