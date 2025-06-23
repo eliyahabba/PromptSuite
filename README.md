@@ -457,37 +457,15 @@ for v in variations:
 
 ## Web UI Interface
 
-The MultiPromptify 2.0 web interface provides an intuitive **3-step workflow**:
+MultiPromptify 2.0 includes a modern, interactive web interface built with **Streamlit**.
 
-### 🚀 Step 1: Upload Data
-- **Upload CSV/JSON files** or select from built-in sample datasets
-- **Create custom data** with in-browser editor
-- **Preview your data** with automatic column detection and validation
-- **Sample datasets** for quick testing: Sentiment Analysis, Q&A, Multiple Choice, Text Classification
+The UI guides you through a simple 3-step workflow:
 
-### 🔧 Step 2: Build Template  
-- **Smart template suggestions** based on your data structure
-- **Dictionary format templates** with variation specifications
-- **Real-time validation** and syntax checking
-- **Live preview** of how your template will look with actual data
-- **Category-based templates**: Sentiment Analysis, Question Answering, Multiple Choice, Text Classification
+1. **Upload Data**: Load your dataset (CSV/JSON) or use built-in samples. Preview and validate your data before continuing.
+2. **Build Template**: Create or select a prompt template, with smart suggestions based on your data. See a live preview of your template.
+3. **Generate & Export**: Configure generation settings, run the variation process, and export your results in various formats.
 
-### ⚡ Step 3: Generate & Export
-- **Configure generation**: variations per field, max rows, random seed
-- **AI platform selection**: TogetherAI or OpenAI for paraphrase variations
-- **Real-time progress tracking** with detailed status updates
-- **Comprehensive results display**:
-  - 📋 **All Variations**: Browse all generated variations with highlighting
-  - 💬 **Conversation Format**: View as chat-like conversations
-  - 💾 **Export Options**: JSON, CSV, TXT, Conversation formats
-
-### 🎯 Key Features
-- **Step-by-step navigation** with progress indicator
-- **Smart template suggestions** for common NLP tasks
-- **Real-time validation** with instant feedback
-- **Multiple export formats** for different use cases
-- **Enhanced visualization** with color-coded field highlighting
-- **Pagination and filtering** for large result sets
+The Streamlit UI is the easiest way to explore, test, and generate prompt variations visually.
 
 ## Contributing
 
