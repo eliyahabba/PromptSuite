@@ -1,5 +1,5 @@
 import random
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.shared.model_client import get_completion
 
@@ -10,14 +10,15 @@ class ContextAugmenter(BaseAxisAugmenter):
     This doesn't change the meaning of the task but makes the prompt longer.
     """
 
-    def __init__(self, n_augments=3):
+    def __init__(self, n_augments=3, seed: Optional[int] = None):
         """
         Initialize the context augmenter.
 
         Args:
             n_augments: Number of variations to generate
+            seed: Random seed for reproducibility
         """
-        super().__init__(n_augments=n_augments)
+        super().__init__(n_augments=n_augments, seed=seed)
         
     def get_name(self):
         return "Context Variations"

@@ -1,5 +1,5 @@
 from multipromptify.augmentations.base import BaseAxisAugmenter
-from typing import List
+from typing import List, Optional
 import ast
 from multipromptify.shared.model_client import get_completion
 from multipromptify.core.template_keys import PARAPHRASE_WITH_LLM
@@ -61,15 +61,16 @@ Output only a Python list of strings with the alternatives. Do not include any e
 
 Original instruction: '''{prompt}'''"""
 class Paraphrase(BaseAxisAugmenter):
-    def __init__(self, n_augments: int = 1, api_key: str = None):
+    def __init__(self, n_augments: int = 1, api_key: str = None, seed: Optional[int] = None):
         """
         Initialize the paraphrse augmenter.
 
         Args:
             n_augments: number of paraphrase needed
             api_key: API key for the language model service
+            seed: Random seed for reproducibility
         """
-        super().__init__(n_augments=n_augments)
+        super().__init__(n_augments=n_augments, seed=seed)
         self.api_key = api_key
 
     def build_rephrasing_prompt(self, template: str, n_augments: int, prompt: str) -> str:
