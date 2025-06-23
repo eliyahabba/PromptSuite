@@ -1,6 +1,6 @@
 # Augmentor for custom augmentations
 # This module provides an augmenter that generates variations of a prompt
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.shared.model_client import get_completion
 
@@ -11,7 +11,7 @@ class OtherAugmenter(BaseAxisAugmenter):
     according to the user's input, using an LLM in the background.
     """
 
-    def __init__(self, n_augments=3, augmentation_title="", augmentation_description="", augmentation_examples=""):
+    def __init__(self, n_augments=3, augmentation_title="", augmentation_description="", augmentation_examples="", seed: Optional[int] = None):
         """
         Initialize the context augmenter.
 
@@ -19,8 +19,9 @@ class OtherAugmenter(BaseAxisAugmenter):
             n_augments: Number of variations to generate
             augmentation_title: Title of the augmentation
             augmentation_description: Description of the augmentation
+            seed: Random seed for reproducibility
         """
-        super().__init__(n_augments=n_augments)
+        super().__init__(n_augments=n_augments, seed=seed)
         self.augmentation_title = augmentation_title
         self.augmentation_description = augmentation_description
         self.augmentation_examples = augmentation_examples
