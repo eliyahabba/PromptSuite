@@ -6,9 +6,9 @@ import streamlit as st
 
 from multipromptify.core import MultiPromptify
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    INSTRUCTION, INSTRUCTION_VARIATIONS
+    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY, PARAPHRASE_WITH_LLM, CONTEXT_VARIATION,
+    SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
+    INSTRUCTION, INSTRUCTION_VARIATIONS, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION
 )
 from multipromptify.shared.constants import FEW_SHOT_DYNAMIC_DEFAULT
 
@@ -204,7 +204,27 @@ def template_builder_interface(available_columns):
         """, unsafe_allow_html=True)
 
     # Available variation types
-    variation_types = [PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION]
+    variation_types = [PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION,
+                       FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]
+
+    # Add explanation of new variation types
+    with st.expander("ℹ️ Variation Types Guide", expanded=False):
+        st.markdown("""
+        **Available Variation Types:**
+        
+        - **paraphrase_with_llm**: Uses AI to rephrase text while preserving meaning
+        - **rewording**: Backward compatibility - maps to typos_and_noise
+        - **context**: Adds background context to questions
+        - **shuffle**: Reorders items in lists (e.g., multiple choice options)
+        - **multidoc**: Handles multiple document variations
+        - **format structure**: Semantic-preserving format changes (separators, connectors, casing)
+        - **typos and noise**: Robustness testing with noise injection (typos, character swaps, etc.)
+        
+        **When to use which:**
+        - Use **format structure** for testing model robustness to different prompt formats
+        - Use **typos and noise** for testing model robustness to noisy input
+        - Use **rewording** for backward compatibility (same as typos_and_noise)
+        """)
 
     # Initialize template state
     if 'template_config' not in st.session_state:
@@ -225,7 +245,8 @@ def template_builder_interface(available_columns):
     configured_fields = {}
 
     # Use tabs for better organization
-    field_tabs = st.tabs(["📝 Instruction", "📊 Data Fields", "🏆 Gold Field", "🔢 Enumerate", "🎯 Few-shot", "⚙️ System Prompt"])
+    field_tabs = st.tabs(
+        ["📝 Instruction", "📊 Data Fields", "🏆 Gold Field", "🔢 Enumerate", "🎯 Few-shot", "⚙️ System Prompt"])
 
     with field_tabs[0]:
         # Instruction configuration
@@ -489,7 +510,7 @@ def template_builder_interface(available_columns):
                 "Example selection",
                 options=["rotating", "fixed"],
                 index=0 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format',
-                                                                                    'rotating') == 'rotating' else 1,
+                                                                                      'rotating') == 'rotating' else 1,
                 key="few_shot_format",
                 help="Rotating: different examples per row, Fixed: same examples for all rows"
             )
