@@ -13,16 +13,17 @@ from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
 from multipromptify.augmentations.text.context import ContextAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
 # Text augmenters
-from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
+from multipromptify.augmentations.text.format_structure import FormatStructureAugmenter
+from multipromptify.augmentations.text.noise import TextNoiseAugmenter
 
 __all__ = [
     "BaseAxisAugmenter",
-    "TextSurfaceAugmenter",
+    "FormatStructureAugmenter",  # New semantic-preserving format augmenter
+    "TextNoiseAugmenter",  # New noise injection augmenter
     "Paraphrase",
     "ContextAugmenter",
     "FewShotAugmenter",
     "ShuffleAugmenter",
     "EnumeratorAugmenter",
-
     "OtherAugmenter"
 ]
