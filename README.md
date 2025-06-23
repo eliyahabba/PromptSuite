@@ -10,9 +10,6 @@ MultiPromptify transforms your single-prompt datasets into rich multi-prompt dat
 
 - 📖 **[Complete API Guide](docs/api-guide.md)** - Python API reference and examples
 - 🏗️ **[Developer Documentation](docs/dev/)** - For contributors and developers
-  - [Project Structure](docs/dev/project-structure.md) - Code organization guide
-  - [Publishing Guide](docs/dev/publishing-guide.md) - Package publishing instructions
-  - [Implementation Summaries](docs/dev/) - Technical implementation details
 
 ## Installation
 
@@ -34,13 +31,6 @@ pip install git+https://github.com/ehabba/MultiPromptifyPipeline.git
 git clone https://github.com/ehabba/MultiPromptifyPipeline.git
 cd MultiPromptifyPipeline
 pip install -e .
-```
-
-### With Web UI Support
-
-```bash
-# Install with web UI components
-pip install -e ".[ui]"
 ```
 
 ## Quick Start
@@ -69,7 +59,7 @@ The web UI provides:
 
 ```bash
 multipromptify --template '{"instruction": "{instruction}: {text}", "text": ["paraphrase_with_llm"], "gold": "label"}' \
-               --data data.csv
+               --data data.csv --max-variations-per-row 50
 ```
 
 ### Python API
@@ -85,23 +75,16 @@ mp = MultiPromptifier()
 data = [{"question": "What is 2+2?", "answer": "4"}]
 mp.load_dataframe(pd.DataFrame(data))
 
-# Configure template with variation specifications
+# Configure template
 template = {
-    'instruction': 'Please answer the following questions.',
-    'prompt format': 'Q: {question}\nA: {answer}',
-    'question': ['paraphrase_with_llm'],
+  'instruction': 'Please answer the following questions.',
+  'prompt format': 'Q: {question}\nA: {answer}',
+  'question': ['format_structure'],
 }
 mp.set_template(template)
 
-# Configure and generate
-mp.configure(
-    max_rows=GenerationDefaults.MAX_ROWS,
-    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
-    max_variations=GenerationDefaults.MAX_VARIATIONS,
-    random_seed=GenerationDefaults.RANDOM_SEED,
-    api_platform=GenerationDefaults.API_PLATFORM,
-    model_name=GenerationDefaults.MODEL_NAME
-)
+# Generate variations
+mp.configure(max_rows=2, variations_per_field=3)
 variations = mp.generate(verbose=True)
 
 # Export results
@@ -163,10 +146,10 @@ Below is a recommended way to define a template using all the main template keys
 ```python
 template = {
   "instruction": "You are a helpful assistant. Please answer the following questions.",
-  "instruction variations": ["rewording"],  # Variation types for the instruction
+  "instruction variations": ["format_structure"],  # Variation types for the instruction
   "prompt format": "Q: {question}\nOptions: {options}\nA: {answer}",
   "prompt format variations": ["paraphrase_with_llm"],  # Variation types for the prompt format
-  "question": ["rewording"],
+  "question": ["typos_and_noise"],
   "options": ["shuffle"],
   "gold": {
     'field': 'answer',
@@ -195,13 +178,41 @@ Templates use Python f-string syntax with custom variation annotations:
 - `instruction`: (optional) A general instruction that appears at the top of every prompt, before any few-shot or main question. You can use placeholders (e.g., `{subject}`) that will be filled from the data for each row.
 - `prompt format`: The per-example template, usually containing the main question and placeholders for fields.
 
-Supported variation types:
-- `:paraphrase_with_llm` - Paraphrasing variations (LLM-based)
-- `:rewording` - Surface-level/wording variations (non-LLM)
-- `:context` - Context-based variations
-- `:shuffle` - Shuffle options/elements (for multiple choice)
-- `:multidoc` - Multi-document/context variations
-- `:enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4.)
+## Supported Variation Types
+
+- `paraphrase_with_llm` - Paraphrasing variations (LLM-based)
+- `format_structure` - Semantic-preserving format changes (e.g., separators, casing, field order)
+- `typos_and_noise` - Injects typos, random case, extra whitespace, and punctuation noise for robustness
+- `context` - Context-based variations
+- `shuffle` - Shuffle options/elements (for multiple choice)
+- `enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4., A. B. C. D., roman numerals, etc.)
+You can combine these augmenters in your template for richer prompt variations.
+
+## Template Format
+
+Templates use a dictionary format with specific keys for different components:
+
+```python
+template = {
+  "instruction": "You are a helpful assistant. Please answer the following questions.",
+  "instruction variations": ["paraphrase_with_llm"],
+  "prompt format": "Q: {question}\nOptions: {options}\nA: {answer}",
+  "prompt format variations": ["format_structure"],
+  "question": ["shuffle", "typos_and_noise""typos_and_noise"],
+  "options": ["enumerate"],
+  "gold": {
+    'field': 'answer',
+    'type': 'index',
+    'options_field': 'options'
+  },
+  "few_shot": {
+    'count': 2,
+    'format': 'rotating',
+    'split': 'all'
+  }
+}
+```
+
 
 ## Features
 
@@ -215,9 +226,6 @@ Supported variation types:
 - **CSV/DataFrame support**: Direct pandas DataFrame or CSV file input
 - **HuggingFace datasets**: Full compatibility with datasets library
 - **Dictionary inputs**: Support for various input types
-  - Literals (strings/numbers): Applied to entire dataset
-  - Lists: Applied per sample/row
-  - Few-shot examples: Flexible list or tuple formats
 
 ### Web UI Features
 - **Sample Datasets**: Built-in datasets for quick testing
@@ -254,10 +262,10 @@ multipromptify --template '{"instruction": "{instruction}: {question}", "questio
                --data data.csv \
                --output variations.json
 
-# Specify number of variations
-multipromptify --template '{"instruction": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
+# Specify number of variations PER ROW
+multipromptify --template '{"instruction": "{instruction}: {question}", "instruction": ["semantic"], "question": ["format_structure"], "gold": "answer"}' \
                --data data.csv \
-               --max-variations 50
+               --max-variations-per-row 50
 ```
 
 ### Advanced Options
@@ -266,10 +274,10 @@ multipromptify --template '{"instruction": "{instruction}: {question}", "instruc
 # With few-shot examples
 multipromptify --template '{"instruction": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
                --data data.csv \
-               --max-variations 50
+               --max-variations-per-row 50
 
 # Output in different formats
-multipromptify --template '{"instruction": "{instruction}: {question}", "instruction": ["semantic"], "question": ["rewording"], "gold": "answer"}' \
+multipromptify --template '{"instruction": "{instruction}: {question}", "instruction": ["semantic"], "question": ["format_structure"], "gold": "answer"}' \
                --data data.csv \
                --format csv \
                --output variations.csv
@@ -324,7 +332,7 @@ data = pd.DataFrame({
 template = {
     'instruction': 'Please answer the following questions.',
     'prompt format': 'Q: {question}\nA: {answer}',
-    'question': ['rewording']
+    'question': ['format_structure']
 }
 
 mp = MultiPromptifier()
@@ -342,27 +350,27 @@ import pandas as pd
 from multipromptify import MultiPromptifier
 
 data = pd.DataFrame({
-    'text': ['I love this movie!', 'This book is terrible.'],
-    'label': ['positive', 'negative']
+  'text': ['I love this movie!', 'This book is terrible.'],
+  'label': ['positive', 'negative']
 })
 
 template = {
-    'instruction': 'Classify the sentiment: "{text}"\nSentiment: {label}',
-    'instruction': ['semantic'],
-    'text': ['paraphrase_with_llm'],
-    'gold': 'label'
+  'instruction': 'Classify the sentiment: "{text}"\nSentiment: {label}',
+  'instruction_variations': ['semantic'],
+  'text': ['paraphrase_with_llm'],
+  'gold': 'label'
 }
 
 mp = MultiPromptifier()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(
-    max_rows=GenerationDefaults.MAX_ROWS,
-    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
-    max_variations=GenerationDefaults.MAX_VARIATIONS,
-    random_seed=GenerationDefaults.RANDOM_SEED,
-    api_platform=GenerationDefaults.API_PLATFORM,
-    model_name=GenerationDefaults.MODEL_NAME
+  max_rows=GenerationDefaults.MAX_ROWS,
+  variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+  max_variations_per_row=GenerationDefaults.MAX_VARIATIONS_PER_ROW,
+  random_seed=GenerationDefaults.RANDOM_SEED,
+  api_platform=GenerationDefaults.API_PLATFORM,
+  model_name=GenerationDefaults.MODEL_NAME
 )
 variations = mp.generate(verbose=True)
 ```
@@ -371,27 +379,27 @@ variations = mp.generate(verbose=True)
 
 ```python
 template = {
-    'instruction': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
-    'instruction': ['paraphrase_with_llm'],
-    'question': ['semantic'],
-    'gold': 'answer',
-    'few_shot': {
-        'count': 2,
-        'format': 'rotating',
-        'split': 'all'
-    }
+  'instruction': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
+  'instruction_variations': ['paraphrase_with_llm'],
+  'question': ['semantic'],
+  'gold': 'answer',
+  'few_shot': {
+    'count': 2,
+    'format': 'rotating',
+    'split': 'all'
+  }
 }
 
 mp = MultiPromptifier()
 mp.load_dataframe(qa_data)
 mp.set_template(template)
 mp.configure(
-    max_rows=GenerationDefaults.MAX_ROWS,
-    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
-    max_variations=GenerationDefaults.MAX_VARIATIONS,
-    random_seed=GenerationDefaults.RANDOM_SEED,
-    api_platform=GenerationDefaults.API_PLATFORM,
-    model_name=GenerationDefaults.MODEL_NAME
+  max_rows=GenerationDefaults.MAX_ROWS,
+  variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+  max_variations_per_row=GenerationDefaults.MAX_VARIATIONS_PER_ROW,
+  random_seed=GenerationDefaults.RANDOM_SEED,
+  api_platform=GenerationDefaults.API_PLATFORM,
+  model_name=GenerationDefaults.MODEL_NAME
 )
 variations = mp.generate(verbose=True)
 ```
@@ -424,7 +432,7 @@ data = pd.DataFrame({
 template = {
     'instruction': 'The following are multiple choice questions (with answers) about {subject}.',
     'prompt format': 'Question: {question}\nOptions: {options}\nAnswer:',
-    'question': ['rewording'],
+    'question': ['format_structure'],
     'options': ['shuffle'],
     'gold': {
         'field': 'answer',
@@ -491,51 +499,4 @@ The MultiPromptify 2.0 web interface provides an intuitive **3-step workflow**:
 
 ## License
 
-MIT License - see LICENSE file for details.
-
-## Project Structure (Updated)
-
-The main core files are now located under `src/multipromptify/core/`:
-- `core/engine.py` – Main MultiPromptify engine class
-- `core/api.py` – High-level Python API (MultiPromptifier)
-- `core/template_parser.py` – Template parsing with variation annotations
-- `core/template_keys.py` – Template keys and constants
-- `core/models.py` – Data models and configurations
-- `core/exceptions.py` – Custom exceptions
-- `core/__init__.py` – Core module exports
-
-Other folders:
-- `generation/` – Variation generation modules
-- `augmentations/` – Text augmentation modules
-- `validators/` – Template and data validators
-- `utils/` – Utility functions
-- `shared/` – Shared resources
-- `ui/` – Streamlit web interface
-- `examples/` – API usage examples (e.g., `api_example.py`)
-- `scripts/` – Utility scripts for development and UI launching
-
-You can still import main classes directly from `multipromptify` (e.g., `from multipromptify import MultiPromptify`), as the package root re-exports them for convenience.
-
-## Minimal Example (No gold, no few_shot)
-
-```python
-import pandas as pd
-from multipromptify import MultiPromptifier
-
-data = pd.DataFrame({
-    'question': ['What is 2+2?', 'What is the capital of France?'],
-    'answer': ['4', 'Paris']
-})
-
-template = {
-    'prompt format': 'Q: {question}\nA: {answer}',
-    'question': ['rewording']
-}
-
-mp = MultiPromptifier()
-mp.load_dataframe(data)
-mp.set_template(template)
-mp.configure(max_rows=2, variations_per_field=2)
-variations = mp.generate(verbose=True)
-print(variations)
-``` 
+MIT License - see LICENSE file for details. 

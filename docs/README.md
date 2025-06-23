@@ -191,7 +191,7 @@ multipromptify --template "{instruction}: {question:paraphrase_with_llm}" \
 multipromptify --template "{instruction:semantic}: {question}" \
                --data data.csv \
                --instruction "Solve this" \
-               --max-variations 50
+               --max-variations-per-row 50
 ```
 
 ### Advanced Options

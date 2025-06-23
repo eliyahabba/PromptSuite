@@ -12,8 +12,8 @@ import pandas as pd
 from multipromptify import MultiPromptifier
 from multipromptify.core.template_keys import (
     PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, ENUMERATE_VARIATION,
-    PROMPT_FORMAT, INSTRUCTION_VARIATIONS, INSTRUCTION
+    PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION, ENUMERATE_VARIATION,
+    PROMPT_FORMAT, INSTRUCTION_VARIATIONS, INSTRUCTION, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION
 )
 
 
@@ -38,7 +38,7 @@ def example_with_sample_data_few_shot():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about math.',
         PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
-        'question': [REWORDING],  # surface variations
+        PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],  # surface variations
         'gold': 'answer',
         'few_shot': {
             'count': 2,  # Use 2 examples
@@ -57,7 +57,7 @@ def example_with_sample_data_few_shot():
     print("\n" + "=" * 50)
 
     # Show first few variations to see few-shot in action
-    for i, var in enumerate(variations[:3]):
+    for i, var in enumerate(variations[:12]):
         print(f"\nVariation {i + 1}:")
         print("-" * 50)
         print(var['prompt'])
@@ -111,7 +111,7 @@ def example_with_enumerate():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -132,7 +132,7 @@ def example_with_enumerate():
     mp.configure(
         max_rows=3,
         variations_per_field=2,
-        max_variations=10,
+        max_variations_per_row=10,
         random_seed=42
     )
 
@@ -192,7 +192,7 @@ def example_enumerate_types():
         template = {
             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-            QUESTION_KEY: [REWORDING],
+            QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
             GOLD_KEY: {
                 'field': 'answer',
                 'type': 'index',
@@ -205,7 +205,7 @@ def example_enumerate_types():
         }
 
         mp.set_template(template)
-        mp.configure(max_rows=1, variations_per_field=1, max_variations=1)
+        mp.configure(max_rows=1, variations_per_field=1, max_variations_per_row=1)
 
         try:
             variations = mp.generate(verbose=False)
@@ -217,105 +217,72 @@ def example_enumerate_types():
 
 
 def example_with_sample_data():
-    """Example using sample data with different template configurations."""
+    """Main example demonstrating the new specialized augmenters."""
+    print("🚀 MultiPromptify API Example with New Specialized Augmenters")
+    print("=" * 60)
 
-    print("🚀 MultiPromptify API Example")
-    print("=" * 50)
-
-    # Initialize the API
+    # Create instance
     mp = MultiPromptifier()
 
-    # Create sample data - NOTE: answers are indices (0-based) not the actual text
-    # because we use 'type': 'index' in the gold configuration
-    sample_data = [
-        {
-            "question": "What is the capital of France?",
-            "options": ["London", "Berlin", "Paris", "Madrid"],
-            "answer": 2  # Paris is at index 2
-        },
-        {
-            "question": "What is 2+2?",
-            "options": ["3", "4", "5", "6"],
-            "answer": 1  # 4 is at index 1
-        },
-        {
-            "question": "Which planet is closest to the Sun?",
-            "options": ["Venus", "Mercury", "Earth", "Mars"],
-            "answer": 1  # Mercury is at index 1
-        }
-    ]
+    # Load data with multiple examples
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is 2+2?',
+            # 'Which planet is closest to the Sun?',
+            # 'What is the largest mammal?'
+        ],
+        'options': [
+            'London, Berlin, Paris, Madrid',
+            '3, 4, 5, 6',
+            # 'Venus, Mercury, Earth, Mars',
+            # 'Elephant, Blue Whale, Giraffe, Lion'
+        ],
+        'answer': [2, 1]  # 0-based indices
+        # 'answer': [2, 1, 1, 1]  # 0-based indices
+    })
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} questions with multiple choice options")
 
-    df = pd.DataFrame(sample_data)
-
-    # Load the data
-    print("\n1. Loading data...")
-    mp.load_dataframe(df)
-    print("📝 Data format: answers are indices (0-based), not text values")
-    print("   Example: Paris = index 2 in ['London', 'Berlin', 'Paris', 'Madrid']")
-
-    # Configure template (dictionary format)
-    print("\n2. Setting template...")
+    # Configure template with new specialized augmenters
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-        INSTRUCTION_VARIATIONS: [REWORDING],
-        PROMPT_FORMAT_VARIATIONS: [REWORDING],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],  # Use both new augmenters
+        OPTIONS_KEY: [SHUFFLE_VARIATION, FORMAT_STRUCTURE_VARIATION, ENUMERATE_VARIATION],  # Format structure + enumerate
         GOLD_KEY: {
             'field': 'answer',
-            'type': 'index',  # This means answer field contains indices, not text
+            'type': 'index',
             'options_field': 'options'
-        },
-        # FEW_SHOT_KEY: {
-        #     'count': 2,
-        #     'format': 'fixed',
-        #     'split': 'all'
-        # }
+        }
     }
-
     mp.set_template(template)
+    print("✅ Template configured with new specialized augmenters:")
+    print("   - FormatStructureAugmenter: Semantic-preserving format changes")
+    print("   - TextNoiseAugmenter: Robustness testing with noise injection")
+    print("   - Enumerate: Automatic option numbering")
 
-    # Configure generation parameters
-    print("\n3. Configuring generation...")
-    mp.configure(
-        max_rows=1,  # Use first 3 rows (need at least 3 for few_shot count=2)
-        variations_per_field=2,  # 3 variations per field
-        max_variations=20,  # Maximum 20 total variations
-        random_seed=42,  # For reproducibility
-        api_platform="TogetherAI",  # Platform selection
-        model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
-    )
-
-    # Show current status
-    print("\n4. Current status:")
-    mp.info()
-
-    # Generate variations
-    print("\n5. Generating variations...")
+    # Configure and generate
+    mp.configure(max_rows=4, variations_per_field=3, max_variations_per_row=20, random_seed=42)
     variations = mp.generate(verbose=True)
 
-    # Show results
-    print(f"\n6. Results: Generated {len(variations)} variations")
+    # Display results
+    print(f"\n✅ Generated {len(variations)} variations with new augmenters")
+    print("\n" + "=" * 50)
 
-    # Display first few variations
-    for i, variation in enumerate(variations[:3]):
+    # Show first few variations to see the new augmenters in action
+    for i, var in enumerate(variations[:25]):
         print(f"\nVariation {i + 1}:")
-        print("-" * 40)
-        print(variation.get('prompt', 'No prompt found'))
-        print()
-
-    # Get statistics
-    stats = mp.get_stats()
-    if stats:
-        print("\n7. Statistics:")
-        for key, value in stats.items():
-            print(f"   {key}: {value}")
+        print("-" * 50)
+        print(var['prompt'])
+        print("-" * 50)
 
     # Export results
-    print("\n8. Exporting results...")
-    mp.export("output_example.json", format="json")
-    mp.export("output_example.csv", format="csv")
+    mp.export("new_augmenters_demo.json", format="json")
+    print("\n✅ Exported to new_augmenters_demo.json")
 
-    print("\n✅ Example completed successfully!")
+    # Show info
+    mp.info()
 
 
 def example_platform_switching():
@@ -378,12 +345,12 @@ def example_with_huggingface():
         template = {
             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
             PROMPT_FORMAT: 'Read the context and answer the question.\\nContext: {context}\\nQuestion: {question}\\nAnswer:',
-            CONTEXT_KEY: [REWORDING],  # Reword the context
+            CONTEXT_KEY: [FORMAT_STRUCTURE_VARIATION],  # Reword the context
             QUESTION_KEY: [],
             GOLD_KEY: "answers['text'][0]"
         }
         mp.set_template(template)
-        mp.configure(max_rows=3, variations_per_field=1, max_variations=1)
+        mp.configure(max_rows=3, variations_per_field=1, max_variations_per_row=1)
 
         print("\n2. Generating variations...")
         variations = mp.generate(verbose=True)
@@ -410,7 +377,7 @@ def example_different_templates():
     simple_template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         GOLD_KEY: 'answer'  # Simple format for text answers
     }
 
@@ -418,8 +385,8 @@ def example_different_templates():
     multiple_choice_template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Choose the correct answer:\nQ: {question}\nOptions: {options}\nA: {answer}',
-        QUESTION_KEY: [REWORDING],
-        OPTIONS_KEY: [REWORDING, SHUFFLE_VARIATION],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
+        OPTIONS_KEY: [FORMAT_STRUCTURE_VARIATION, SHUFFLE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',  # Answer is index in options
@@ -431,8 +398,8 @@ def example_different_templates():
     complex_template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
-        CONTEXT_KEY: [REWORDING, PARAPHRASE_WITH_LLM],
-        QUESTION_KEY: [REWORDING],
+        CONTEXT_KEY: [FORMAT_STRUCTURE_VARIATION, PARAPHRASE_WITH_LLM],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
             'type': 'value'  # Answer is text value
@@ -449,13 +416,13 @@ def example_different_templates():
         'TogetherAI': {
             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
             PROMPT_FORMAT: 'Using Llama model: {question}\nAnswer: {answer}',
-            QUESTION_KEY: [REWORDING],
+            QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
             GOLD_KEY: 'answer'
         },
         'OpenAI': {
             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
             PROMPT_FORMAT: 'Using GPT model: {question}\nAnswer: {answer}',
-            QUESTION_KEY: [REWORDING],
+            QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
             GOLD_KEY: 'answer'
         }
     }
@@ -635,7 +602,7 @@ def example_answer_the_question_prompt_only():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Please answer the following question:\n{question}',
-        QUESTION_KEY: [REWORDING]
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION]
     }
     mp.set_template(template)
 
@@ -664,7 +631,7 @@ def example_with_system_prompt_few_shot():
     template = {
         INSTRUCTION: 'You are a helpful math assistant. Answer clearly.',
         PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         GOLD_KEY: 'answer',
         FEW_SHOT_KEY: {
             'count': 2,
@@ -709,7 +676,7 @@ def example_system_prompt_with_placeholder():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
-        QUESTION_KEY: [REWORDING],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         OPTIONS_KEY: ['shuffle'],
         GOLD_KEY: {
             'field': 'answer',
@@ -752,7 +719,7 @@ def example_system_prompt_with_placeholder_and_few_shot():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
-        QUESTION_KEY: [REWORDING],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         OPTIONS_KEY: ['shuffle'],
         GOLD_KEY: {
             'field': 'answer',
@@ -844,7 +811,7 @@ def example_system_prompt_with_context_and_few_shot():
     }
 
     mp.set_template(template_zero_shot)
-    mp.configure(max_rows=1, variations_per_field=2, max_variations=6)
+    mp.configure(max_rows=1, variations_per_field=2, max_variations_per_row=6)
 
     variations_zero_shot = mp.generate(verbose=True)
 
@@ -902,7 +869,7 @@ def example_system_prompt_with_context_and_few_shot():
     }
 
     mp.set_template(template_few_shot)
-    mp.configure(max_rows=3, variations_per_field=2, max_variations=6)
+    mp.configure(max_rows=3, variations_per_field=2, max_variations_per_row=6)
 
     variations_few_shot = mp.generate(verbose=True)
 
@@ -983,12 +950,12 @@ def example_simple_context_variations():
     template = {
         INSTRUCTION: 'You are a helpful assistant. Answer the following questions.',
         PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING],  # This works without API key
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],  # This works without API key
         GOLD_KEY: 'answer'
     }
 
     mp.set_template(template)
-    mp.configure(max_rows=3, variations_per_field=2, max_variations=6)
+    mp.configure(max_rows=3, variations_per_field=2, max_variations_per_row=6)
 
     variations = mp.generate(verbose=True)
 
@@ -1033,7 +1000,7 @@ def example_enumerate_as_field_variation():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-        # QUESTION_KEY: [REWORDING],
+        # QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],  # Use enumerate as field variation
         GOLD_KEY: {
             'field': 'answer',
@@ -1051,7 +1018,7 @@ def example_enumerate_as_field_variation():
     mp.configure(
         max_rows=1,
         variations_per_field=2,  # Generate 4 variations with different enumeration types
-        max_variations=8,
+        max_variations_per_row=8,
         random_seed=42
     )
 
@@ -1084,7 +1051,7 @@ def example_many_augmenters_on_small_dataset():
     import pandas as pd
     from multipromptify.core.template_keys import (
         INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
-        REWORDING, PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION
+        PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION
     )
 
     # Check API key for context/paraphrase
@@ -1114,7 +1081,7 @@ def example_many_augmenters_on_small_dataset():
         INSTRUCTION: 'Answer the following multiple choice questions.',
         INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],  # Reword the instruction
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-        QUESTION_KEY: [REWORDING, CONTEXT_VARIATION],
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
         OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
@@ -1129,7 +1096,7 @@ def example_many_augmenters_on_small_dataset():
     mp.configure(
         max_rows=2,
         variations_per_field=2,  # 2 per augmenter per field
-        max_variations=16,
+        max_variations_per_row=16,
         random_seed=42
     )
     mp.export("many_augmenters_small_dataset.json", format="json")
@@ -1176,7 +1143,7 @@ def example_paraphrase_instruction_only():
     mp.set_template(template)
     print("✅ Template with only instruction paraphrasing")
 
-    mp.configure(max_rows=1, variations_per_field=10, max_variations=20)
+    mp.configure(max_rows=1, variations_per_field=10, max_variations_per_row=20)
     variations = mp.generate(verbose=True)
     print(f"\n✅ Generated {len(variations)} variations\n")
     for i, v in enumerate(variations):
@@ -1187,15 +1154,416 @@ def example_paraphrase_instruction_only():
     print("\nDone.")
 
 
-if __name__ == "__main__":
-    # Run the examples
-    # example_with_sample_data()
-    # example_with_enumerate()
-    # example_enumerate_types()
-    # example_enumerate_as_field_variation()  # New example with enumerate as field variation
+def example_format_structure():
+    """Example demonstrating the new FormatStructureAugmenter for semantic-preserving format variations."""
+    print("\n=== Format Structure Augmenter Example ===")
+    
+    # Create sample data
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is 2+2?'
+        ],
+        'options': [
+            'London, Berlin, Paris, Madrid',
+            '3, 4, 5, 6'
+        ],
+        'answer': [2, 1]  # 0-based indices
+    })
 
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} questions")
+
+    # Configure template with format structure variations and enumerate
+    template = {
+        INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],  # Use format structure variations
+        OPTIONS_KEY: [ENUMERATE_VARIATION],  # Use enumerate as field variation
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        }
+    }
+
+    mp.set_template(template)
+    print("✅ Template configured with format structure variations + enumerate")
+    print("   - Will generate semantic-preserving format changes")
+    print("   - Will enumerate 'options' field with random enumeration types")
+
+    # Pass seed via configure
+    seed = 1234
+    print(f"Using seed={seed}")
+    mp.configure(
+        max_rows=2,
+        variations_per_field=5,
+        max_variations_per_row=20,  # Increased to get more variations
+        random_seed=seed
+    )
+
+    # Generate variations
+    variations = mp.generate(verbose=True)
+
+    # Show results
+    print(f"\n✅ Generated {len(variations)} format structure variations with enumerate")
+
+    # Display variations to see format structure changes
+    for i, variation in enumerate(variations[:15]):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(variation.get('prompt', 'No prompt found'))
+        print("-" * 50)
+
+    # Export results
+    mp.export("format_structure_example.json", format="json")
+    print("\n✅ Format structure example completed!")
+
+
+def example_typos_and_noise():
+    """Example demonstrating the new TextNoiseAugmenter for robustness testing with noise injection."""
+    print("\n=== Typos and Noise Augmenter Example ===")
+    
+    # Create sample data
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is 2+2?'
+        ],
+        'options': [
+            'London, Berlin, Paris, Madrid',
+            '3, 4, 5, 6'
+        ],
+        'answer': [2, 1]  # 0-based indices
+    })
+
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} questions")
+
+    # Configure template with typos and noise variations and enumerate
+    template = {
+        INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],  # Use typos and noise variations
+        OPTIONS_KEY: [ENUMERATE_VARIATION],  # Use enumerate as field variation
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        }
+    }
+
+    mp.set_template(template)
+    print("✅ Template configured with typos and noise variations + enumerate")
+    print("   - Will generate robustness testing with noise injection")
+    print("   - Will enumerate 'options' field with random enumeration types")
+
+    # Configure generation parameters
+    mp.configure(
+        max_rows=2,
+        variations_per_field=2,
+        max_variations_per_row=20,  # Increased to get more variations
+        random_seed=42
+    )
+
+    # Generate variations
+    variations = mp.generate(verbose=True)
+
+    # Show results
+    print(f"\n✅ Generated {len(variations)} typos and noise variations with enumerate")
+
+    # Display variations to see noise injection
+    for i, variation in enumerate(variations[:10]):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(variation.get('prompt', 'No prompt found'))
+        print("-" * 50)
+
+    # Export results
+    mp.export("typos_and_noise_example.json", format="json")
+    print("\n✅ Typos and noise example completed!")
+
+
+def example_combined_specialized_augmenters():
+    """Example demonstrating both new specialized augmenters together."""
+    print("\n=== Combined Specialized Augmenters Example ===")
+    
+    # Create sample data
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?'
+        ],
+        'options': [
+            'London, Berlin, Paris, Madrid'
+        ],
+        'answer': [2]  # 0-based index
+    })
+
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} question")
+
+    # Configure template with both specialized augmenters and enumerate
+    template = {
+        INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],  # Use both augmenters
+        OPTIONS_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],   # Use both augmenters + enumerate
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        }
+    }
+
+    mp.set_template(template)
+    print("✅ Template configured with both specialized augmenters + enumerate")
+    print("   - FormatStructureAugmenter: Semantic-preserving format changes")
+    print("   - TextNoiseAugmenter: Robustness testing with noise injection")
+    print("   - Will enumerate 'options' field with random enumeration types")
+
+    # Configure generation parameters
+    mp.configure(
+        max_rows=1,
+        variations_per_field=2,
+        max_variations_per_row=8,
+        random_seed=42
+    )
+
+    # Generate variations
+    variations = mp.generate(verbose=True)
+
+    # Show results
+    print(f"\n✅ Generated {len(variations)} combined variations with enumerate")
+
+    # Display variations to see both types of changes
+    for i, variation in enumerate(variations):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(variation.get('prompt', 'No prompt found'))
+        print("-" * 50)
+
+    # Export results
+    mp.export("combined_specialized_augmenters.json", format="json")
+    print("\n✅ Combined specialized augmenters example completed!")
+
+
+def example_backward_compatibility_rewording():
+    """Example demonstrating backward compatibility with REWORDING."""
+    print("\n=== Backward Compatibility with REWORDING Example ===")
+    
+    # Create sample data
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?'
+        ],
+        'options': [
+            'London, Berlin, Paris, Madrid'
+        ],
+        'answer': [2]  # 0-based index
+    })
+
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} question")
+
+    # Configure template with REWORDING (should map to TextNoiseAugmenter) and enumerate
+    template = {
+        INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],  # This should map to TextNoiseAugmenter
+        OPTIONS_KEY: [FORMAT_STRUCTURE_VARIATION, ENUMERATE_VARIATION],   # This should map to TextNoiseAugmenter + enumerate
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        }
+    }
+
+    mp.set_template(template)
+    print("✅ Template configured with REWORDING (maps to TextNoiseAugmenter) + enumerate")
+    print("   - Backward compatibility maintained")
+    print("   - Will enumerate 'options' field with random enumeration types")
+
+    # Configure generation parameters
+    mp.configure(
+        max_rows=1,
+        variations_per_field=2,
+        max_variations_per_row=4,
+        random_seed=42
+    )
+
+    # Generate variations
+    variations = mp.generate(verbose=True)
+
+    # Show results
+    print(f"\n✅ Generated {len(variations)} variations with REWORDING and enumerate")
+
+    # Display variations
+    for i, variation in enumerate(variations):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(variation.get('prompt', 'No prompt found'))
+        print("-" * 50)
+
+    # Export results
+    mp.export("backward_compatibility_rewording.json", format="json")
+    print("\n✅ Backward compatibility example completed!")
+
+
+def example_complex_template_debug():
+    """Debug example for complex template with multiple variations to understand variation count."""
+    print("\n=== Complex Template Debug Example ===")
+    print("🔍 Debugging variation count with complex template")
+    print("=" * 60)
+
+    # Create instance
+    mp = MultiPromptifier()
+
+    # Load data with 4 examples
+    data = pd.DataFrame({
+        'question': [
+            'What is the largest planet?',
+            'Which element has symbol O?',
+            'What is the fastest land animal?',
+            'What is the smallest prime number?'
+        ],
+        'options': [
+            'Mars, Earth, Jupiter, Venus',
+            'Oxygen, Gold, Silver',
+            'Lion, Cheetah, Horse',
+            '1, 2, 3'
+        ],
+        'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
+    })
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} questions")
+
+    # Complex template with multiple variations
+    template = {
+        INSTRUCTION: 'The following are multiple choice questions (with answers).',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION],
+        PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
+        QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
+        OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION],
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': 'fixed',
+            'split': 'all'
+        }
+    }
+    mp.set_template(template)
+    print("✅ Template configured with complex variations:")
+    print("   - INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION]")
+    print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
+    print("   - QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION]")
+    print("   - OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
+    print("   - FEW_SHOT_KEY: count=2, format=fixed, split=all")
+
+    # Configure with 3 variations per field
+    mp.configure(
+        max_rows=4,
+        variations_per_field=3,
+        max_variations_per_row=150,  # High limit to see all variations
+        random_seed=42
+    )
+    print(f"\n⚙️ Configuration:")
+    print(f"   - max_rows: 4")
+    print(f"   - variations_per_field: 3")
+    print(f"   - max_variations_per_row: 50")
+    print(f"   - random_seed: 42")
+
+    # Calculate expected variations
+    print(f"\n🧮 EXPECTED VARIATIONS CALCULATION:")
+    print(f"   - Fields with variations: 4")
+    print(f"   - Variations per field: 3")
+    print(f"   - Combinatorial product: 3^4 = 81 variations per row")
+    print(f"   - Total expected: 4 rows × 81 variations = 324 variations")
+
+    # Generate variations
+    print("\n🚀 Generating variations...")
+    variations = mp.generate(verbose=True)
+
+    # Debug analysis
+    print(f"\n📊 DEBUG ANALYSIS:")
+    print(f"   - Total variations generated: {len(variations)}")
+    print(f"   - Expected: 324 variations")
+    print(f"   - Actual: {len(variations)} variations")
+
+    # Count variations per row
+    row_counts = {}
+    for var in variations:
+        row_idx = var.get('original_row_index', 0)
+        row_counts[row_idx] = row_counts.get(row_idx, 0) + 1
+    
+    print(f"\n📈 Variations per row:")
+    for row_idx in sorted(row_counts.keys()):
+        count = row_counts[row_idx]
+        print(f"   - Row {row_idx}: {count} variations")
+    
+    # Show field values for first few variations to understand what's being varied
+    print(f"\n🔍 Field values analysis (first 3 variations):")
+    for i, var in enumerate(variations[:3]):
+        print(f"\nVariation {i + 1} (Row {var.get('original_row_index', 0)}):")
+        field_values = var.get('field_values', {})
+        for field, value in field_values.items():
+            # Truncate long values for readability
+            if len(str(value)) > 50:
+                value = str(value)[:50] + "..."
+            print(f"   - {field}: {value}")
+    
+    # Show what's different between variations
+    if len(variations) >= 2:
+        print(f"\n🔍 What's different between variations:")
+        var1 = variations[0]
+        var2 = variations[1]
+        
+        field_values1 = var1.get('field_values', {})
+        field_values2 = var2.get('field_values', {})
+        
+        for field in field_values1.keys():
+            if field in field_values2:
+                val1 = str(field_values1[field])
+                val2 = str(field_values2[field])
+                if val1 != val2:
+                    print(f"   - {field}: '{val1[:30]}...' vs '{val2[:30]}...'")
+    
+    # Export results for further analysis
+    mp.export("complex_template_debug.json", format="json")
+    print(f"\n✅ Exported to complex_template_debug.json for further analysis")
+    
+    # Show final stats
+    mp.info()
+    
+    print(f"\n💡 EXPLANATION:")
+    print(f"   The high number of variations is due to combinatorial explosion:")
+    print(f"   - Each field with variations generates 3 variations")
+    print(f"   - All combinations are created using itertools.product")
+    print(f"   - This results in 3^4 = 81 possible combinations per row")
+    print(f"   - The system then samples up to max_variations_per_row=50 from these")
+    print(f"   - To get fewer variations, either:")
+    print(f"     1. Reduce variations_per_field (e.g., to 1 or 2)")
+    print(f"     2. Reduce max_variations_per_row")
+    print(f"     3. Use fewer fields with variations")
+
+
+if __name__ == "__main__":
+    # Run the debug example
+    example_complex_template_debug()
+    
     # Uncomment other examples as needed:
     # example_with_sample_data_few_shot()
+    # example_with_enumerate()
+    # example_enumerate_types()
+    # example_enumerate_as_field_variation()
     # example_with_system_prompt_few_shot()
     # example_platform_switching()
     # example_with_huggingface()
@@ -1211,13 +1579,25 @@ if __name__ == "__main__":
     # example_system_prompt_with_context_and_few_shot()  # Full context example
 
     # example_many_augmenters_on_small_dataset()
-    example_paraphrase_instruction_only()
+    # example_paraphrase_instruction_only()
+    
+    # New specialized augmenter examples
+    # example_format_structure()  # Semantic-preserving format variations
+    # example_typos_and_noise()  # Robustness testing with noise injection
+    # example_combined_specialized_augmenters()  # Both augmenters together
+    # example_backward_compatibility_rewording()  # Backward compatibility with REWORDING
+    
+    
     print("\n🎉 All examples completed!")
     print("\nNext steps:")
     print("1. Install datasets library: pip install datasets")
     print("2. Set your API keys:")
     print("   export TOGETHER_API_KEY='your_together_key'")
     print("   export OPENAI_API_KEY='your_openai_key'")
-    print("3. Try the new enumerate feature in your templates:")
+    print("3. Try the new specialized augmenters:")
+    print("   - FORMAT_STRUCTURE: Semantic-preserving format changes")
+    print("   - TYPOS_AND_NOISE: Robustness testing with noise injection")
+    print("   - REWORDING: Backward compatibility (maps to TYPOS_AND_NOISE)")
+    print("4. Try the new enumerate feature in your templates:")
     print("   'enumerate': {'field': 'options', 'type': '1234'}")
-    print("4. Try with your own data and templates")
+    print("5. Try with your own data and templates")

@@ -31,13 +31,13 @@ mp.load_dataframe(pd.DataFrame(data))
 # Configure template
 template = {
     'instruction_template': 'Question: {question}\nAnswer: {answer}',
-    'question': ['rewording'],
+    'question': ['format_structure'],
     'gold': 'answer'
 }
 mp.set_template(template)
 
 # Configure generation
-mp.configure(max_rows=2, variations_per_field=3, max_variations=10)
+mp.configure(max_rows=2, variations_per_field=3, max_variations_per_row=10)
 
 # Generate variations
 variations = mp.generate(verbose=True)
@@ -60,7 +60,7 @@ data = pd.DataFrame({
 template = {
     'system_prompt_template': 'Please answer the following questions.',
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['rewording']
+    'question': ['format_structure']
 }
 
 mp = MultiPromptifier()
@@ -99,7 +99,7 @@ data = pd.DataFrame({
 template = {
     'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
     'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer:',
-    'question': ['rewording'],
+    'question': ['format_structure'],
     'options': ['shuffle'],
     'gold': {
         'field': 'answer',
@@ -172,8 +172,8 @@ Set the template configuration using dictionary format.
 template = {
     'instruction_template': 'Answer the question: {question}\nAnswer: {answer}',
     'instruction': ['paraphrase_with_llm'],           # Vary the instruction
-    'question': ['rewording'],                 # Apply surface variations to question
-    'options': ['shuffle', 'rewording'],       # Shuffle and vary options
+    'question': ['format_structure'],                 # Apply semantic-preserving format changes to question
+    'options': ['shuffle', 'typos_and_noise'],       # Shuffle and add noise to options
     'gold': {                                # Gold answer configuration
         'field': 'answer',
         'type': 'index',                     # 'value' or 'index'
@@ -197,151 +197,194 @@ Configure generation parameters.
 mp.configure(
     max_rows=10,                    # Maximum rows from data to use
     variations_per_field=3,         # Variations per field
-    max_variations=50,              # Maximum total variations
-    random_seed=42,                 # For reproducibility
-    api_platform="TogetherAI",      # AI platform: "TogetherAI" or "OpenAI"
-    api_key="your_api_key",         # For paraphrase variations (optional if env var set)
-    model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+    max_variations_per_row=50,      # Maximum variations per row (not global)
+    random_seed=42,                 # Random seed for reproducibility
+    api_platform="TogetherAI",      # API platform for LLM-based variations
+    model_name="meta-llama/Llama-3.1-8B-Instruct-Turbo"  # Model name
 )
 ```
-
-**Platform-specific API Key Selection:**
-- When `api_platform="TogetherAI"` → uses `TOGETHER_API_KEY` environment variable
-- When `api_platform="OpenAI"` → uses `OPENAI_API_KEY` environment variable
-- You can override with explicit `api_key` parameter
 
 ### Generation
 
 #### `generate(verbose=False)`
-Generate variations with optional progress logging.
+Generate prompt variations.
 
 ```python
-# Generate with progress messages
 variations = mp.generate(verbose=True)
-
-# Generate silently
-variations = mp.generate()
 ```
 
-### Results and Export
-
-#### `get_results()`
-Get generated variations as Python list.
-
-```python
-variations = mp.get_results()
-```
-
-#### `get_stats()`
-Get generation statistics dictionary.
-
-```python
-stats = mp.get_stats()
-print(f"Generated {stats['total_variations']} variations")
-```
+### Export
 
 #### `export(filepath, format="json")`
-Export results to file.
+Export variations to file.
 
 ```python
 mp.export("output.json", format="json")
 mp.export("output.csv", format="csv")
 mp.export("output.txt", format="txt")
-mp.export("output_conversation.txt", format="conversation")
-```
-
-### Utility Methods
-
-#### `info()`
-Print current configuration and status information.
-
-```python
-mp.info()
 ```
 
 ## Template Format
 
-Templates use Python f-string syntax with custom variation annotations:
+Templates use a dictionary format with specific keys for different components:
 
-```python
-"{instruction:semantic}: {few_shot}\n Question: {question:paraphrase_with_llm}\n Options: {options:non-semantic}"
-```
+### Template Keys
 
-### System Prompt
-- `system_prompt_template`: (optional) A general instruction that appears at the top of every prompt, before any few-shot or main question. You can use placeholders (e.g., `{subject}`) that will be filled from the data for each row.
-- `instruction_template`: The per-example template, usually containing the main question and placeholders for fields.
+- `instruction_template` - The main template string with placeholders
+- `instruction` - List of variation types for the instruction
+- `prompt_format_variations` - List of variation types for the prompt format
+- Field names with variation lists (e.g., `'question': ['format_structure', 'paraphrase_with_llm']`)
+- `gold` - Gold answer configuration
+- `few_shot` - Few-shot examples configuration
 
-Supported variation types:
-- `:paraphrase_with_llm` - Paraphrasing variations (LLM-based)
-- `:rewording` - Surface-level/wording variations (non-LLM)
-- `:context` - Context-based variations
-- `:shuffle` - Shuffle options/elements (for multiple choice)
-- `:multidoc` - Multi-document/context variations
-- `:enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4.)
+### Supported Variation Types
 
-### Required Fields
+- `paraphrase_with_llm` - Paraphrasing variations (LLM-based)
+- `format_structure` (`FORMAT_STRUCTURE_VARIATION`) - Semantic-preserving format changes (e.g., separators, casing, field order)
+- `typos_and_noise` (`TYPOS_AND_NOISE_VARIATION`) - Injects typos, random case, extra whitespace, and punctuation noise for robustness
+- `context` - Context-based variations
+- `shuffle` - Shuffle options/elements (for multiple choice)
+- `enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4., A. B. C. D., roman numerals, etc.)
+- `rewording` - (Deprecated, kept for backward compatibility; now maps to `typos_and_noise`)
 
-- `instruction_template`: The base template with placeholders (e.g., `"Question: {question}\nAnswer: {answer}"`)
+### Example Templates
 
-### Optional Fields
-
-- Field names with variation lists (e.g., `'question': ['rewording', 'paraphrase_with_llm']`)
-- `gold`: Gold answer configuration for tracking correct answers
-- `few_shot`: Few-shot examples configuration
-- `instruction`: Variations to apply to the instruction template itself
-
-### Gold Field Configuration
-
-You can specify the gold field (the correct answer/output) in two ways:
-
-1. **Simple column name** (for flat data):
-   ```python
-   'gold': 'answer'
-   ```
-2. **Python expression** (for nested/complex data):
-   ```python
-   'gold': "answers['text'][0]"  # Extracts the first answer from a dict/list (e.g., SQuAD)
-   ```
-   This expression is evaluated with each row as the context, so you can access nested fields, lists, or even do simple computations (e.g., `meta['label']['value']`, `options[2]`).
-
-**Example for SQuAD:**
-```python
-template = {
-    'instruction_template': 'Read the context and answer the question.\nContext: {context}\nQuestion: {question}\nAnswer:',
-    'instruction': ['paraphrase_with_llm'],
-    'context': ['rewording'],
-    'question': [],
-    'gold': "answers['text'][0]"  # Extracts the first answer text from the SQuAD answers dict
-}
-```
-
-If extraction fails (e.g., invalid expression or missing key), a `GoldFieldExtractionError` will be raised with details.
-
-### Few-Shot Configuration
-
-For adding few-shot examples:
-
-```python
-'few_shot': {
-    'count': 2,                  # Number of examples
-    'format': 'fixed',           # 'fixed' (same examples) or 'rotating' (different)
-    'split': 'all'               # 'all', 'train', or 'test'
-}
-```
-
-## Advanced Examples
-
-### Multiple Choice Questions
+#### Simple QA Template
 
 ```python
 template = {
-    'instruction_template': '''Answer the following multiple choice question:
-Question: {question}
-Options: {options}
-Answer: {answer}''',
-    'instruction': ['paraphrase_with_llm'],
-    'question': ['rewording'],
-    'options': ['shuffle', 'rewording'],
+    'instruction_template': 'Answer the question: {question}\nAnswer: {answer}',
+    'question': ['format_structure'],
+    'gold': 'answer'
+}
+```
+
+#### Multiple Choice Template
+
+```python
+template = {
+    'instruction_template': 'Choose the correct answer:\nQ: {question}\nOptions: {options}\nA: {answer}',
+    'question': ['format_structure'],
+    'options': ['shuffle', 'typos_and_noise'],
+    'gold': {
+        'field': 'answer',
+        'type': 'index',
+        'options_field': 'options'
+    }
+}
+```
+
+#### Complex Template with Context
+
+```python
+template = {
+    'instruction_template': 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
+    'context': ['format_structure'],
+    'question': ['format_structure', 'paraphrase_with_llm'],
+    'gold': {
+        'field': 'answer',
+        'type': 'value'
+    },
+    'few_shot': {
+        'count': 2,
+        'format': 'rotating',
+        'split': 'all'
+    }
+}
+```
+
+## Examples
+
+### Sentiment Analysis
+
+```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'text': ['I love this movie!', 'This book is terrible.'],
+    'label': ['positive', 'negative']
+})
+
+template = {
+    'instruction_template': 'Classify the sentiment: "{text}"\nSentiment: {label}',
+    'instruction_variations': ['semantic'],
+    'text': ['paraphrase_with_llm'],
+    'gold': 'label'
+}
+
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(
+    max_rows=GenerationDefaults.MAX_ROWS,
+    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+    max_variations_per_row=GenerationDefaults.MAX_VARIATIONS_PER_ROW,
+    random_seed=GenerationDefaults.RANDOM_SEED,
+    api_platform=GenerationDefaults.API_PLATFORM,
+    model_name=GenerationDefaults.MODEL_NAME
+)
+variations = mp.generate(verbose=True)
+```
+
+### Question Answering with Few-shot
+
+```python
+template = {
+    'instruction_template': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
+    'instruction_variations': ['paraphrase_with_llm'],
+    'question': ['semantic'],
+    'gold': 'answer',
+    'few_shot': {
+        'count': 2,
+        'format': 'rotating',
+        'split': 'all'
+    }
+}
+
+mp = MultiPromptifier()
+mp.load_dataframe(qa_data)
+mp.set_template(template)
+mp.configure(
+    max_rows=GenerationDefaults.MAX_ROWS,
+    variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
+    max_variations_per_row=GenerationDefaults.MAX_VARIATIONS_PER_ROW,
+    random_seed=GenerationDefaults.RANDOM_SEED,
+    api_platform=GenerationDefaults.API_PLATFORM,
+    model_name=GenerationDefaults.MODEL_NAME
+)
+variations = mp.generate(verbose=True)
+```
+
+### Multiple Choice with Dynamic System Prompt and Few-shot
+
+```python
+import pandas as pd
+from multipromptify import MultiPromptifier
+
+data = pd.DataFrame({
+    'question': [
+        'What is the largest planet in our solar system?',
+        'Which chemical element has the symbol O?',
+        'What is the fastest land animal?',
+        'What is the smallest prime number?',
+        'Which continent is known as the "Dark Continent"?'
+    ],
+    'options': [
+        'Earth, Jupiter, Mars, Venus',
+        'Oxygen, Gold, Silver, Iron',
+        'Lion, Cheetah, Horse, Leopard',
+        '1, 2, 3, 0',
+        'Asia, Africa, Europe, Australia'
+    ],
+    'answer': [1, 0, 1, 1, 1],
+    'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
+})
+
+template = {
+    'instruction_template': 'The following are multiple choice questions (with answers) about {subject}.\nQuestion: {question}\nOptions: {options}\nAnswer:',
+    'question': ['format_structure'],
+    'options': ['shuffle'],
     'gold': {
         'field': 'answer',
         'type': 'index',
@@ -349,150 +392,119 @@ Answer: {answer}''',
     },
     'few_shot': {
         'count': 2,
-        'format': 'fixed',
+        'format': 'rotating',
         'split': 'all'
     }
 }
+
+mp = MultiPromptifier()
+mp.load_dataframe(data)
+mp.set_template(template)
+mp.configure(max_rows=5, variations_per_field=1)
+variations = mp.generate(verbose=True)
+for v in variations:
+    print(v['prompt'])
 ```
 
-### Reading Comprehension
+## Advanced Features
+
+### Using Constants for Template Keys
+
+You can import constants to avoid typos and ensure consistency:
 
 ```python
+from multipromptify.core.template_keys import (
+    INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
+    FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, PARAPHRASE_WITH_LLM
+)
+
 template = {
-    'instruction_template': '''Context: {context}
-Question: {question}
-Answer: {answer}''',
-    'instruction': ['paraphrase_with_llm'],
-    'context': ['rewording'],
-    'question': ['rewording', 'paraphrase_with_llm'],
-    'gold': 'answer',
-    'few_shot': {
-        'count': 1,
-        'format': 'rotating',
-        'split': 'train'
+    INSTRUCTION: 'Answer the question: {question}\nAnswer: {answer}',
+    PROMPT_FORMAT_VARIATIONS: ['format_structure'],
+    QUESTION_KEY: ['typos_and_noise'],
+    OPTIONS_KEY: ['shuffle', 'enumerate'],
+    GOLD_KEY: {
+        'field': 'answer',
+        'type': 'index',
+        'options_field': 'options'
     }
 }
 ```
 
-### Simple Q&A
+### Environment Variables
 
-```python
-template = {
-    'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['rewording'],
-    'gold': 'answer'
-}
-```
+The API automatically detects API keys from environment variables:
 
-## Error Handling
-
-The API provides clear error messages for common issues:
-
-- **No data loaded**: Use one of the `load_*` methods first
-- **No template set**: Use `set_template()` first
-- **Invalid template**: Template validation errors with specific details
-- **Missing API key**: Platform-specific warning when paraphrase variations are used without API key
-- **Invalid platform**: Only "TogetherAI" and "OpenAI" are supported
-- **File not found**: Clear file path errors for CSV/JSON loading
-- **Invalid format**: Export format validation
-
-## Platform and API Key Configuration
-
-### Automatic Platform-based API Key Selection
-
-The API automatically selects the correct environment variable based on your chosen platform:
-
-```python
-# Using TogetherAI (default)
-mp.configure(api_platform="TogetherAI")  # Uses TOGETHER_API_KEY env var
-
-# Using OpenAI
-mp.configure(api_platform="OpenAI")      # Uses OPENAI_API_KEY env var
-```
-
-### Setting API Keys (3 ways):
-
-1. **Environment Variable** (Recommended):
 ```bash
-# For TogetherAI
-export TOGETHER_API_KEY="your_together_api_key"
-
-# For OpenAI
-export OPENAI_API_KEY="your_openai_api_key"
+export TOGETHER_API_KEY="your_together_key"
+export OPENAI_API_KEY="your_openai_key"
 ```
 
-2. **`.env` File**:
-```bash
-# Create .env file in your project root
-echo "TOGETHER_API_KEY=your_together_api_key" > .env
-# or
-echo "OPENAI_API_KEY=your_openai_api_key" > .env
-```
-
-3. **Programmatically**:
-```python
-mp.configure(api_key="your_api_key")
-```
-
-### Platform Switching
-
-You can easily switch between platforms:
+### Platform-Specific Configuration
 
 ```python
-# Start with TogetherAI
-mp.configure(api_platform="TogetherAI")
+# Use TogetherAI
+mp.configure(api_platform="TogetherAI", model_name="meta-llama/Llama-3.1-8B-Instruct-Turbo")
 
-# Switch to OpenAI
-mp.configure(api_platform="OpenAI")  # Automatically uses OPENAI_API_KEY
-
-# Override with specific key
-mp.configure(api_platform="OpenAI", api_key="custom_key")
+# Use OpenAI
+mp.configure(api_platform="OpenAI", model_name="gpt-3.5-turbo")
 ```
 
-## Progress Logging
+## Troubleshooting
 
-When `verbose=True` is used with `generate()`, you'll see progress messages:
+### Common Issues
 
+1. **No API key found**: Set your API key in environment variables
+2. **Template parsing errors**: Check template syntax and field names
+3. **Too many variations**: Reduce `variations_per_field` or `max_variations_per_row`
+4. **Memory issues**: Process data in smaller chunks
+
+### Debug Mode
+
+Enable verbose output to see detailed information:
+
+```python
+variations = mp.generate(verbose=True)
 ```
-🚀 Starting MultiPromptify generation...
-   Using platform: TogetherAI
-🔄 Step 1/5: Initializing MultiPromptify...
-📊 Step 2/5: Preparing data... (using first 10 rows)
-⚙️ Step 3/5: Configuring generation parameters...
-⚡ Step 4/5: Generating variations... (AI is working on variations)
-📈 Step 5/5: Computing statistics...
-✅ Generated 25 variations in 12.3 seconds
+
+### Export for Analysis
+
+Export results to analyze the generated variations:
+
+```python
+mp.export("debug_output.json", format="json")
 ```
 
-## Integration with Existing Code
+## Best Practices
 
-The API is designed to be identical in functionality to the Streamlit interface. Results generated programmatically will be the same as those from the web interface when using identical templates and data.
+1. **Start simple**: Begin with basic templates and add complexity gradually
+2. **Use constants**: Import template keys to avoid typos
+3. **Test with small data**: Validate templates with small datasets first
+4. **Monitor variation count**: Be aware of combinatorial explosion with multiple variation types
+5. **Use appropriate variation types**: Choose variation types that match your use case
+   - **format_structure**: For semantic-preserving format changes
+   - **typos_and_noise**: For robustness testing
+   - **paraphrase_with_llm**: For semantic variations (requires API key)
 
-You can easily migrate from the web interface to the API by:
+## Variation Types Reference
 
-1. Copying your template configuration from the Streamlit interface
-2. Loading your data using the appropriate `load_*` method
-3. Using the same generation parameters
-4. Running `generate()` to get identical results 
+### Core Variation Types
 
-## Project Structure (Updated)
+- **paraphrase_with_llm**: Uses LLM to generate semantic variations of the text
+- **format_structure** (`FORMAT_STRUCTURE_VARIATION`): Applies semantic-preserving format changes to the prompt, such as changing separators, field order, or casing, inspired by the FORMATSPREAD paper.
+- **typos_and_noise** (`TYPOS_AND_NOISE_VARIATION`): Injects various types of noise (typos, character swaps, random case, extra whitespace, punctuation) for robustness testing, while protecting placeholders.
+- **rewording**: (Deprecated) Kept for backward compatibility; now maps to `typos_and_noise`.
 
-The main core files are now located under `src/multipromptify/core/`:
-- `core/engine.py` – Main MultiPromptify engine class
-- `core/api.py` – High-level Python API (MultiPromptifier)
-- `core/template_parser.py` – Template parsing with variation annotations
-- `core/template_keys.py` – Template keys and constants
-- `core/models.py` – Data models and configurations
-- `core/exceptions.py` – Custom exceptions
-- `core/__init__.py` – Core module exports
+### Utility Variation Types
 
-Other folders:
-- `generation/` – Variation generation modules
-- `augmentations/` – Text augmentation modules
-- `validators/` – Template and data validators
-- `utils/` – Utility functions
-- `shared/` – Shared resources
-- `ui/` – Streamlit web interface
-- `examples/` – API usage examples (e.g., `api_example.py`)
+- **context**: Adds contextual information to questions
+- **shuffle**: Randomly reorders elements (e.g., multiple choice options)
+- **enumerate**: Adds enumeration to list fields (e.g., 1. 2. 3. 4., A. B. C. D., roman numerals)
 
-You can still import main classes directly from `multipromptify` (e.g., `from multipromptify import MultiPromptify`), as the package root re-exports them for convenience. 
+### When to Use Each Type
+
+- **format_structure**: When you want to test how different prompt formats affect model performance
+- **typos_and_noise**: When you want to test model robustness to input noise
+- **paraphrase_with_llm**: When you want semantic variations that preserve meaning
+- **shuffle**: For multiple choice questions to test option order independence
+- **enumerate**: To add structure to list fields 

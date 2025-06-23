@@ -3,13 +3,10 @@ Prompt Builder: Handles building prompts from templates and filling placeholders
 """
 
 from typing import Dict
+
 import pandas as pd
+
 from multipromptify.utils.formatting import format_field_value
-from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, PROMPT_FORMAT
-)
 
 
 class PromptBuilder:
@@ -49,5 +46,3 @@ class PromptBuilder:
             input_text = input_text.replace(f'{{{gold_field}}}', '')
 
         return input_text.strip()
-
- 

@@ -10,10 +10,6 @@ Each exception provides:
 """
 
 from typing import List, Dict, Any
-from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
-)
 
 
 class MultiPromptifyError(Exception):
@@ -191,6 +187,7 @@ class InsufficientDataError(DataError):
 
 class GoldFieldExtractionError(DataError):
     """Raised when extracting the gold field value fails (e.g., invalid expression or missing key)."""
+
     def __init__(self, gold_field: str, row: dict, original_error: str):
         context = {"gold_field": gold_field, "row_keys": list(row.keys())}
         message = f"Failed to extract gold field '{gold_field}' from row. Error: {original_error}"

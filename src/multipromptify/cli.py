@@ -2,28 +2,28 @@
 Command-line interface for MultiPromptify.
 """
 
-import click
 import json
-import pandas as pd
 from pathlib import Path
-from multipromptify.core.engine import MultiPromptify
+
+import click
+import pandas as pd
+
 from multipromptify import __version__
-from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
-)
+from multipromptify.core.engine import MultiPromptify
 from multipromptify.shared.constants import GenerationDefaults
+
 
 @click.command()
 @click.option('--template', '-t', required=True, help='Template dictionary as JSON string or file path')
 @click.option('--data', '-d', required=True, help='Input data file (CSV or JSON)')
 @click.option('--output', '-o', default='variations.json', help='Output file path')
 @click.option('--format', '-f', type=click.Choice(['json', 'csv', 'txt']), default='json', help='Output format')
-@click.option('--max-variations', '-m', default=GenerationDefaults.MAX_VARIATIONS, help='Maximum number of variations to generate')
-@click.option('--variations-per-field', '-v', default=GenerationDefaults.VARIATIONS_PER_FIELD, help='Number of variations per field')
+@click.option('--max-variations', '-m', default=100, help='Maximum number of variations per row (use 0 for unlimited)')
+@click.option('--variations-per-field', '-v', default=GenerationDefaults.VARIATIONS_PER_FIELD,
+              help='Number of variations per field')
 @click.option('--api-key', '-k', envvar='TOGETHER_API_KEY', help='API key for paraphrase generation')
 @click.version_option(version=__version__)
-def main(template, data, output, format, max_variations, variations_per_field, api_key):
+def main(template, data, output, format, max_variations_per_row, variations_per_field, api_key):
     """MultiPromptify - Generate prompt variations from templates."""
 
     click.echo(f"MultiPromptify v{__version__}")
@@ -53,8 +53,11 @@ def main(template, data, output, format, max_variations, variations_per_field, a
 
         click.echo(f"Loaded {len(df)} rows from {data}")
 
+        # Convert max_variations_per_row: 0 means unlimited (None)
+        effective_max_variations_per_row = None if max_variations_per_row == 0 else max_variations_per_row
+
         # Initialize MultiPromptify
-        mp = MultiPromptify(max_variations=max_variations)
+        mp = MultiPromptify(max_variations_per_row=effective_max_variations_per_row)
 
         # Generate variations
         click.echo("Generating variations...")

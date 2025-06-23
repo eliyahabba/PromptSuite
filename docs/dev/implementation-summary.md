@@ -26,7 +26,7 @@ Successfully implemented a complete redesign of MultiPromptify according to the 
 
 ### 3. **Command Line Interface**
 - ✅ Minimal parameter design: `--template`, `--data`, `--instruction`
-- ✅ Additional options: `--few-shot`, `--output`, `--max-variations`, etc.
+- ✅ Additional options: `--few-shot`, `--output`, `--max-variations-per-row`, etc.
 - ✅ Multiple output formats: JSON, CSV, HuggingFace datasets
 - ✅ Verbose mode, dry-run, validation-only modes
 - ✅ Statistics reporting
@@ -215,6 +215,17 @@ print(variations)
 4. **Lexical**: Word choice and synonym substitutions
 5. **Syntactic**: Sentence structure modifications
 6. **Surface**: Whitespace, formatting, and visual changes
+
+## Augmenters and Variation Types
+
+MultiPromptify supports a variety of augmenters for prompt variation:
+- `format_structure` (`FORMAT_STRUCTURE_VARIATION`): Semantic-preserving format changes (separators, casing, field order)
+- `typos_and_noise` (`TYPOS_AND_NOISE_VARIATION`): Injects typos, random case, whitespace, and punctuation noise
+- `enumerate` (`ENUMERATE_VARIATION`): Adds enumeration to list fields (1. 2. 3. 4., A. B. C. D., roman, etc.)
+- `paraphrase_with_llm`, `context`, `shuffle`, `multidoc`, and more
+- `rewording`: Deprecated, kept for backward compatibility (now maps to `typos_and_noise`)
+
+See the main README and API guide for template examples using these augmenters.
 
 ## 🎉 Deliverables Summary
 

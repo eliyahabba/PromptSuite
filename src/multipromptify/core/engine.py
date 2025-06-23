@@ -11,27 +11,23 @@ If your data doesn't meet these requirements, clean it before passing to MultiPr
 """
 
 import json
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Optional
 
 import pandas as pd
-from multipromptify.core.template_parser import TemplateParser
+
+from multipromptify.core.exceptions import (
+    InvalidTemplateError, MissingInstructionTemplateError,
+    UnsupportedFileFormatError, UnsupportedExportFormatError
+)
 from multipromptify.core.models import (
     GoldFieldConfig, VariationConfig, VariationContext
 )
-from multipromptify.generation import VariationGenerator, PromptBuilder, FewShotHandler
-from multipromptify.core.exceptions import (
-    InvalidTemplateError, MissingInstructionTemplateError, 
-    UnsupportedFileFormatError, UnsupportedExportFormatError, GoldFieldExtractionError
-)
-from pathlib import Path
-import ast
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, INSTRUCTION, INSTRUCTION_VARIATIONS
+    PROMPT_FORMAT, FEW_SHOT_KEY
 )
+from multipromptify.core.template_parser import TemplateParser
+from multipromptify.generation import VariationGenerator, PromptBuilder, FewShotHandler
 from multipromptify.shared.constants import GenerationDefaults
-import re
-from multipromptify.utils.formatting import extract_gold_value
 
 
 class MultiPromptify:
@@ -54,11 +50,11 @@ class MultiPromptify:
     }
     """
 
-    def __init__(self, max_variations: int = GenerationDefaults.MAX_VARIATIONS):
+    def __init__(self, max_variations_per_row: Optional[int] = GenerationDefaults.MAX_VARIATIONS_PER_ROW):
         """Initialize MultiPromptify with maximum variations limit."""
-        self.max_variations = max_variations
+        self.max_variations_per_row = max_variations_per_row
         self.template_parser = TemplateParser()
-        
+
         # Initialize the new refactored components
         self.variation_generator = VariationGenerator()
         self.prompt_builder = PromptBuilder()
@@ -70,6 +66,7 @@ class MultiPromptify:
             data: pd.DataFrame,
             variations_per_field: int = GenerationDefaults.VARIATIONS_PER_FIELD,
             api_key: str = None,
+            seed: Optional[int] = None,
             **kwargs
     ) -> List[Dict[str, Any]]:
         """
@@ -80,6 +77,7 @@ class MultiPromptify:
             data: DataFrame with the data
             variations_per_field: Number of variations per field
             api_key: API key for services that require it
+            seed: Random seed for reproducibility
         
         Returns:
             List of generated variations
@@ -107,7 +105,8 @@ class MultiPromptify:
         variation_config = VariationConfig(
             variations_per_field=variations_per_field,
             api_key=api_key,
-            max_variations=self.max_variations
+            max_variations_per_row=self.max_variations_per_row,
+            seed=seed
         )
         instruction = self.template_parser.get_instruction()
 
@@ -123,9 +122,6 @@ class MultiPromptify:
 
         # For each data row
         for row_idx, row in data.iterrows():
-            if len(all_variations) >= self.max_variations:
-                break
-
             # Generate variations for all fields
             field_variations = self.variation_generator.generate_all_field_variations(
                 prompt_format,
@@ -147,20 +143,28 @@ class MultiPromptify:
                 data=data
             )
 
-            # Generate row variations
-            row_variations = self.few_shot_handler.create_row_variations(
-                variation_context, 
+            # Generate all possible row variations
+            all_row_variations = self.few_shot_handler.create_row_variations(
+                variation_context,
                 few_shot_fields[0] if few_shot_fields else None,
-                self.max_variations,
+                None,  # No limit - get all possible variations
                 self.prompt_builder
             )
 
-            all_variations.extend(row_variations)
+            # Sample max_variations_per_row from all possible variations for this row
+            if self.max_variations_per_row is not None and len(all_row_variations) > self.max_variations_per_row:
+                # Use consistent sampling based on seed
+                sampled_variations = self._sample_variations_consistently(
+                    all_row_variations, 
+                    self.max_variations_per_row, 
+                    seed
+                )
+                all_variations.extend(sampled_variations)
+            else:
+                # Use all variations if we have fewer than max_variations_per_row
+                all_variations.extend(all_row_variations)
 
-            if len(all_variations) >= self.max_variations:
-                break
-
-        return all_variations[:self.max_variations]
+        return all_variations
 
     def _load_data(self, data_path: str) -> pd.DataFrame:
         """Load data from file path and automatically convert string representations of lists."""
@@ -172,10 +176,10 @@ class MultiPromptify:
             df = pd.DataFrame(json_data)
         else:
             raise UnsupportedFileFormatError(data_path, ['.csv', '.json'])
-        
+
         # Auto-convert string representations of lists to actual lists
         return self._convert_string_lists_to_lists(df)
-    
+
     def _convert_string_lists_to_lists(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Convert string representations of lists back to actual Python lists.
@@ -184,7 +188,7 @@ class MultiPromptify:
         list columns became strings like "['item1', 'item2', 'item3']"
         """
         import ast
-        
+
         def safe_eval(value):
             """Try to evaluate a string as a Python literal, return original if it fails."""
             if isinstance(value, str):
@@ -193,18 +197,18 @@ class MultiPromptify:
                 except (ValueError, SyntaxError):
                     return value
             return value
-        
+
         df_copy = df.copy()
-        
+
         # Apply safe_eval to all columns - it will only convert what it can
         for column in df_copy.columns:
             original_values = df_copy[column].copy()
             df_copy[column] = df_copy[column].apply(safe_eval)
-            
+
             # Check if anything actually changed (meaning we converted some values)
             if not df_copy[column].equals(original_values):
                 print(f"✅ Converted some values in column '{column}' from strings to Python objects")
-        
+
         return df_copy
 
     def get_stats(self, variations: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -231,7 +235,7 @@ class MultiPromptify:
             'has_few_shot': has_few_shot,
             'has_custom_prompt_format': has_custom_prompt_format,
             'min_variations_per_row': min(row_counts.values()) if row_counts else 0,
-            'max_variations_per_row': max(row_counts.values()) if row_counts else 0,
+            'max_variations_per_row_per_row': max(row_counts.values()) if row_counts else 0,
         }
 
     def parse_template(self, template: dict) -> Dict[str, List[str]]:
@@ -252,7 +256,7 @@ class MultiPromptify:
             List of variations with conversation field added and extra fields removed
         """
         enhanced_variations = []
-        
+
         for variation in variations:
             # Create a new variation with only the required API fields
             enhanced_var = {
@@ -263,23 +267,23 @@ class MultiPromptify:
                 'field_values': variation.get('field_values', {}),
                 'gold_updates': variation.get('gold_updates')
             }
-            
+
             # Add conversation field if not already present
             if 'conversation' in variation and variation['conversation']:
                 enhanced_var['conversation'] = variation['conversation']
             else:
                 # Build conversation from prompt
                 prompt = variation.get('prompt', '')
-                
+
                 # Split prompt into conversation parts if it contains few-shot examples
                 parts = prompt.split('\n\n')
                 conversation = []
-                
+
                 for i, part in enumerate(parts):
                     part = part.strip()
                     if not part:
                         continue
-                    
+
                     # Check if this is the last part (incomplete question)
                     if i == len(parts) - 1:
                         # Last part - this is the question without answer
@@ -295,9 +299,9 @@ class MultiPromptify:
                             # Assume the last line is the answer
                             answer = lines[-1].strip()
                             question = '\n'.join(lines[:-1]).strip()
-                            
+
                             conversation.append({
-                                "role": "user", 
+                                "role": "user",
                                 "content": question
                             })
                             conversation.append({
@@ -310,11 +314,11 @@ class MultiPromptify:
                                 "role": "user",
                                 "content": part
                             })
-                
+
                 enhanced_var['conversation'] = conversation
-            
+
             enhanced_variations.append(enhanced_var)
-        
+
         return enhanced_variations
 
     def save_variations(self, variations: List[Dict[str, Any]], output_path: str, format: str = "json"):
@@ -349,3 +353,67 @@ class MultiPromptify:
 
         else:
             raise UnsupportedExportFormatError(format, ["json", "csv", "txt"])
+
+    def _sample_variations_consistently(
+            self, 
+            variations: List[Dict[str, Any]], 
+            max_variations_per_row: int, 
+            seed: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Sample max_variations_per_row from all possible variations consistently.
+        
+        This ensures that if we have 10 variations and want 5, we'll always
+        select the same 5 indices across all rows (e.g., indices 0,2,4,6,8).
+        
+        Args:
+            variations: All possible variations for a row
+            max_variations_per_row: Number of variations to sample
+            seed: Random seed for consistent sampling
+            
+        Returns:
+            List of sampled variations
+        """
+        if len(variations) <= max_variations_per_row:
+            return variations
+        
+        # Set seed for consistent sampling across rows
+        if seed is not None:
+            import random
+            random.seed(seed)
+        
+        # Generate consistent indices based on the total number of variations
+        # This ensures the same pattern is used across all rows
+        total_variations = len(variations)
+        
+        # Create a deterministic pattern based on the total count
+        # We'll use a simple pattern: take every nth variation
+        if max_variations_per_row >= total_variations:
+            return variations
+        
+        # Calculate step size to get max_variations_per_row samples
+        step = total_variations / max_variations_per_row
+        
+        # Generate indices
+        indices = []
+        for i in range(max_variations_per_row):
+            index = int(i * step)
+            if index >= total_variations:
+                index = total_variations - 1
+            indices.append(index)
+        
+        # Remove duplicates while preserving order
+        unique_indices = []
+        for idx in indices:
+            if idx not in unique_indices:
+                unique_indices.append(idx)
+        
+        # If we don't have enough unique indices, add more from the end
+        while len(unique_indices) < max_variations_per_row and len(unique_indices) < total_variations:
+            for i in range(total_variations):
+                if i not in unique_indices:
+                    unique_indices.append(i)
+                    break
+        
+        # Return sampled variations
+        return [variations[i] for i in unique_indices[:max_variations_per_row]]

@@ -6,14 +6,12 @@ import time
 
 import streamlit as st
 from dotenv import load_dotenv
-from multipromptify import MultiPromptify
-from multipromptify.shared.constants import GenerationInterfaceConstants, GenerationDefaults
-from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    INSTRUCTION, INSTRUCTION_VARIATIONS
-)
 
+from multipromptify import MultiPromptify
+from multipromptify.core.template_keys import (
+    PROMPT_FORMAT, PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, INSTRUCTION
+)
+from multipromptify.shared.constants import GenerationInterfaceConstants, GenerationDefaults
 from .results_display import display_full_results
 
 # Load environment variables
@@ -85,18 +83,35 @@ def display_current_setup(df, template, template_name):
     with col2:
         st.markdown(f"**📝 Template: {template_name}**")
 
-        # Handle new template format (dictionary) vs old format (string)
         if isinstance(template, dict):
+            # Display instruction and prompt format separately if they exist
             if INSTRUCTION in template:
-                st.markdown("**Processing Instruction:**")
+                st.markdown("**Instruction:**")
                 st.code(template[INSTRUCTION], language="text")
             if PROMPT_FORMAT in template:
                 st.markdown("**Prompt Format:**")
                 st.code(template[PROMPT_FORMAT], language="text")
+            
+            # Display the rest of the template (excluding INSTRUCTION and PROMPT_FORMAT)
+            template_parts = {k: v for k, v in template.items() 
+                            if k not in [INSTRUCTION, PROMPT_FORMAT]}
+            
+            if template_parts:
+                st.markdown("**Template Variables:**")
+                # Format the dictionary nicely
+                template_str = "{\n"
+                for key, value in template_parts.items():
+                    if isinstance(value, list):
+                        template_str += f"    '{key}': {value},\n"
+                    elif isinstance(value, dict):
+                        template_str += f"    '{key}': {{\n"
+                        for sub_key, sub_value in value.items():
+                            template_str += f"        '{sub_key}': {sub_value},\n"
+                        template_str += "    },\n"
             else:
-                # Fallback to combined or string representation
-                template_str = template.get('combined', str(template))
-                st.code(template_str, language="text")
+                        template_str += f"    '{key}': {value},\n"
+                template_str += "}"
+                st.code(template_str, language="python")
         else:
             # Old format - just display as string
             st.code(template, language="text")
@@ -112,17 +127,44 @@ def configure_generation():
     with col1:
         st.markdown("**🔢 Quantity Settings**")
 
-        # Max variations setting
-        if 'max_variations' not in st.session_state:
-            st.session_state.max_variations = GenerationDefaults.MAX_VARIATIONS
+        # Max variations setting - support None for unlimited
+        if 'max_variations_per_row' not in st.session_state:
+            st.session_state.max_variations_per_row = GenerationDefaults.MAX_VARIATIONS_PER_ROW
 
-        max_variations = st.number_input(
-            "🎯 Maximum variations to generate",
-            min_value=GenerationInterfaceConstants.MIN_VARIATIONS,
-            max_value=GenerationInterfaceConstants.MAX_VARIATIONS,
-            key='max_variations',
-            help="Total number of prompt variations to generate across all data rows"
+        # Create options for max variations including unlimited
+        max_variations_per_row_options = [
+            ("Unlimited (default)", None),
+            ("50 variations", 50),
+            ("100 variations", 100),
+            ("200 variations", 200),
+            ("500 variations", 500),
+            ("1000 variations", 1000)
+        ]
+        
+        # Add custom option if current value is not in the list
+        current_max_variations_per_row = st.session_state.max_variations_per_row
+        if current_max_variations_per_row is not None and current_max_variations_per_row not in [50, 100, 200, 500, 1000]:
+            max_variations_per_row_options.append((f"{current_max_variations_per_row} variations", current_max_variations_per_row))
+        
+        max_variations_per_row_labels = [label for label, _ in max_variations_per_row_options]
+        max_variations_per_row_values = [value for _, value in max_variations_per_row_options]
+
+        if current_max_variations_per_row is None:
+            max_variations_per_row_index = 0
+        else:
+            try:
+                max_variations_per_row_index = max_variations_per_row_values.index(current_max_variations_per_row)
+            except ValueError:
+                max_variations_per_row_index = 0
+
+        selected_max_variations_per_row_label = st.selectbox(
+            "Maximum variations per row",
+            options=max_variations_per_row_labels,
+            index=max_variations_per_row_index,
+            key='max_variations_per_row_label',
+            help="Maximum number of variations to generate per data row. If a row has more variations than this limit, the same subset will be selected for all rows (None = unlimited)"
         )
+        st.session_state.max_variations_per_row = max_variations_per_row_values[max_variations_per_row_labels.index(selected_max_variations_per_row_label)]
 
         # Max rows setting
         df = st.session_state.uploaded_data
@@ -240,7 +282,7 @@ def generate_variations_interface():
 
     # Estimation in a compact info box
     df = st.session_state.uploaded_data
-    max_variations = st.session_state.max_variations
+    max_variations_per_row = st.session_state.max_variations_per_row
     variations_per_field = st.session_state.variations_per_field
     max_rows = st.session_state.max_rows
 
@@ -254,8 +296,14 @@ def generate_variations_interface():
         num_variation_fields = len([f for f, v in variation_fields.items() if v is not None])
 
         if num_variation_fields > 0:
-            estimated_per_row = min(variations_per_field ** num_variation_fields, max_variations // effective_rows)
-            estimated_total = min(estimated_per_row * effective_rows, max_variations)
+            if max_variations_per_row is None:
+                # No limit on variations
+                estimated_per_row = variations_per_field ** num_variation_fields
+                estimated_total = estimated_per_row * effective_rows
+            else:
+                # Limited variations per row
+                estimated_per_row = min(variations_per_field ** num_variation_fields, max_variations_per_row)
+                estimated_total = estimated_per_row * effective_rows
         else:
             estimated_total = effective_rows  # No variations, just one prompt per row
 
@@ -266,7 +314,8 @@ def generate_variations_interface():
     except Exception as e:
         error_message = str(e)
         if "Not enough data for few-shot examples" in error_message:
-            st.info("⚠️ Not enough data for few-shot examples - please increase data size or reduce the number of examples")
+            st.info(
+                "⚠️ Not enough data for few-shot examples - please increase data size or reduce the number of examples")
         else:
             st.warning(f"❌ Could not estimate variations: {str(e)}")
 
@@ -305,7 +354,7 @@ def generate_all_variations():
                 details_text.info("Setting up the generation engine with your configuration")
                 progress_bar.progress(0.1)
 
-                mp = MultiPromptify(max_variations=st.session_state.max_variations)
+                mp = MultiPromptify(max_variations_per_row=st.session_state.max_variations_per_row)
 
                 # Set random seed if specified
                 if st.session_state.get('random_seed') is not None:
@@ -403,7 +452,8 @@ def generate_all_variations():
                     # Handle few-shot error gracefully with single clear message
                     status_text.text("⚠️ Data Configuration Issue")
                     details_text.error("Cannot proceed - insufficient data for few-shot examples")
-                    st.error("⚠️ **Cannot create few-shot examples:** Not enough data rows available. Please increase your data size or reduce the number of few-shot examples in the template configuration.")
+                    st.error(
+                        "⚠️ **Cannot create few-shot examples:** Not enough data rows available. Please increase your data size or reduce the number of few-shot examples in the template configuration.")
                     return  # Stop execution for few-shot error
                 else:
                     # Error handling with details

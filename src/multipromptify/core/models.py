@@ -2,13 +2,11 @@
 Data models for MultiPromptify to manage parameters and context.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
+
 import pandas as pd
-from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION
-)
+
 from multipromptify.shared.constants import GenerationDefaults
 
 
@@ -18,7 +16,7 @@ class GoldFieldConfig:
     field: Optional[str] = None
     type: str = 'value'  # 'value' or 'index'
     options_field: Optional[str] = None
-    
+
     @classmethod
     def from_template(cls, gold_config: Any) -> 'GoldFieldConfig':
         """Create GoldFieldConfig from template configuration."""
@@ -41,7 +39,8 @@ class VariationConfig:
     """Configuration for generating variations."""
     variations_per_field: int = GenerationDefaults.VARIATIONS_PER_FIELD
     api_key: Optional[str] = None
-    max_variations: int = GenerationDefaults.MAX_VARIATIONS
+    max_variations_per_row: Optional[int] = GenerationDefaults.MAX_VARIATIONS_PER_ROW
+    seed: Optional[int] = GenerationDefaults.RANDOM_SEED
 
 
 @dataclass
@@ -61,24 +60,12 @@ class VariationContext:
     gold_config: GoldFieldConfig
     variation_config: VariationConfig
     data: Optional[pd.DataFrame] = None  # Full dataset for few-shot examples
-    
+
     def get_field_value(self, field_name: str) -> Optional[str]:
         """Get field value from row data. Assumes clean data."""
         if field_name not in self.row_data.index:
             return None
         return str(self.row_data[field_name])
-
-
-@dataclass
-class GeneratedVariation:
-    """Represents a complete generated variation."""
-    prompt: str
-    conversation: List[Dict[str, str]]
-    original_row_index: int
-    variation_count: int
-    template_config: dict
-    field_values: Dict[str, str]
-    gold_updates: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -90,16 +77,16 @@ class FieldAugmentationData:
     variation_config: VariationConfig
     row_data: Optional[pd.Series] = None
     gold_config: Optional[GoldFieldConfig] = None
-    
+
     def has_gold_field(self) -> bool:
         """Check if gold field is properly configured."""
-        return (self.gold_config is not None and 
+        return (self.gold_config is not None and
                 self.gold_config.field is not None and
                 self.row_data is not None and
                 self.gold_config.field in self.row_data.index)
 
 
-@dataclass 
+@dataclass
 class FewShotContext:
     """Context for generating few-shot examples."""
     prompt_format_template: str
@@ -107,7 +94,7 @@ class FewShotContext:
     data: pd.DataFrame
     current_row_idx: int
     gold_config: GoldFieldConfig
-    
+
     def to_identification_data(self) -> Dict[str, Any]:
         """Convert to identification data format expected by FewShotAugmenter."""
         return {
@@ -117,4 +104,4 @@ class FewShotContext:
             'gold_field': self.gold_config.field,
             'gold_type': self.gold_config.type,
             'options_field': self.gold_config.options_field
-        } 
+        }

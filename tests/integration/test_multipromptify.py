@@ -33,7 +33,7 @@ def test_basic_functionality():
         template = "{instruction:semantic}: {context:paraphrase_with_llm}\nQuestion: {question:paraphrase_with_llm}\nAnswer: {answer}"
         
         # Initialize MultiPromptify
-        mp = MultiPromptify(max_variations=20)
+        mp = MultiPromptify(max_variations_per_row=20)
         
         # Generate variations
         variations = mp.generate_variations(
@@ -116,7 +116,7 @@ def test_few_shot_examples():
         
         template = "{instruction:paraphrase_with_llm}: {few_shot}\n\nQuestion: {question}\nAnswer: {answer}"
         
-        mp = MultiPromptify(max_variations=10)
+        mp = MultiPromptify(max_variations_per_row=10)
         
         # Test with few-shot examples
         few_shot = ["Q: What is 1+1? A: 2", "Q: What is 3*3? A: 9"]
@@ -155,7 +155,7 @@ def test_file_io():
         test_file = 'test_data.csv'
         test_data.to_csv(test_file, index=False)
         
-        mp = MultiPromptify(max_variations=5)
+        mp = MultiPromptify(max_variations_per_row=5)
         template = "{instruction:semantic}: '{text:paraphrase_with_llm}'\nSentiment: {sentiment}"
         
         # Load from file

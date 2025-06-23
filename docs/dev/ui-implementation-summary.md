@@ -317,3 +317,14 @@ The MultiPromptify 2.0 UI successfully transforms a complex, multi-step process 
 - **Supports advanced workflows** with professional UX
 
 The implementation maintains full compatibility with the MultiPromptify 2.0 core while providing a significantly improved user experience suitable for both technical and non-technical users. 
+
+## Augmenters and Variation Types
+
+MultiPromptify supports a variety of augmenters for prompt variation:
+- `format_structure` (`FORMAT_STRUCTURE_VARIATION`): Semantic-preserving format changes (separators, casing, field order)
+- `typos_and_noise` (`TYPOS_AND_NOISE_VARIATION`): Injects typos, random case, whitespace, and punctuation noise
+- `enumerate` (`ENUMERATE_VARIATION`): Adds enumeration to list fields (1. 2. 3. 4., A. B. C. D., roman, etc.)
+- `paraphrase_with_llm`, `context`, `shuffle`, `multidoc`, and more
+- `rewording`: Deprecated, kept for backward compatibility (now maps to `typos_and_noise`)
+
+See the main README and API guide for template examples using these augmenters. 

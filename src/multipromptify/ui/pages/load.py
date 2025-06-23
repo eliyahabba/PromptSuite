@@ -3,6 +3,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from multipromptify.core import SHUFFLE_VARIATION
+
 # Add the src directory to the path to import multipromptify
 base_dir = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(base_dir))
@@ -15,8 +17,8 @@ from multipromptify.ui.pages import (
 from multipromptify.ui.utils.progress_indicator import show_progress_indicator
 from multipromptify.core.template_keys import (
     CONTEXT_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING,
-    INSTRUCTION, PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, QUESTION_KEY
+    PARAPHRASE_WITH_LLM,
+    INSTRUCTION, PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, QUESTION_KEY, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION
 )
 
 
@@ -104,13 +106,14 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Classify the sentiment of the following text.',
                             PROMPT_FORMAT: 'Text: "{text}"\nSentiment: {label}',
-                            'text': [REWORDING],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            'text': [TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'label',
                                 'type': 'value'
                             }
                         },
-                        'description': 'Simple sentiment classification with instruction paraphrases and text surface variations',
+                        'description': 'Sentiment classification with format structure and noise injection variations',
                         'sample_data': {
                             'text': ['I love this movie!', 'This book is terrible.', 'The weather is nice today.'],
                             'label': ['positive', 'negative', 'neutral']
@@ -121,7 +124,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Classify the sentiment of the following text.',
                             PROMPT_FORMAT: 'Text: "{text}"\nSentiment: {label}',
-                            'text': [REWORDING, CONTEXT_KEY],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            'text': [TYPOS_AND_NOISE_VARIATION, CONTEXT_KEY],
                             GOLD_KEY: {
                                 'field': 'label',
                                 'type': 'value'
@@ -132,7 +136,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'all'
                             }
                         },
-                        'description': 'Sentiment analysis with multiple variations and rotating few-shot examples',
+                        'description': 'Sentiment analysis with format structure, noise injection, and context variations',
                         'sample_data': {
                             'text': ['I absolutely love this product!', 'This is the worst service ever!',
                                      'It\'s okay, nothing special', 'Amazing quality!'],
@@ -152,13 +156,14 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Please answer the following question.',
                             PROMPT_FORMAT: 'question: {question}\nanswer: {answer}',
-                            QUESTION_KEY: [REWORDING],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'value'
                             }
                         },
-                        'description': 'Q&A with instruction paraphrases and question surface variations',
+                        'description': 'Q&A with format structure and noise injection variations',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'How many days in a week?',
                                          'Who wrote Romeo and Juliet?'],
@@ -169,8 +174,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Q&A with Context and Few-shot',
                         'template': {
                             INSTRUCTION: 'Based on the context, answer the question.',
+                            INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
                             PROMPT_FORMAT: 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
-                            QUESTION_KEY: [REWORDING, PARAPHRASE_WITH_LLM],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
                             CONTEXT_KEY: [CONTEXT_KEY],
                             GOLD_KEY: {
                                 'field': 'answer',
@@ -182,7 +189,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'all'
                             }
                         },
-                        'description': 'Q&A with context variations and fixed few-shot examples',
+                        'description': 'Q&A with format structure, noise injection, and context variations',
                         'sample_data': {
                             'question': ['What is 12+8?', 'What is 15-7?', 'What is 6*4?', 'What is 20/5?',
                                          'What is 9*3?'],
@@ -203,15 +210,16 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            QUESTION_KEY: [REWORDING],
-                            OPTIONS_KEY: ['shuffle'],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',  # 'index' or 'value'
                                 'options_field': 'options'  # Field containing the list to shuffle
                             }
                         },
-                        'description': 'Multiple choice with instruction paraphrases, question variations, and option shuffling',
+                        'description': 'Multiple choice with format structure, noise injection, and option shuffling',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
@@ -224,10 +232,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers).',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            INSTRUCTION_VARIATIONS: [REWORDING],
-                            PROMPT_FORMAT_VARIATIONS: [REWORDING],
-                            QUESTION_KEY: [REWORDING],
-                            OPTIONS_KEY: ['shuffle', REWORDING],
+                            INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
@@ -239,7 +247,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'all'
                             }
                         },
-                        'description': 'Multiple choice with option shuffling, surface variations and fixed few-shot examples',
+                        'description': 'Multiple choice with format structure, noise injection, and option shuffling',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?', 'What is the smallest prime number?'],
@@ -253,7 +261,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers).',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            QUESTION_KEY: [REWORDING],
+                            QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
@@ -264,7 +272,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'type': '1234'
                             }
                         },
-                        'description': 'Multiple choice with automatic enumeration of options (1. 2. 3. 4.)',
+                        'description': 'Multiple choice with format structure, noise injection, and automatic enumeration',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
@@ -278,7 +286,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers).',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            QUESTION_KEY: [REWORDING],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
@@ -289,7 +297,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'type': 'ABCD'
                             }
                         },
-                        'description': 'Multiple choice with letter enumeration of options (A. B. C. D.)',
+                        'description': 'Multiple choice with format structure, noise injection, and letter enumeration',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
@@ -311,13 +319,13 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Classify the following text into a category.',
                             PROMPT_FORMAT: 'Text: "{text}"\nCategory: {category}',
-                            'text': [REWORDING],
+                            'text': [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'category',
                                 'type': 'value'
                             }
                         },
-                        'description': 'Simple text classification with instruction and text variations',
+                        'description': 'Text classification with format structure and noise injection variations',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?'],
                             'category': ['travel', 'service', 'information']
@@ -328,14 +336,14 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Classify the following text.',
                             PROMPT_FORMAT: 'Text: "{text}"\nCategory: {category}',
-                            'text': [REWORDING, CONTEXT_KEY],
+                            'text': [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, CONTEXT_KEY],
                             'category': [],  # No variations for output
                             GOLD_KEY: {
                                 'field': 'category',
                                 'type': 'value'
                             }
                         },
-                        'description': 'Text classification with multiple variation types on instruction and text',
+                        'description': 'Text classification with format structure, noise injection, and context variations',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?'],
                             'category': ['travel', 'service', 'information']
@@ -346,7 +354,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Classify the following text.',
                             PROMPT_FORMAT: 'Text: "{text}"\nCategory: {category}',
-                            'text': [REWORDING],
+                            'text': [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'category',
                                 'type': 'value'
@@ -357,11 +365,100 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'all'
                             }
                         },
-                        'description': 'Text classification with rotating few-shot examples',
+                        'description': 'Text classification with format structure, noise injection, and rotating few-shot examples',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?',
                                      'Order pizza for dinner', 'Check my account balance'],
                             'category': ['travel', 'service', 'information', 'food', 'banking']
+                        }
+                    }
+                ]
+            },
+
+            # Specialized Augmenters Templates
+            'specialized_augmenters': {
+                'category_name': 'Specialized Augmenters',
+                'description': 'Templates showcasing the new specialized augmenters for format structure and noise injection',
+                'templates': [
+                    {
+                        'name': 'Format Structure Only',
+                        'template': {
+                            INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            OPTIONS_KEY: [ENUMERATE_VARIATION],
+                            GOLD_KEY: {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            }
+                        },
+                        'description': 'Semantic-preserving format structure variations with automatic enumeration',
+                        'sample_data': {
+                            'question': ['What is the capital of France?', 'What is 2+2?'],
+                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'answer': [2, 1]  # 0-based indices
+                        }
+                    },
+                    {
+                        'name': 'Noise Injection Only',
+                        'template': {
+                            INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
+                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
+                            GOLD_KEY: {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            }
+                        },
+                        'description': 'Robustness testing with noise injection (typos, case changes, etc.)',
+                        'sample_data': {
+                            'question': ['What is the capital of France?', 'What is 2+2?'],
+                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'answer': [2, 1]  # 0-based indices
+                        }
+                    },
+                    {
+                        'name': 'Combined Specialized Augmenters',
+                        'template': {
+                            INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
+                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
+                            GOLD_KEY: {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            }
+                        },
+                        'description': 'Both format structure and noise injection augmenters combined',
+                        'sample_data': {
+                            'question': ['What is the capital of France?', 'What is 2+2?'],
+                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'answer': [2, 1]  # 0-based indices
+                        }
+                    },
+                    {
+                        'name': 'Noise Injection with Enumerate',
+                        'template': {
+                            INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],  # Noise injection for robustness testing
+                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],  # Noise injection + enumerate
+                            GOLD_KEY: {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            }
+                        },
+                        'description': 'Noise injection for robustness testing with automatic enumeration',
+                        'sample_data': {
+                            'question': ['What is the capital of France?', 'What is 2+2?'],
+                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'answer': [2, 1]  # 0-based indices
                         }
                     }
                 ]
@@ -377,7 +474,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Classify the sentiment of the following text.',
                             PROMPT_FORMAT: 'Text: "{text}"\nLabel: {label}',
-                            'text': [REWORDING, CONTEXT_KEY],
+                            'text': [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, CONTEXT_KEY],
                             'label': [],
                             GOLD_KEY: {
                                 'field': 'label',
@@ -389,7 +486,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'all'
                             }
                         },
-                        'description': 'Multiple variations per field with few-shot examples',
+                        'description': 'Multiple variations per field with format structure, noise injection, and context',
                         'sample_data': {
                             'text': ['I love this movie!', 'This book is terrible.', 'The weather is nice today.'],
                             'label': ['positive', 'negative', 'neutral']
@@ -400,7 +497,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'Answer the following question.',
                             PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
-                            QUESTION_KEY: [REWORDING, PARAPHRASE_WITH_LLM],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION, PARAPHRASE_WITH_LLM],
                             'answer': [],
                             GOLD_KEY: {
                                 'field': 'answer',
@@ -412,7 +510,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'train'
                             }
                         },
-                        'description': 'Q&A with multiple question variations and fixed training examples',
+                        'description': 'Q&A with format structure, noise injection, and paraphrase variations',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'How many days in a week?',
                                          'Who wrote Romeo and Juliet?'],
@@ -432,7 +530,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'template': {
                             INSTRUCTION: 'You are a helpful math assistant. Answer clearly.',
                             PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
-                            QUESTION_KEY: [REWORDING],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
                             GOLD_KEY: 'answer',
                             FEW_SHOT_KEY: {
                                 'count': 2,
@@ -440,7 +539,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'all'
                             }
                         },
-                        'description': 'Few-shot QA with a system prompt only in the first example',
+                        'description': 'Few-shot QA with format structure, noise injection, and system prompt',
                         'sample_data': {
                             'question': ['What is 2+2?', 'What is 3*3?', 'What is 5+3?'],
                             'answer': ['4', '9', '8']

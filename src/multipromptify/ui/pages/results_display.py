@@ -10,10 +10,9 @@ import streamlit as st
 
 from multipromptify.core.engine import MultiPromptify
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, PROMPT_FORMAT
+    PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY, PROMPT_FORMAT
 )
+
 
 # Helper function to inject JavaScript for clipboard functionality
 def _copy_to_clipboard_js():
@@ -43,6 +42,7 @@ def _copy_to_clipboard_js():
     }
     """
     st.components.v1.html(f"<script>{js_code}</script>", height=0, width=0)
+
 
 # Define colors for highlighting different parts
 HIGHLIGHT_COLORS = {
@@ -387,7 +387,8 @@ def display_single_variation(variation, variation_num, original_data):
             # Show gold field updates (when fields like options are shuffled)
             gold_updates = variation.get('gold_updates', {})
             for gold_field, new_value in gold_updates.items():
-                original_val = str(original_row[gold_field]) if original_row is not None and gold_field in original_row.index else None
+                original_val = str(
+                    original_row[gold_field]) if original_row is not None and gold_field in original_row.index else None
                 if original_val is not None and str(new_value) != str(original_val):
                     st.markdown(f"""
                     <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #e74c3c;">

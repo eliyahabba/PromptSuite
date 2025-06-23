@@ -3,23 +3,21 @@ Few Shot Handler: Centralized handling of few-shot examples and row variation cr
 """
 
 import itertools
-from typing import Dict, List, Any, Optional
-import pandas as pd
 from dataclasses import dataclass
+from typing import Dict, List, Any, Optional
 
-from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
+import pandas as pd
+
 from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
-from multipromptify.core.models import VariationContext, FieldVariation, FewShotContext
-from multipromptify.utils.formatting import format_field_value, extract_gold_value
+from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.core.exceptions import (
     FewShotGoldFieldMissingError, FewShotDataInsufficientError, FewShotConfigurationError
 )
+from multipromptify.core.models import VariationContext, FieldVariation, FewShotContext
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY,
-    PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, PROMPT_FORMAT, INSTRUCTION,INSTRUCTION_VARIATIONS
+    PROMPT_FORMAT_VARIATIONS, INSTRUCTION, INSTRUCTION_VARIATIONS
 )
+from multipromptify.utils.formatting import format_field_value
 
 
 @dataclass
@@ -41,10 +39,10 @@ class FewShotHandler:
         self.enumerator_augmenter = EnumeratorAugmenter()
 
     def validate_gold_field_requirement(
-        self, 
-        prompt_format_template: str,
-        gold_field: str, 
-        few_shot_fields: list
+            self,
+            prompt_format_template: str,
+            gold_field: str,
+            few_shot_fields: list
     ) -> None:
         """Validate that gold field is provided when needed for few-shot examples."""
         # Simple check: if we have few-shot fields but no gold field, that's an error
@@ -52,10 +50,10 @@ class FewShotHandler:
             raise FewShotGoldFieldMissingError()
 
     def validate_data_sufficiency(
-        self,
-        data: pd.DataFrame,
-        few_shot_config: FewShotConfig,
-        current_row_idx: int
+            self,
+            data: pd.DataFrame,
+            few_shot_config: FewShotConfig,
+            current_row_idx: int
     ) -> None:
         """Check if we have enough data for few-shot examples."""
         if data is None or len(data) <= few_shot_config.count:
@@ -68,23 +66,23 @@ class FewShotHandler:
         """
         if not isinstance(config, dict):
             raise FewShotConfigurationError("config_type", type(config).__name__, ["dictionary"])
-        
+
         few_shot_config = FewShotConfig(
             count=config.get("count", 2),
             format=config.get("format", "rotating"),
             split=config.get("split", "all")
         )
-        
+
         # Validate configuration
         if few_shot_config.count <= 0:
             raise FewShotConfigurationError("count", few_shot_config.count)
-        
+
         if few_shot_config.format not in ['fixed', 'rotating']:
             raise FewShotConfigurationError("format", few_shot_config.format, ['fixed', 'rotating'])
-        
+
         if few_shot_config.split not in ['all', 'train', 'test']:
             raise FewShotConfigurationError("split", few_shot_config.split, ['all', 'train', 'test'])
-        
+
         return few_shot_config
 
     def _filter_data_by_split(self, data: pd.DataFrame, split: str) -> pd.DataFrame:
@@ -96,61 +94,61 @@ class FewShotHandler:
         else:  # 'all'
             return data
 
-
-
     def create_row_variations(
             self,
             variation_context: VariationContext,
             few_shot_field,
-            max_variations: int,
+            max_variations_per_row: Optional[int],
             prompt_builder
     ) -> List[Dict[str, Any]]:
         """Create variations for a single row combining all field variations."""
         variations = []
         varying_fields = list(variation_context.field_variations.keys())
-        
+
         if not varying_fields:
             return variations
-        
+
         # Create all possible combinations of field variations
         variation_combinations = self._create_variation_combinations(variation_context.field_variations)
-        
+
         for combination in variation_combinations:
-            if len(variations) >= max_variations:
+            # Check limit only if max_variations_per_row is not None
+            if max_variations_per_row is not None and len(variations) >= max_variations_per_row:
                 break
-            
+
             # Build a single variation
             variation = self._build_single_variation(
-                combination, varying_fields, variation_context, 
+                combination, varying_fields, variation_context,
                 few_shot_field, prompt_builder, len(variations) + 1
             )
-            
+
             if variation:
                 variations.append(variation)
-                
+
         return variations
 
     def _create_variation_combinations(
-        self, 
-        field_variations: Dict[str, List[FieldVariation]]
+            self,
+            field_variations: Dict[str, List[FieldVariation]]
     ) -> List[tuple]:
         """Create all possible combinations of field variations."""
         return list(itertools.product(*[field_variations[field] for field in field_variations.keys()]))
 
     def _build_single_variation(
-        self,
-        combination: tuple,
-        varying_fields: List[str],
-        variation_context: VariationContext,
-        few_shot_field,
-        prompt_builder,
-        variation_count: int
+            self,
+            combination: tuple,
+            varying_fields: List[str],
+            variation_context: VariationContext,
+            few_shot_field,
+            prompt_builder,
+            variation_count: int
     ) -> Optional[Dict[str, Any]]:
         """Build a single variation from a combination of field values."""
         field_values = dict(zip(varying_fields, combination))
         prompt_format_variant = field_values.get(
             PROMPT_FORMAT_VARIATIONS,
-            variation_context.field_variations.get(PROMPT_FORMAT_VARIATIONS, [FieldVariation(data='', gold_update=None)])[0]
+            variation_context.field_variations.get(PROMPT_FORMAT_VARIATIONS,
+                                                   [FieldVariation(data='', gold_update=None)])[0]
         ).data
         # Extract row values and gold updates
         row_values, gold_updates = self._extract_row_values_and_updates(
@@ -191,7 +189,7 @@ class FewShotHandler:
         )
         # Prepare output field values
         output_field_values = {
-            field_name: field_data.data 
+            field_name: field_data.data
             for field_name, field_data in field_values.items()
         }
         return {
@@ -205,27 +203,27 @@ class FewShotHandler:
         }
 
     def _extract_row_values_and_updates(
-        self, 
-        variation_context: VariationContext, 
-        field_values: Dict[str, FieldVariation]
+            self,
+            variation_context: VariationContext,
+            field_values: Dict[str, FieldVariation]
     ) -> tuple[Dict[str, str], Dict[str, Any]]:
         """Extract row values and gold updates from field variations."""
         row_values = {}
         gold_updates = {}
-        
+
         # First, get enumerate fields from template
         enumerate_fields_config = self._get_enumerate_fields_config(variation_context.template)
-        
+
         for col in variation_context.row_data.index:
             # Assume clean data - skip empty columns but process all others
             if col in field_values:
                 field_data = field_values[col]
                 # Ensure even field variations go through formatting
                 processed_value = format_field_value(field_data.data)
-                
+
                 # Apply enumerate if this field should be enumerated
                 processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
-                
+
                 row_values[col] = processed_value
                 if field_data.gold_update:
                     gold_updates.update(field_data.gold_update)
@@ -234,18 +232,18 @@ class FewShotHandler:
                 continue
             else:
                 processed_value = format_field_value(variation_context.row_data[col])
-                
+
                 # Apply enumerate if this field should be enumerated
                 processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
-                
+
                 row_values[col] = processed_value
-        
+
         # Always set gold_updates to the original value if not already set
         gold_field = variation_context.gold_config.field
         if gold_field and gold_field in variation_context.row_data:
             if not gold_updates or gold_field not in gold_updates:
                 gold_updates[gold_field] = format_field_value(variation_context.row_data[gold_field])
-        
+
         return row_values, gold_updates
 
     def _get_enumerate_fields_config(self, template: dict) -> Dict[str, dict]:
@@ -262,25 +260,25 @@ class FewShotHandler:
         if field_name in enumerate_configs:
             enum_config = enumerate_configs[field_name]
             enum_type = enum_config.get('type', '1234')
-            
+
             try:
                 return self.enumerator_augmenter.enumerate_field(value, enum_type)
             except Exception as e:
                 print(f"⚠️ Error enumerating field '{field_name}': {e}")
                 return value  # Return original value if enumeration fails
-        
+
         return value
 
     def _generate_few_shot_examples(
-        self, 
-        few_shot_field, 
-        prompt_format_variant: str,
-        variation_context: VariationContext
+            self,
+            few_shot_field,
+            prompt_format_variant: str,
+            variation_context: VariationContext
     ) -> List[Dict[str, str]]:
         """Generate few-shot examples if configured, with system prompt support."""
         if not few_shot_field or variation_context.data is None:
             return []
-        
+
         few_shot_context = FewShotContext(
             prompt_format_template=prompt_format_variant,
             few_shot_field=few_shot_field,
@@ -299,27 +297,26 @@ class FewShotHandler:
         return examples
 
     def _create_main_input(
-        self, 
-        prompt_format_variant: str,
-        row_values: Dict[str, str], 
-        gold_config, 
-        prompt_builder
+            self,
+            prompt_format_variant: str,
+            row_values: Dict[str, str],
+            gold_config,
+            prompt_builder
     ) -> str:
         """Create the main input by filling template with row values."""
         main_input = prompt_builder.fill_template_placeholders(prompt_format_variant, row_values)
-        
+
         # Remove gold field placeholder (it's always excluded from row_values)
         if gold_config.field:
             main_input = main_input.replace(f'{{{gold_config.field}}}', '')
-        
+
         return main_input.strip()
 
-
     def _format_conversation(
-        self, 
-        few_shot_examples: List[Dict[str, str]], 
-        main_input: str,
-        prompt_format: str = None
+            self,
+            few_shot_examples: List[Dict[str, str]],
+            main_input: str,
+            prompt_format: str = None
     ) -> List[Dict[str, str]]:
         """Format few-shot examples and main input as conversation messages, with system prompt support."""
         conversation_messages = []
@@ -348,10 +345,10 @@ class FewShotHandler:
         return conversation_messages
 
     def _format_final_prompt(
-        self, 
-        few_shot_examples: List[Dict[str, str]], 
-        main_input: str,
-        prompt_format: str = None
+            self,
+            few_shot_examples: List[Dict[str, str]],
+            main_input: str,
+            prompt_format: str = None
     ) -> str:
         """Format few-shot examples and main input as a single prompt string, with system prompt support."""
         prompt_parts = []
@@ -363,4 +360,4 @@ class FewShotHandler:
             prompt_parts.append(few_shot_content)
         if main_input:
             prompt_parts.append(main_input)
-        return '\n\n'.join(prompt_parts) 
+        return '\n\n'.join(prompt_parts)
