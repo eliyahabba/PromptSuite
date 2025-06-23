@@ -3,15 +3,18 @@ Augmenter Factory: Centralized creation of augmenter instances with special hand
 """
 
 from typing import Dict, Any, Optional
+
 from multipromptify.augmentations.base import BaseAxisAugmenter
-from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
-from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
 from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
+from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
+from multipromptify.augmentations.structure.shuffle import ShuffleAugmenter
 from multipromptify.augmentations.text.context import ContextAugmenter
+from multipromptify.augmentations.text.format_structure import FormatStructureAugmenter
+from multipromptify.augmentations.text.noise import TextNoiseAugmenter
 from multipromptify.augmentations.text.paraphrase import Paraphrase
-from multipromptify.augmentations.text.surface import TextSurfaceAugmenter
 from multipromptify.core.template_keys import (
-    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION, CONTEXT_VARIATION, FEW_SHOT_VARIATION, ENUMERATE_VARIATION
+    PARAPHRASE_WITH_LLM, SHUFFLE_VARIATION, CONTEXT_VARIATION, FEW_SHOT_VARIATION, ENUMERATE_VARIATION,
+    FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION
 )
 
 
@@ -20,23 +23,25 @@ class AugmenterFactory:
     Factory class for creating augmenter instances with centralized logic for handling
     different augmenter requirements and configurations.
     """
-    
+
     _registry = {
         PARAPHRASE_WITH_LLM: Paraphrase,
-        REWORDING: TextSurfaceAugmenter,
         CONTEXT_VARIATION: ContextAugmenter,
         SHUFFLE_VARIATION: ShuffleAugmenter,
         FEW_SHOT_VARIATION: FewShotAugmenter,
         ENUMERATE_VARIATION: EnumeratorAugmenter,
+        FORMAT_STRUCTURE_VARIATION: FormatStructureAugmenter,  # New semantic-preserving format augmenter
+        TYPOS_AND_NOISE_VARIATION: TextNoiseAugmenter,  # New noise injection augmenter
     }
 
     @classmethod
     def create(
-        cls, 
-        variation_type: str, 
-        n_augments: int, 
-        api_key: Optional[str] = None,
-        **kwargs
+            cls,
+            variation_type: str,
+            n_augments: int,
+            api_key: Optional[str] = None,
+            seed: Optional[int] = None,
+            **kwargs
     ) -> BaseAxisAugmenter:
         """
         Create an augmenter instance with appropriate configuration.
@@ -45,6 +50,7 @@ class AugmenterFactory:
             variation_type: Type of augmenter to create
             n_augments: Number of augmentations to generate
             api_key: API key for augmenters that require it (e.g., Paraphrase, ContextAugmenter)
+            seed: Random seed for reproducibility
             **kwargs: Additional parameters for specific augmenters
             
         Returns:
@@ -54,46 +60,54 @@ class AugmenterFactory:
             ValueError: If variation_type is not supported
         """
         if variation_type not in cls._registry:
-            # Return TextSurfaceAugmenter as default fallback
-            print(f"⚠️ Unknown variation type '{variation_type}', using TextSurfaceAugmenter as fallback")
-            return TextSurfaceAugmenter(n_augments=n_augments)
-        
+            # Return TextNoiseAugmenter as default fallback (instead of TextSurfaceAugmenter)
+            print(f"⚠️ Unknown variation type '{variation_type}', using TextNoiseAugmenter as fallback")
+            return TextNoiseAugmenter(n_augments=n_augments, seed=seed)
+
         augmenter_class = cls._registry[variation_type]
-        
+
         # Handle special cases based on augmenter type
         if augmenter_class == Paraphrase:
             # Paraphrase requires api_key
             if api_key:
-                return augmenter_class(n_augments=n_augments-1, api_key=api_key)
+                return augmenter_class(n_augments=n_augments - 1, api_key=api_key, seed=seed)
             else:
-                print(f"⚠️ Paraphrase augmenter requires api_key, using TextSurfaceAugmenter as fallback")
-                return TextSurfaceAugmenter(n_augments=n_augments)
-                
+                print(f"⚠️ Paraphrase augmenter requires api_key, using TextNoiseAugmenter as fallback")
+                return TextNoiseAugmenter(n_augments=n_augments, seed=seed)
+
         elif augmenter_class == ContextAugmenter:
             # ContextAugmenter requires api_key
             if api_key:
                 print(f"✅ Creating ContextAugmenter with API key")
-                return augmenter_class(n_augments=n_augments)
+                return augmenter_class(n_augments=n_augments, seed=seed)
             else:
-                print(f"⚠️ ContextAugmenter requires api_key, using TextSurfaceAugmenter as fallback")
+                print(f"⚠️ ContextAugmenter requires api_key, using TextNoiseAugmenter as fallback")
                 print(f"   Context variations add background information but need LLM API access")
-                return TextSurfaceAugmenter(n_augments=n_augments)
-                
+                return TextNoiseAugmenter(n_augments=n_augments, seed=seed)
+
         elif augmenter_class == FewShotAugmenter:
             # FewShotAugmenter might have different parameters
-            return augmenter_class(n_augments=n_augments)
-            
+            return augmenter_class(n_augments=n_augments, seed=seed)
+
         elif augmenter_class == EnumeratorAugmenter:
             # EnumeratorAugmenter can take custom enumeration patterns
             enumeration_patterns = kwargs.get('enumeration_patterns', None)
             if enumeration_patterns:
-                return augmenter_class(enumeration_patterns=enumeration_patterns, n_augments=n_augments)
+                return augmenter_class(enumeration_patterns=enumeration_patterns, n_augments=n_augments, seed=seed)
             else:
-                return augmenter_class(n_augments=n_augments)
-            
+                return augmenter_class(n_augments=n_augments, seed=seed)
+
+        elif augmenter_class == FormatStructureAugmenter:
+            # FormatStructureAugmenter supports seed and uses n_augments for max combinations
+            return augmenter_class(n_augments=n_augments, seed=seed)
+
+        elif augmenter_class == TextNoiseAugmenter:
+            # TextNoiseAugmenter supports seed and uses n_augments for max combinations
+            return augmenter_class(n_augments=n_augments, seed=seed)
+
         else:
-            # Standard augmenters (TextSurfaceAugmenter, ShuffleAugmenter)
-            return augmenter_class(n_augments=n_augments)
+            # Standard augmenters (ShuffleAugmenter, etc.)
+            return augmenter_class(n_augments=n_augments, seed=seed)
 
     @classmethod
     def get_available_types(cls) -> list:
@@ -121,11 +135,11 @@ class AugmenterFactory:
 
     @classmethod
     def augment_with_special_handling(
-        cls,
-        augmenter: BaseAxisAugmenter,
-        text: str,
-        variation_type: str,
-        identification_data: Optional[Dict[str, Any]] = None
+            cls,
+            augmenter: BaseAxisAugmenter,
+            text: str,
+            variation_type: str,
+            identification_data: Optional[Dict[str, Any]] = None
     ) -> list:
         """
         Apply augmentation with special handling for different augmenter types.
@@ -152,7 +166,7 @@ class AugmenterFactory:
             else:
                 # Standard augmenters
                 return augmenter.augment(text)
-                
+
         except Exception as e:
             print(f"⚠️ Error in {variation_type} augmentation: {e}")
             return [text]  # Return original text as fallback
@@ -171,15 +185,19 @@ class AugmenterFactory:
         """
         if not result:
             return []
-            
+
         if isinstance(result, str):
             return [result]
-            
+
+        if isinstance(result, set):
+            # Handle sets (e.g., from FormatStructureAugmenter)
+            return list(result)
+
         if isinstance(result, list):
             # Handle list of strings
             if len(result) > 0 and isinstance(result[0], str):
                 return result
-                
+
             # Handle list of dictionaries (e.g., from ShuffleAugmenter)
             if len(result) > 0 and isinstance(result[0], dict):
                 extracted = []
@@ -193,25 +211,26 @@ class AugmenterFactory:
                     else:
                         extracted.append(str(item))
                 return extracted
-                
+
         # Fallback: convert to string
         return [str(result)]
 
 
-# Convenience functions for common use cases
-def create_augmenter(variation_type: str, n_augments: int, api_key: Optional[str] = None) -> BaseAxisAugmenter:
+def create_augmenter(variation_type: str, n_augments: int, api_key: Optional[str] = None,
+                     seed: Optional[int] = None) -> BaseAxisAugmenter:
     """
-    Convenience function to create an augmenter.
+    Convenience function to create an augmenter instance.
     
     Args:
         variation_type: Type of augmenter to create
         n_augments: Number of augmentations to generate
         api_key: API key for augmenters that require it
+        seed: Random seed for reproducibility
         
     Returns:
         Configured augmenter instance
     """
-    return AugmenterFactory.create(variation_type, n_augments, api_key)
+    return AugmenterFactory.create(variation_type, n_augments, api_key, seed)
 
 
 def get_augmenter_types() -> list:
@@ -221,4 +240,4 @@ def get_augmenter_types() -> list:
     Returns:
         List of supported variation types
     """
-    return AugmenterFactory.get_available_types() 
+    return AugmenterFactory.get_available_types()
