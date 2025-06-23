@@ -213,7 +213,7 @@ def template_builder_interface(available_columns):
         **Available Variation Types:**
         
         - **paraphrase_with_llm**: Uses AI to rephrase text while preserving meaning
-        - **rewording**: Backward compatibility - maps to typos_and_noise
+        - **rewording**: Backward compatibility - maps to typos_and noise
         - **context**: Adds background context to questions
         - **shuffle**: Reorders items in lists (e.g., multiple choice options)
         - **multidoc**: Handles multiple document variations
@@ -223,7 +223,7 @@ def template_builder_interface(available_columns):
         **When to use which:**
         - Use **format structure** for testing model robustness to different prompt formats
         - Use **typos and noise** for testing model robustness to noisy input
-        - Use **rewording** for backward compatibility (same as typos_and_noise)
+        - Use **rewording** for backward compatibility (same as typos_and noise)
         """)
 
     # Initialize template state

@@ -31,7 +31,7 @@ mp.load_dataframe(pd.DataFrame(data))
 # Configure template
 template = {
     'instruction_template': 'Question: {question}\nAnswer: {answer}',
-    'question': ['format_structure'],
+    'question': ['format structure'],
     'gold': 'answer'
 }
 mp.set_template(template)
@@ -60,7 +60,7 @@ data = pd.DataFrame({
 template = {
     'system_prompt_template': 'Please answer the following questions.',
     'instruction_template': 'Q: {question}\nA: {answer}',
-    'question': ['format_structure']
+    'question': ['format structure']
 }
 
 mp = MultiPromptifier()
@@ -99,7 +99,7 @@ data = pd.DataFrame({
 template = {
     'system_prompt_template': 'The following are multiple choice questions (with answers) about {subject}.',
     'instruction_template': 'Question: {question}\nOptions: {options}\nAnswer:',
-    'question': ['format_structure'],
+    'question': ['format structure'],
     'options': ['shuffle'],
     'gold': {
         'field': 'answer',
@@ -172,8 +172,8 @@ Set the template configuration using dictionary format.
 template = {
     'instruction_template': 'Answer the question: {question}\nAnswer: {answer}',
     'instruction': ['paraphrase_with_llm'],           # Vary the instruction
-    'question': ['format_structure'],                 # Apply semantic-preserving format changes to question
-    'options': ['shuffle', 'typos_and_noise'],       # Shuffle and add noise to options
+    'question': ['format structure'],                 # Apply semantic-preserving format changes to question
+    'options': ['shuffle', 'typos and noise'],       # Shuffle and add noise to options
     'gold': {                                # Gold answer configuration
         'field': 'answer',
         'type': 'index',                     # 'value' or 'index'
@@ -233,7 +233,7 @@ Templates use a dictionary format with specific keys for different components:
 - `instruction_template` - The main template string with placeholders
 - `instruction` - List of variation types for the instruction
 - `prompt_format_variations` - List of variation types for the prompt format
-- Field names with variation lists (e.g., `'question': ['format_structure', 'paraphrase_with_llm']`)
+- Field names with variation lists (e.g., `'question': ['format structure', 'paraphrase_with_llm']`)
 - `gold` - Gold answer configuration
 - `few_shot` - Few-shot examples configuration
 
@@ -241,11 +241,11 @@ Templates use a dictionary format with specific keys for different components:
 
 - `paraphrase_with_llm` - Paraphrasing variations (LLM-based)
 - `format_structure` (`FORMAT_STRUCTURE_VARIATION`) - Semantic-preserving format changes (e.g., separators, casing, field order)
-- `typos_and_noise` (`TYPOS_AND_NOISE_VARIATION`) - Injects typos, random case, extra whitespace, and punctuation noise for robustness
+- `typos and noise` (`TYPOS_AND_NOISE_VARIATION`) - Injects typos, random case, extra whitespace, and punctuation noise for robustness
 - `context` - Context-based variations
 - `shuffle` - Shuffle options/elements (for multiple choice)
 - `enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4., A. B. C. D., roman numerals, etc.)
-- `rewording` - (Deprecated, kept for backward compatibility; now maps to `typos_and_noise`)
+- `rewording` - (Deprecated, kept for backward compatibility; now maps to `typos and noise`)
 
 ### Example Templates
 
@@ -254,7 +254,7 @@ Templates use a dictionary format with specific keys for different components:
 ```python
 template = {
     'instruction_template': 'Answer the question: {question}\nAnswer: {answer}',
-    'question': ['format_structure'],
+    'question': ['format structure'],
     'gold': 'answer'
 }
 ```
@@ -264,8 +264,8 @@ template = {
 ```python
 template = {
     'instruction_template': 'Choose the correct answer:\nQ: {question}\nOptions: {options}\nA: {answer}',
-    'question': ['format_structure'],
-    'options': ['shuffle', 'typos_and_noise'],
+    'question': ['format structure'],
+    'options': ['shuffle', 'typos and noise'],
     'gold': {
         'field': 'answer',
         'type': 'index',
@@ -279,8 +279,8 @@ template = {
 ```python
 template = {
     'instruction_template': 'Context: {context}\nQuestion: {question}\nAnswer: {answer}',
-    'context': ['format_structure'],
-    'question': ['format_structure', 'paraphrase_with_llm'],
+    'context': ['format structure'],
+    'question': ['format structure', 'paraphrase_with_llm'],
     'gold': {
         'field': 'answer',
         'type': 'value'
@@ -383,7 +383,7 @@ data = pd.DataFrame({
 
 template = {
     'instruction_template': 'The following are multiple choice questions (with answers) about {subject}.\nQuestion: {question}\nOptions: {options}\nAnswer:',
-    'question': ['format_structure'],
+    'question': ['format structure'],
     'options': ['shuffle'],
     'gold': {
         'field': 'answer',
@@ -420,8 +420,8 @@ from multipromptify.core.template_keys import (
 
 template = {
     INSTRUCTION: 'Answer the question: {question}\nAnswer: {answer}',
-    PROMPT_FORMAT_VARIATIONS: ['format_structure'],
-    QUESTION_KEY: ['typos_and_noise'],
+    PROMPT_FORMAT_VARIATIONS: ['format structure'],
+    QUESTION_KEY: ['typos and noise'],
     OPTIONS_KEY: ['shuffle', 'enumerate'],
     GOLD_KEY: {
         'field': 'answer',
@@ -483,7 +483,7 @@ mp.export("debug_output.json", format="json")
 4. **Monitor variation count**: Be aware of combinatorial explosion with multiple variation types
 5. **Use appropriate variation types**: Choose variation types that match your use case
    - **format_structure**: For semantic-preserving format changes
-   - **typos_and_noise**: For robustness testing
+   - **typos and noise**: For robustness testing
    - **paraphrase_with_llm**: For semantic variations (requires API key)
 
 ## Variation Types Reference
@@ -491,9 +491,8 @@ mp.export("debug_output.json", format="json")
 ### Core Variation Types
 
 - **paraphrase_with_llm**: Uses LLM to generate semantic variations of the text
-- **format_structure** (`FORMAT_STRUCTURE_VARIATION`): Applies semantic-preserving format changes to the prompt, such as changing separators, field order, or casing, inspired by the FORMATSPREAD paper.
-- **typos_and_noise** (`TYPOS_AND_NOISE_VARIATION`): Injects various types of noise (typos, character swaps, random case, extra whitespace, punctuation) for robustness testing, while protecting placeholders.
-- **rewording**: (Deprecated) Kept for backward compatibility; now maps to `typos_and_noise`.
+- **format structure** (`FORMAT_STRUCTURE_VARIATION`): Applies semantic-preserving format changes to the prompt, such as changing separators, field order, or casing, inspired by the FORMATSPREAD paper.
+- **typos and noise** (`TYPOS_AND_NOISE_VARIATION`): Injects various types of noise (typos, character swaps, random case, extra whitespace, punctuation) for robustness testing, while protecting placeholders.
 
 ### Utility Variation Types
 
@@ -504,7 +503,7 @@ mp.export("debug_output.json", format="json")
 ### When to Use Each Type
 
 - **format_structure**: When you want to test how different prompt formats affect model performance
-- **typos_and_noise**: When you want to test model robustness to input noise
+- **typos and noise**: When you want to test model robustness to input noise
 - **paraphrase_with_llm**: When you want semantic variations that preserve meaning
 - **shuffle**: For multiple choice questions to test option order independence
 - **enumerate**: To add structure to list fields 

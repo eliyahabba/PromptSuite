@@ -322,9 +322,8 @@ The implementation maintains full compatibility with the MultiPromptify 2.0 core
 
 MultiPromptify supports a variety of augmenters for prompt variation:
 - `format_structure` (`FORMAT_STRUCTURE_VARIATION`): Semantic-preserving format changes (separators, casing, field order)
-- `typos_and_noise` (`TYPOS_AND_NOISE_VARIATION`): Injects typos, random case, whitespace, and punctuation noise
+- `typos_and noise` (`TYPOS_AND_NOISE_VARIATION`): Injects typos, random case, whitespace, and punctuation noise
 - `enumerate` (`ENUMERATE_VARIATION`): Adds enumeration to list fields (1. 2. 3. 4., A. B. C. D., roman, etc.)
 - `paraphrase_with_llm`, `context`, `shuffle`, `multidoc`, and more
-- `rewording`: Deprecated, kept for backward compatibility (now maps to `typos_and_noise`)
 
 See the main README and API guide for template examples using these augmenters. 
