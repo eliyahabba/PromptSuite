@@ -35,7 +35,3 @@ FEW_SHOT_VARIATION = "fewshot"
 FORMAT_STRUCTURE_VARIATION = "format structure"  # For semantic-preserving format changes
 TYPOS_AND_NOISE_VARIATION = "typos and noise"  # For noise injection (typos, swaps, etc.)
 
-# Keep for backward compatibility
-REWORDING = TYPOS_AND_NOISE_VARIATION  # Alias
-
-# Add more as needed
