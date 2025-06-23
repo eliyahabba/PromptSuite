@@ -1,3 +1,4 @@
+import random
 from typing import List, Dict, Any
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
@@ -27,14 +28,15 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         '1234': '1234567890',
         'ABCD': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         'abcd': 'abcdefghijklmnopqrstuvwxyz',
-        'hebrew': 'אבגדהוזחטיכלמנסעפצקרשת',
+        'hebrew': 'אבגדהוזחטיכסעפצקרשת',
         'greek': 'αβγδεζηθικλμνξοπρστυφχψω',
         'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
     }
 
-    def __init__(self, n_augments=1):
+    def __init__(self, n_augments=1, seed=None):
         """Initialize the enumerator augmenter."""
-        super().__init__(n_augments=n_augments)
+        super().__init__(n_augments=n_augments, seed=seed)
+        self._rng = random.Random(self.seed) if self.seed is not None else random.Random()
 
     def get_name(self):
         return "Enumerate Field"
@@ -128,14 +130,17 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
             # Define different enumeration types to try
             enum_types = ['1234', 'ABCD', 'abcd', 'roman']
             
-            # Generate variations with different types (skip the original non-enumerated version)
-            for i in range(min(self.n_augments, len(enum_types))):
+            # Randomly select enumeration types instead of using them in order
+            selected_types = self._rng.sample(enum_types, min(self.n_augments, len(enum_types)))
+            
+            # Generate variations with different types
+            for enum_type in selected_types:
                 try:
-                    result = self.enumerate_field(input_data, enum_types[i])
+                    result = self.enumerate_field(input_data, enum_type)
                     if result not in variations:
                         variations.append(result)
                 except Exception as e:
-                    print(f"⚠️ Error in enumerate augmentation with type {enum_types[i]}: {e}")
+                    print(f"⚠️ Error in enumerate augmentation with type {enum_type}: {e}")
                     continue
         else:
             # Single variation with specified type

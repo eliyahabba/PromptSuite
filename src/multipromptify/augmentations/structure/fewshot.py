@@ -1,14 +1,10 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
+
 import pandas as pd
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
-from multipromptify.utils.formatting import format_field_value
 from multipromptify.core.exceptions import FewShotGoldFieldMissingError, FewShotDataInsufficientError
-from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, CONTEXT_VARIATION, SHUFFLE_VARIATION, MULTIDOC_VARIATION, ENUMERATE_VARIATION,
-    GOLD_FIELD, PROMPT_FORMAT
-)
+from multipromptify.utils.formatting import format_field_value
 
 
 class FewShotAugmenter(BaseAxisAugmenter):
@@ -17,17 +13,18 @@ This augmenter handles few-shot examples for NLP tasks.
     It works with the engine to generate structured few-shot examples.
     """
 
-    def __init__(self, n_augments: int = 1):
+    def __init__(self, n_augments: int = 1, seed: Optional[int] = None):
         """
         Initialize the few-shot augmenter.
         
         Args:
             n_augments: Number of variations to generate (not used in current implementation)
+            seed: Random seed for reproducibility
         """
-        super().__init__(n_augments=n_augments)
+        super().__init__(n_augments=n_augments, seed=seed)
 
     def get_name(self):
-            return "Few-Shot Examples"
+        return "Few-Shot Examples"
 
     def augment(self, prompt: str, identification_data: Dict[str, Any] = None) -> List[Dict[str, str]]:
         """
@@ -48,14 +45,14 @@ This augmenter handles few-shot examples for NLP tasks.
         """
         if not identification_data or 'few_shot_field' not in identification_data:
             return []
-        
+
         # Validate gold field requirement
         few_shot_field = identification_data.get('few_shot_field')
         gold_field = identification_data.get('gold_field')
         few_shot_fields = [few_shot_field] if few_shot_field else []
-        
+
         self._validate_gold_field_requirement(prompt, gold_field, few_shot_fields)
-        
+
         # Engine mode - use structured generation
         structured_examples = self.generate_few_shot_examples_structured(
             identification_data.get('few_shot_field'),
@@ -72,23 +69,23 @@ This augmenter handles few-shot examples for NLP tasks.
     def _validate_gold_field_requirement(self, prompt_format_template: str, gold_field: str, few_shot_fields: list):
         """Validate that gold field is provided when needed for separating inputs from outputs."""
         needs_gold_field = False
-        
+
         # Check if few-shot is configured (needs to separate input from output)
         if few_shot_fields and len(few_shot_fields) > 0:
             needs_gold_field = True
-        
+
         # Check if prompt format template has the gold field placeholder
         if prompt_format_template and gold_field:
             gold_placeholder = f'{{{gold_field}}}'
             if gold_placeholder in prompt_format_template:
                 needs_gold_field = True
-        
+
         if needs_gold_field and not gold_field:
             raise FewShotGoldFieldMissingError()
 
     def generate_few_shot_examples_structured(self, few_shot_field, prompt_format_variant: str, data: pd.DataFrame,
-                                            current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
-                                            options_field: str = None) -> List[Dict[str, str]]:
+                                              current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
+                                              options_field: str = None) -> List[Dict[str, str]]:
         """Generate few-shot examples using the configured parameters with structured output."""
 
         if not few_shot_field:
@@ -125,12 +122,12 @@ This augmenter handles few-shot examples for NLP tasks.
             sampled_data = available_data.sample(n=count, random_state=current_row_idx)
 
         examples = []
-        
+
         for _, example_row in sampled_data.iterrows():
             # Create row values for input template (excluding gold field)
             input_values = {}
             output_value = ""
-            
+
             for col in example_row.index:
                 # Assume clean data - process all columns
                 if gold_field and col == gold_field:
@@ -149,7 +146,7 @@ This augmenter handles few-shot examples for NLP tasks.
             if gold_field:
                 gold_placeholder = f'{{{gold_field}}}'
                 input_template = input_template.replace(gold_placeholder, '').strip()
-            
+
             input_text = self._fill_template_placeholders(input_template, input_values)
 
             if input_text:
@@ -157,10 +154,8 @@ This augmenter handles few-shot examples for NLP tasks.
                     "input": input_text.strip(),
                     "output": output_value.strip() if output_value else ""
                 })
-        
+
         return examples
-
-
 
     def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
         """Fill template placeholders with values."""
