@@ -40,7 +40,7 @@ jobs:
         mp = MultiPromptifier()
         data = [{'question': 'Test?', 'answer': 'Yes'}]
         mp.load_dataframe(pd.DataFrame(data))
-        template = {'instruction_template': 'Q: {question}\nA: {answer}', 'gold': 'answer'}
+        template = {'prompt format': 'Q: {question}\nA: {answer}', 'gold': 'answer'}
         mp.set_template(template)
         mp.configure(max_rows=1, variations_per_field=1)
         print('API test completed')
