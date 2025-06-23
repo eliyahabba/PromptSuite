@@ -105,7 +105,7 @@ class TextSurfaceAugmenterConstants:
 
 class GenerationDefaults:
     """Centralized defaults for generation parameters across API, CLI, and UI."""
-    MAX_VARIATIONS = 100
+    MAX_VARIATIONS_PER_ROW = None  # None means no limit on variations
     MAX_ROWS = None  # None means use all rows
     VARIATIONS_PER_FIELD = 3
     MODEL_NAME = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"

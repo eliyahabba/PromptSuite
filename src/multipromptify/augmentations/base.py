@@ -1,4 +1,4 @@
-from multipromptify.shared.constants import BaseAugmenterConstants
+from multipromptify.shared.constants import BaseAugmenterConstants, GenerationDefaults
 
 class BaseAxisAugmenter:
     """
@@ -8,14 +8,16 @@ class BaseAxisAugmenter:
     without changing the meaning of the prompt.
     """
 
-    def __init__(self, n_augments=BaseAugmenterConstants.DEFAULT_N_AUGMENTS):
+    def __init__(self, n_augments=BaseAugmenterConstants.DEFAULT_N_AUGMENTS, seed=None):
         """
         Initialize the augmenter.
         
         Args:
             n_augments: Number of variations to generate (default from constants)
+            seed: Random seed for reproducibility (default from GenerationDefaults)
         """
         self.n_augments = n_augments
+        self.seed = seed if seed is not None else GenerationDefaults.RANDOM_SEED
 
     def get_name(self):
         """Get the name of this augmenter."""
