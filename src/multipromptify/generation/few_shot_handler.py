@@ -248,9 +248,17 @@ class FewShotHandler:
 
         # Always set gold_updates to the original value if not already set
         gold_field = variation_context.gold_config.field
-        if gold_field and gold_field in variation_context.row_data:
+        if gold_field:
             if not gold_updates or gold_field not in gold_updates:
-                gold_updates[gold_field] = format_field_value(variation_context.row_data[gold_field])
+                try:
+                    from multipromptify.utils.formatting import extract_gold_value
+                    gold_value = extract_gold_value(variation_context.row_data, gold_field)
+                    gold_updates[gold_field] = format_field_value(gold_value)
+                except Exception as e:
+                    print(f"⚠️ Warning: Could not extract gold field '{gold_field}': {e}")
+                    # Fallback: try direct column access
+                    if gold_field in variation_context.row_data:
+                        gold_updates[gold_field] = format_field_value(variation_context.row_data[gold_field])
 
         return row_values, gold_updates
 
