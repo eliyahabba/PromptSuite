@@ -45,7 +45,7 @@ class MultiPromptify:
         "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
-            "format": "fixed",  # or "rotating"
+            "format": "shared_first_n",  # 'shared_first_n', 'shared_random_n', or 'random_per_row'
             "split": "train"    # or "test" or "all"
         },
         "input": ["surface"]
@@ -159,11 +159,20 @@ class MultiPromptify:
 
         all_variations = []
 
-        # For each data row
-        start_time = time.time()
-        total_rows = len(data)
+        # Filter data by split if few-shot split is configured
+        target_split = None
+        if few_shot_fields:
+            target_split = few_shot_fields[0].few_shot_split
+            print(f"🎯 Filtering data to generate variations rows that not '{target_split}' split")
         
-        with tqdm(data.iterrows(), desc="Generating variations", total=total_rows) as pbar:
+        # Filter data for generation based on target split
+        generation_data = self._filter_data_by_split(data, target_split)
+        
+        # For each data row (only from the target split)
+        start_time = time.time()
+        total_rows = len(generation_data)
+        
+        with tqdm(generation_data.iterrows(), desc="Generating variations", total=total_rows) as pbar:
             for row_idx, row in pbar:
                 row_start_time = time.time()
                 
@@ -184,7 +193,7 @@ class MultiPromptify:
                     field_variations=field_variations,
                     gold_config=gold_config,
                     variation_config=variation_config,
-                    data=data
+                    data=data  # Pass full data for few-shot examples
                 )
 
                 # Generate all possible row variations
@@ -479,3 +488,26 @@ class MultiPromptify:
         
         # Return sampled variations
         return [variations[i] for i in unique_indices[:max_variations_per_row]]
+
+    def _filter_data_by_split(self, data: pd.DataFrame, target_split: Optional[str]) -> pd.DataFrame:
+        """
+        Filter data by split for generation.
+        
+        Args:
+            data: Full dataset
+            target_split: Target split ('train', 'test', or None for all)
+            
+        Returns:
+            Filtered DataFrame containing only rows from the target split
+        """
+        if target_split is None:
+            return data
+        
+        if 'split' not in data.columns:
+            print(f"⚠️ Warning: No 'split' column found in data, using all data for generation")
+            return data
+        
+        filtered_data = data[data['split'] != target_split].copy()
+        print(f"📊 Filtered data: {len(filtered_data)} rows from '{target_split}' split (out of {len(data)} total)")
+        
+        return filtered_data
