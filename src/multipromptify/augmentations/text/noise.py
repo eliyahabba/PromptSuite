@@ -13,7 +13,7 @@ from typing import List
 import numpy as np
 
 from multipromptify.augmentations.base import BaseAxisAugmenter
-from multipromptify.shared.constants import TextSurfaceAugmenterConstants
+from multipromptify.shared.constants import NoiseAugmenterConstants
 from multipromptify.augmentations.utils import random_composed_augmentations, protect_placeholders, restore_placeholders
 
 
@@ -52,11 +52,11 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
         for word in words:
             if word.isspace():
                 for j in range(self._rng.randint(
-                        TextSurfaceAugmenterConstants.MIN_WHITESPACE_COUNT,
-                        TextSurfaceAugmenterConstants.MAX_WHITESPACE_COUNT)):
-                    new_value += TextSurfaceAugmenterConstants.WHITE_SPACE_OPTIONS[self._rng.randint(
-                        TextSurfaceAugmenterConstants.MIN_WHITESPACE_INDEX,
-                        TextSurfaceAugmenterConstants.MAX_WHITESPACE_INDEX)]
+                        NoiseAugmenterConstants.MIN_WHITESPACE_COUNT,
+                        NoiseAugmenterConstants.MAX_WHITESPACE_COUNT)):
+                    new_value += NoiseAugmenterConstants.WHITE_SPACE_OPTIONS[self._rng.randint(
+                        NoiseAugmenterConstants.MIN_WHITESPACE_INDEX,
+                        NoiseAugmenterConstants.MAX_WHITESPACE_INDEX)]
             else:
                 new_value += word
         
@@ -66,7 +66,7 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
         
         return new_value
 
-    def add_white_spaces(self, inputs, max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
+    def add_white_spaces(self, inputs, max_outputs=NoiseAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Add white spaces to input text(s).
         Placeholders in format {field_name} are protected during augmentation.
@@ -104,8 +104,8 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
             augmented_texts.append(augmented_input)
         return augmented_texts
 
-    def butter_finger(self, text, prob=TextSurfaceAugmenterConstants.DEFAULT_TYPO_PROB, keyboard="querty", seed=0,
-                      max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
+    def butter_finger(self, text, prob=NoiseAugmenterConstants.DEFAULT_TYPO_PROB, keyboard="querty", seed=0,
+                      max_outputs=NoiseAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Introduce typos in the text by simulating butter fingers on a keyboard.
         Placeholders in format {field_name} are protected during augmentation.
@@ -124,7 +124,7 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
         protected_text, placeholder_map = protect_placeholders(text)
         
         rng = random.Random(self.seed + seed)
-        key_approx = TextSurfaceAugmenterConstants.QUERTY_KEYBOARD if keyboard == "querty" else {}
+        key_approx = NoiseAugmenterConstants.QUERTY_KEYBOARD if keyboard == "querty" else {}
 
         if not key_approx:
             print("Keyboard not supported.")
@@ -153,8 +153,8 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
             perturbed_texts.append(restored_text)
         return perturbed_texts
 
-    def change_char_case(self, text, prob=TextSurfaceAugmenterConstants.DEFAULT_CASE_CHANGE_PROB, seed=0,
-                         max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
+    def change_char_case(self, text, prob=NoiseAugmenterConstants.DEFAULT_CASE_CHANGE_PROB, seed=0,
+                         max_outputs=NoiseAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Change the case of characters in the text.
         Placeholders in format {field_name} are protected during augmentation.
@@ -189,8 +189,8 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
             results.append(restored_text)
         return results
 
-    def swap_characters(self, text, prob=TextSurfaceAugmenterConstants.DEFAULT_TYPO_PROB, seed=0,
-                        max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
+    def swap_characters(self, text, prob=NoiseAugmenterConstants.DEFAULT_TYPO_PROB, seed=0,
+                        max_outputs=NoiseAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Swaps characters in text, with probability prob for any given pair.
         Ex: 'apple' -> 'aplpe'
@@ -235,8 +235,8 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
             results.append(restored_text)
         return results
 
-    def switch_punctuation(self, text, prob=TextSurfaceAugmenterConstants.DEFAULT_TYPO_PROB, seed=0, 
-                          max_outputs=TextSurfaceAugmenterConstants.DEFAULT_MAX_OUTPUTS):
+    def switch_punctuation(self, text, prob=NoiseAugmenterConstants.DEFAULT_TYPO_PROB, seed=0,
+                           max_outputs=NoiseAugmenterConstants.DEFAULT_MAX_OUTPUTS):
         """
         Switches punctuation in text with a probability of prob.
         Placeholders in format {field_name} are protected during augmentation.
@@ -255,9 +255,9 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
             np.random.seed(self.seed + seed)
             text_chars = list(protected_text)
             for i in range(len(text_chars)):
-                if text_chars[i] in TextSurfaceAugmenterConstants.PUNCTUATION_MARKS and np.random.rand() < prob:
+                if text_chars[i] in NoiseAugmenterConstants.PUNCTUATION_MARKS and np.random.rand() < prob:
                     # Randomly select a different punctuation mark to switch with
-                    new_punctuation = np.random.choice([p for p in TextSurfaceAugmenterConstants.PUNCTUATION_MARKS
+                    new_punctuation = np.random.choice([p for p in NoiseAugmenterConstants.PUNCTUATION_MARKS
                                                         if p != text_chars[i]])
                     text_chars[i] = new_punctuation
             

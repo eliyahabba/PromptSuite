@@ -47,7 +47,7 @@ class FewShotConstants:
 
 
 # Constants for NonLLMAugmenter
-class TextSurfaceAugmenterConstants:
+class NoiseAugmenterConstants:
     # White space options
     WHITE_SPACE_OPTIONS = ["\n", "\t", " ", ""]
 
