@@ -42,7 +42,7 @@ def example_with_sample_data_few_shot():
         'gold': 'answer',
         'few_shot': {
             'count': 2,  # Use 2 examples
-            'format': 'rotating',  # Different examples each time
+            'format': 'shared_first_n',  # Different examples each time
             'split': 'all'  # Use all data for examples
         }
     }
@@ -406,7 +406,7 @@ def example_different_templates():
         },
         FEW_SHOT_KEY: {
             'count': 1,
-            'format': 'rotating',
+            'format': 'shared_first_n',
             'split': 'all'
         }
     }
@@ -555,7 +555,7 @@ def example_with_simple_qa():
         GOLD_KEY: 'answer',
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'rotating',
+            'format': 'shared_first_n',
             'split': 'all'
         }
     }
@@ -635,7 +635,7 @@ def example_with_system_prompt_few_shot():
         GOLD_KEY: 'answer',
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'rotating',
+            'format': 'shared_first_n',
             'split': 'all'
         }
     }
@@ -728,7 +728,7 @@ def example_system_prompt_with_placeholder_and_few_shot():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'rotating',
+            'format': 'shared_first_n',
             'split': 'all'
         }
     }
@@ -863,8 +863,8 @@ def example_system_prompt_with_context_and_few_shot():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'rotating',
-            'split': 'all'
+            'format': 'shared_first_n',    # Same examples for all questions
+            'split': 'train'      # Use only training data
         }
     }
 
@@ -1046,6 +1046,14 @@ def example_enumerate_as_field_variation():
 def example_many_augmenters_on_small_dataset():
     """Example: Apply context, shuffle, rewording, and paraphrase on a tiny dataset (2 rows)."""
     print("\n=== Many Augmenters on Small Dataset Example ===")
+    import os
+    from multipromptify import MultiPromptifier
+    import pandas as pd
+    from multipromptify.core.template_keys import (
+        INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
+        PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION
+    )
+
     # Check API key for context/paraphrase
     api_key = os.getenv("TOGETHER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -1091,9 +1099,9 @@ def example_many_augmenters_on_small_dataset():
         max_variations_per_row=16,
         random_seed=42
     )
+    mp.export("many_augmenters_small_dataset.json", format="json")
     print("\nGenerating variations...")
     variations = mp.generate(verbose=True)
-    mp.export("many_augmenters_small_dataset.json", format="json")
     print(f"\n✅ Generated {len(variations)} variations\n")
     for i, v in enumerate(variations):
         print(f"\nVariation {i + 1}:")
@@ -1462,7 +1470,7 @@ def example_shuffle_template():
 
     # Configure with 3 variations per field
     mp.configure(
-        max_rows=3,
+        max_rows=2,
         variations_per_field=3,
         max_variations_per_row=10,  # High limit to see all variations
         random_seed=42
@@ -1532,7 +1540,7 @@ def example_complex_template_debug():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'fixed',
+            'format': 'shared_first_n',
             'split': 'all'
         }
     }
@@ -1542,7 +1550,7 @@ def example_complex_template_debug():
     print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
     print("   - QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION]")
     print("   - OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
-    print("   - FEW_SHOT_KEY: count=2, format=fixed, split=all")
+    print("   - FEW_SHOT_KEY: count=2, format=shared_first_n, split=all")
 
     # Configure with 3 variations per field
     mp.configure(
@@ -1631,50 +1639,330 @@ def example_complex_template_debug():
     print(f"     3. Use fewer fields with variations")
 
 
+def test_few_shot_train_test_split():
+    """Test few-shot behavior with train/test split to understand how shared_first_n/fixed works."""
+    print("\n" + "=" * 60)
+    print("🔍 Testing Few-Shot with Train/Test Split")
+    print("=" * 60)
+    
+    # Create dataset with train/test split
+    data = pd.DataFrame({
+        'question': [
+            # Training examples (will be used for few-shot)
+            'What is 2+2?',
+            'What is 3+3?', 
+            'What is 4+4?',
+            'What is 5+5?',
+            'What is 6+6?',
+            # Test examples (will be the target questions)
+            'What is 7+7?',
+            'What is 8+8?',
+            'What is 9+9?'
+        ],
+        'options': [
+            # Training options
+            'A) 3, B) 4, C) 5, D) 6',
+            'A) 5, B) 6, C) 7, D) 8', 
+            'A) 7, B) 8, C) 9, D) 10',
+            'A) 9, B) 10, C) 11, D) 12',
+            'A) 11, B) 12, C) 13, D) 14',
+            # Test options
+            'A) 13, B) 14, C) 15, D) 16',
+            'A) 15, B) 16, C) 17, D) 18',
+            'A) 17, B) 18, C) 19, D) 20'
+        ],
+        'answer': [1, 1, 1, 1, 1, 1, 1, 1],  # All answers are option B
+        'split': ['train', 'train', 'train', 'train', 'train', 'test', 'test', 'test']
+    })
+    
+    print(f"📊 Dataset Overview:")
+    print(f"   - Total examples: {len(data)}")
+    print(f"   - Train examples: {len(data[data['split'] == 'train'])}")
+    print(f"   - Test examples: {len(data[data['split'] == 'test'])}")
+    
+    print("\n📝 Train Examples:")
+    train_data = data[data['split'] == 'train']
+    for i, row in train_data.iterrows():
+        print(f"   {i}: {row['question']} -> {row['options'].split(', ')[row['answer']]}")
+    
+    print("\n📝 Test Examples (targets):")
+    test_data = data[data['split'] == 'test']
+    for i, row in test_data.iterrows():
+        print(f"   {i}: {row['question']} -> {row['options'].split(', ')[row['answer']]}")
+    
+    # Test 1: Fixed few-shot with train split
+    print("\n" + "=" * 40)
+    print("🔧 Test 1: FIXED few-shot using TRAIN split")
+    print("=" * 40)
+    
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    
+    template_fixed_train = {
+        INSTRUCTION: 'Answer the following multiple choice math questions.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': 'fixed',    # Same examples for all questions
+            'split': 'train'      # Use only training data
+        }
+    }
+    
+    mp.set_template(template_fixed_train)
+    mp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)  # Process all rows
+    
+    variations_fixed = mp.generate(verbose=False)
+    
+    print(f"✅ Generated {len(variations_fixed)} variations with FIXED few-shot")
+    
+    # Show few-shot examples for each test question
+    test_variations = [v for v in variations_fixed if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
+    
+    for i, var in enumerate(test_variations):
+        row_idx = var.get('original_row_index', 0)
+        question = data.iloc[row_idx]['question']
+        print(f"\n📋 Test Question {i+1} (Row {row_idx}): {question}")
+        print("Few-shot examples used:")
+        
+        conversation = var.get('conversation', [])
+        if conversation:
+            for msg in conversation:
+                if msg['role'] == 'user':
+                    # Extract few-shot examples
+                    content = msg['content']
+                    if 'Question:' in content:
+                        examples = content.split('Question:')[:-1]  # Remove last part (current question)
+                        for j, example in enumerate(examples):
+                            if example.strip():
+                                print(f"   Example {j+1}: Question: {example.strip()}")
+    
+    # Test 2: Rotating few-shot with train split
+    print("\n" + "=" * 40)
+    print("🔄 Test 2: ROTATING few-shot using TRAIN split")
+    print("=" * 40)
+    
+    template_rotating_train = {
+        INSTRUCTION: 'Answer the following multiple choice math questions.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': '',  # Different examples for each question
+            'split': 'train'       # Use only training data
+        }
+    }
+    
+    mp.set_template(template_rotating_train)
+    mp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
+    
+    variations_rotating = mp.generate(verbose=False)
+    
+    print(f"✅ Generated {len(variations_rotating)} variations with ROTATING few-shot")
+    
+    # Show few-shot examples for each test question
+    test_variations_rotating = [v for v in variations_rotating if v.get('original_row_index', 0) >= 5]
+    
+    for i, var in enumerate(test_variations_rotating):
+        row_idx = var.get('original_row_index', 0)
+        question = data.iloc[row_idx]['question']
+        print(f"\n🔄 Test Question {i+1} (Row {row_idx}): {question}")
+        print("Few-shot examples used:")
+        
+        conversation = var.get('conversation', [])
+        if conversation:
+            for msg in conversation:
+                if msg['role'] == 'user':
+                    content = msg['content']
+                    if 'Question:' in content:
+                        examples = content.split('Question:')[:-1]
+                        for j, example in enumerate(examples):
+                            if example.strip():
+                                print(f"   Example {j+1}: Question: {example.strip()}")
+    
+    # Export results for analysis
+    mp.export("few_shot_train_test_analysis.json", format="json")
+    print(f"\n✅ Exported analysis to few_shot_train_test_analysis.json")
+
+
+def test_few_shot_rotating_vs_fixed():
+    """Detailed comparison of rotating vs fixed few-shot to understand the differences."""
+    print("\n" + "=" * 60)
+    print("⚖️  Detailed Comparison: Rotating vs Fixed Few-Shot")
+    print("=" * 60)
+    
+    # Create a larger dataset to see rotation effects
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is the capital of Germany?', 
+            'What is the capital of Italy?',
+            'What is the capital of Spain?',
+            'What is the capital of UK?',
+            'What is the capital of Japan?',
+            'What is the capital of China?',
+            'What is the capital of Russia?'
+        ],
+        'options': [
+            'London, Paris, Berlin, Madrid',
+            'Paris, Berlin, Rome, Madrid', 
+            'Berlin, Rome, Paris, London',
+            'Madrid, Paris, Berlin, Rome',
+            'London, Berlin, Paris, Madrid',
+            'Tokyo, Beijing, Seoul, Bangkok',
+            'Beijing, Tokyo, Seoul, Bangkok',
+            'Moscow, Kiev, Warsaw, Prague'
+        ],
+        'answer': [1, 1, 1, 0, 0, 0, 0, 0],  # Correct answers
+        'split': ['train', 'train', 'train', 'train', 'test', 'test', 'test', 'test']
+    })
+    
+    print(f"📊 Dataset: {len(data)} geography questions")
+    print(f"   - Train: {len(data[data['split'] == 'train'])} examples")
+    print(f"   - Test: {len(data[data['split'] == 'test'])} examples")
+    
+    # Test both formats with same configuration
+    formats = ['shared_first_n', 'random_per_row']
+    
+    for format_type in formats:
+        print(f"\n" + "=" * 30)
+        print(f"🔍 Testing {format_type.upper()} format")
+        print("=" * 30)
+        
+        mp = MultiPromptifier()
+        mp.load_dataframe(data)
+        
+        template = {
+            INSTRUCTION: 'Answer the following geography questions.',
+            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+            GOLD_KEY: {
+                'field': 'answer',
+                'type': 'index',
+                'options_field': 'options'
+            },
+            FEW_SHOT_KEY: {
+                'count': 2,
+                'format': format_type,
+                'split': 'train'
+            }
+        }
+        
+        mp.set_template(template)
+        mp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
+        
+        variations = mp.generate(verbose=False)
+        
+        # Analyze test questions only
+        test_variations = [v for v in variations if v.get('original_row_index', 0) >= 4]
+        
+        print(f"📋 {format_type.upper()} Results:")
+        
+        for i, var in enumerate(test_variations):
+            row_idx = var.get('original_row_index', 0)
+            question = data.iloc[row_idx]['question']
+            
+            print(f"\n   Test Question {i+1} (Row {row_idx}):")
+            print(f"   Q: {question}")
+            
+            # Extract few-shot examples
+            conversation = var.get('conversation', [])
+            few_shot_questions = []
+            
+            if conversation:
+                for msg in conversation:
+                    if msg['role'] == 'user':
+                        content = msg['content']
+                        # Find all questions in the content
+                        lines = content.split('\n')
+                        for line in lines:
+                            if line.startswith('Question:') and line != f"Question: {question}":
+                                few_shot_questions.append(line.replace('Question: ', ''))
+            
+            print(f"   Few-shot examples:")
+            for j, fs_q in enumerate(few_shot_questions):
+                print(f"     {j+1}. {fs_q}")
+        
+        # Export for this format
+        mp.export(f"few_shot_{format_type}_analysis.json", format="json")
+    
+    print(f"\n" + "=" * 60)
+    print("🔍 ANALYSIS SUMMARY")
+    print("=" * 60)
+    
+    print("📊 Expected Behavior:")
+    print("   SHARED_FIRST_N format:")
+    print("     - Should use the SAME 2 training examples for ALL test questions")
+    print("     - Examples: Always questions 0,1 (France, Germany)")
+    print()
+    print("   RANDOM_PER_ROW format:")
+    print("     - Should use DIFFERENT training examples for each test question")
+    print("     - Based on random_state=current_row_idx")
+    print("     - Each test question gets different training examples")
+    
+    print("\n💡 Key Points to Verify:")
+    print("   1. Does 'shared_first_n' really use the same examples for all test questions?")
+    print("   2. Does 'random_per_row' use different examples for each test question?")
+    print("   3. Are only TRAIN examples used (no test examples in few-shot)?")
+    print("   4. Is the current question excluded from few-shot examples?")
+    
+    print("\n✅ Check the exported JSON files for detailed analysis!")
+
+
+def example_few_shot_behavior_analysis():
+    """Comprehensive analysis of few-shot behavior."""
+    print("\n" + "=" * 60)
+    print("🧪 Comprehensive Few-Shot Behavior Analysis")
+    print("=" * 60)
+    
+    # Run both tests
+    test_few_shot_train_test_split()
+    test_few_shot_rotating_vs_fixed()
+    
+    print("\n" + "=" * 60)
+    print("📊 FINAL ANALYSIS QUESTIONS")
+    print("=" * 60)
+    
+    print("🤔 Questions to investigate:")
+    print("   1. Is the split logic working correctly?")
+    print("      - Check if only train examples appear in few-shot")
+    print("      - Verify test examples never appear in few-shot")
+    print()
+    print("   2. Is the rotating vs fixed logic working?")
+    print("      - Fixed: Same examples for all questions?")
+    print("      - Rotating: Different examples per question?")
+    print()
+    print("   3. Is current row exclusion working?")
+    print("      - Current question should never appear in its own few-shot")
+    print()
+    print("   4. Is the random_state logic correct?")
+    print("      - Rotating uses current_row_idx as random_state")
+    print("      - Should give consistent but different examples per row")
+    
+    print("\n🔍 Code Logic Review:")
+    print("   From fewshot.py lines 95-115:")
+    print("   - split='train' -> data[data.get('split', 'train') == 'train']")
+    print("   - available_data.drop(current_row_idx, errors='ignore')")
+    print("   - fixed: available_data.head(count)")
+    print("   - rotating: available_data.sample(n=count, random_state=current_row_idx)")
+    
+    print("\n✅ Analysis complete! Check the exported JSON files for verification.")
+
+
 if __name__ == "__main__":
-    # Run the debug example
-    # example_complex_template_debug()
-    example_many_augmenters_on_small_dataset()
-    # Uncomment other examples as needed:
-    # example_shuffle_template()
-    # example_with_sample_data_few_shot()
-    # example_with_enumerate()
-    # example_enumerate_types()
-    # example_enumerate_as_field_variation()
-    # example_with_system_prompt_few_shot()
-    # example_platform_switching()
-    # example_with_huggingface()
-    # example_different_templates()
-    # example_gold_field_formats()
-    # example_environment_variables()
-    # example_with_simple_qa()
-    # example_system_prompt_with_placeholder()
-    # example_system_prompt_with_placeholder_and_few_shot()
-
-    # Run context examples
-    # example_simple_context_variations()  # Works without API key
-    # example_system_prompt_with_context_and_few_shot()  # Full context example
-
-    # example_many_augmenters_on_small_dataset()
-    # example_paraphrase_instruction_only()
+    # Run the few-shot behavior analysis
+    example_few_shot_behavior_analysis()
     
-    # New specialized augmenter examples
-    # example_format_structure()  # Semantic-preserving format variations
-    # example_typos_and_noise()  # Robustness testing with noise injection
-    # example_combined_specialized_augmenters()  # Both augmenters together
-    # example_backward_compatibility_rewording()  # Backward compatibility with REWORDING
-    
-    
-    print("\n🎉 All examples completed!")
+    print("\n🎉 Few-shot analysis completed!")
     print("\nNext steps:")
-    print("1. Install datasets library: pip install datasets")
-    print("2. Set your API keys:")
-    print("   export TOGETHER_API_KEY='your_together_key'")
-    print("   export OPENAI_API_KEY='your_openai_key'")
-    print("3. Try the new specialized augmenters:")
-    print("   - FORMAT_STRUCTURE: Semantic-preserving format changes")
-    print("   - TYPOS_AND_NOISE: Robustness testing with noise injection")
-    print("   - REWORDING: Backward compatibility (maps to TYPOS_AND_NOISE)")
-    print("4. Try the new enumerate feature in your templates:")
-    print("   'enumerate': {'field': 'options', 'type': '1234'}")
-    print("5. Try with your own data and templates")
+    print("1. Review the exported JSON files to analyze few-shot behavior")
+    print("2. Check if rotating vs fixed works as expected")
+    print("3. Verify train/test split is working correctly")
+    print("4. Examine the few-shot examples in each variation")
