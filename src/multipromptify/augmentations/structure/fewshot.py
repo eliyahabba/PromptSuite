@@ -5,7 +5,6 @@ import pandas as pd
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.core.exceptions import FewShotGoldFieldMissingError, FewShotDataInsufficientError
 from multipromptify.utils.formatting import format_field_value
-from multipromptify.shared.constants import ListFormattingConstants
 
 
 class FewShotAugmenter(BaseAxisAugmenter):
@@ -150,7 +149,7 @@ This augmenter handles few-shot examples for NLP tasks.
                             enumerator = EnumeratorAugmenter()
                             # Create enumerated format: "1. option1, 2. option2, ..." then extract the right one
                             options_text = str(example_row[options_field])
-                            options_list = [item.strip() for item in options_text.split(ListFormattingConstants.COMMA_SEPARATOR.strip())]
+                            options_list = [item.strip() for item in options_text.split(',')]
                             if 0 <= gold_index < len(options_list):
                                 # Format as enumerated item: "2. option_text"
                                 if enum_type == '1234':
