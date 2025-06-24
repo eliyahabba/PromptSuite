@@ -3,12 +3,11 @@ from pathlib import Path
 
 import streamlit as st
 
-from multipromptify.core import SHUFFLE_VARIATION
-
 # Add the src directory to the path to import multipromptify
 base_dir = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(base_dir))
 
+from multipromptify.core import SHUFFLE_VARIATION
 from multipromptify.ui.pages import (
     upload_data,
     template_builder,
@@ -18,7 +17,8 @@ from multipromptify.ui.utils.progress_indicator import show_progress_indicator
 from multipromptify.core.template_keys import (
     CONTEXT_KEY,
     PARAPHRASE_WITH_LLM,
-    INSTRUCTION, PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, QUESTION_KEY, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION
+    INSTRUCTION, PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY,
+    QUESTION_KEY, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION
 )
 
 
@@ -344,7 +344,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         },
                         'description': 'Multiple choice with option shuffling and automatic enumeration (ENUMERATE_VARIATION as field variation)',
                         'sample_data': {
-                            'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
+                            'question': ['What is the largest planet?', 'Which element has symbol O?',
+                                         'What is the fastest land animal?'],
                             'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse'],
                             'answer': [2, 0, 1]
                         }
@@ -490,7 +491,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],  # Noise injection for robustness testing
-                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],  # Noise injection + enumerate
+                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
+                            # Noise injection + enumerate
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
