@@ -167,7 +167,7 @@ class FewShotHandler:
         )
         # Generate few-shot examples
         few_shot_examples = self._generate_few_shot_examples(
-            few_shot_field, prompt_format_variant, variation_context
+            few_shot_field, prompt_format_variant, variation_context, field_values
         )
         # Create main input
         main_input = self._create_main_input(
@@ -274,10 +274,70 @@ class FewShotHandler:
         # Check for field variations that include enumeration (for few-shot examples only)
         for field_name, variations in template.items():
             if isinstance(variations, list) and ENUMERATE_VARIATION in variations:
-                # Field has enumeration as a variation - use default enumeration config for few-shot
-                enumerate_config[field_name] = {'type': '1234'}
+                # Field has enumeration as a variation - use the first enumeration type for consistency
+                # This matches the deterministic order used in EnumeratorAugmenter
+                enum_types = ['1234', 'ABCD', 'abcd', 'roman']
+                enumerate_config[field_name] = {'type': enum_types[0]}
         
         return enumerate_config
+
+    def _get_enumerate_fields_config_for_variation(
+            self, 
+            template: dict, 
+            field_values: Dict[str, FieldVariation] = None
+    ) -> Dict[str, dict]:
+        """Extract enumerate field configurations for a specific variation."""
+        from multipromptify.core.template_keys import ENUMERATE_VARIATION
+        enumerate_config = {}
+        
+        # Check for direct enumerate configuration (both old and new format)
+        if 'enumerate' in template:
+            enum_field = template['enumerate'].get('field')
+            if enum_field:
+                enumerate_config[enum_field] = template['enumerate']
+        
+        # Check for ENUMERATE_VARIATION as a direct key (new format)
+        if ENUMERATE_VARIATION in template:
+            enum_field = template[ENUMERATE_VARIATION].get('field')
+            if enum_field:
+                enumerate_config[enum_field] = template[ENUMERATE_VARIATION]
+
+        # Check for field variations that include enumeration
+        for field_name, variations in template.items():
+            if isinstance(variations, list) and ENUMERATE_VARIATION in variations:
+                # If we have field_values, try to determine the enumeration type from the actual field value
+                if field_values and field_name in field_values:
+                    field_data = field_values[field_name].data
+                    detected_enum_type = self._detect_enumeration_type(field_data)
+                    if detected_enum_type:
+                        enumerate_config[field_name] = {'type': detected_enum_type}
+                    else:
+                        # Fallback to first type
+                        enum_types = ['1234', 'ABCD', 'abcd', 'roman']
+                        enumerate_config[field_name] = {'type': enum_types[0]}
+                else:
+                    # Fallback to first type
+                    enum_types = ['1234', 'ABCD', 'abcd', 'roman']
+                    enumerate_config[field_name] = {'type': enum_types[0]}
+        
+        return enumerate_config
+
+    def _detect_enumeration_type(self, field_data: str) -> str:
+        """Detect the enumeration type from the field data."""
+        if not field_data:
+            return None
+        
+        # Look for patterns in the enumerated data
+        if '1.' in field_data or '2.' in field_data:
+            return '1234'
+        elif 'A.' in field_data or 'B.' in field_data:
+            return 'ABCD'
+        elif 'a.' in field_data or 'b.' in field_data:
+            return 'abcd'
+        elif 'I.' in field_data or 'II.' in field_data:
+            return 'roman'
+        
+        return None
 
     def _apply_enumerate_if_needed(self, value: str, field_name: str, enumerate_configs: Dict[str, dict]) -> str:
         """Apply enumeration to field value if configured."""
@@ -297,7 +357,8 @@ class FewShotHandler:
             self,
             few_shot_field,
             prompt_format_variant: str,
-            variation_context: VariationContext
+            variation_context: VariationContext,
+            field_values: Dict[str, FieldVariation] = None
     ) -> List[Dict[str, str]]:
         """Generate few-shot examples if configured, with system prompt support."""
         if not few_shot_field or variation_context.data is None:
@@ -311,8 +372,10 @@ class FewShotHandler:
             gold_config=variation_context.gold_config
         )
         identification_data = few_shot_context.to_identification_data()
-        # Add enumeration configuration
-        identification_data['enumerate_configs'] = self._get_enumerate_fields_config(variation_context.template)
+        # Add enumeration configuration - use current variation's enumeration type if available
+        identification_data['enumerate_configs'] = self._get_enumerate_fields_config_for_variation(
+            variation_context.template, field_values
+        )
         examples = self.few_shot_augmenter.augment(
             prompt_format_variant,
             identification_data
