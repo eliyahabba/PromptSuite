@@ -1639,7 +1639,7 @@ def example_complex_template_debug():
     print(f"     3. Use fewer fields with variations")
 
 
-def test_few_shot_train_test_split():
+def example_few_shot_train_test_split():
     """Test few-shot behavior with train/test split to understand how shared_first_n/fixed works."""
     print("\n" + "=" * 60)
     print("🔍 Testing Few-Shot with Train/Test Split")
@@ -1793,7 +1793,7 @@ def test_few_shot_train_test_split():
     print(f"\n✅ Exported analysis to few_shot_train_test_analysis.json")
 
 
-def test_few_shot_rotating_vs_fixed():
+def example_few_shot_rotating_vs_fixed():
     """Detailed comparison of rotating vs fixed few-shot to understand the differences."""
     print("\n" + "=" * 60)
     print("⚖️  Detailed Comparison: Rotating vs Fixed Few-Shot")
@@ -1916,53 +1916,52 @@ def test_few_shot_rotating_vs_fixed():
     print("\n✅ Check the exported JSON files for detailed analysis!")
 
 
-def example_few_shot_behavior_analysis():
-    """Comprehensive analysis of few-shot behavior."""
-    print("\n" + "=" * 60)
-    print("🧪 Comprehensive Few-Shot Behavior Analysis")
-    print("=" * 60)
-    
-    # Run both tests
-    test_few_shot_train_test_split()
-    test_few_shot_rotating_vs_fixed()
-    
-    print("\n" + "=" * 60)
-    print("📊 FINAL ANALYSIS QUESTIONS")
-    print("=" * 60)
-    
-    print("🤔 Questions to investigate:")
-    print("   1. Is the split logic working correctly?")
-    print("      - Check if only train examples appear in few-shot")
-    print("      - Verify test examples never appear in few-shot")
-    print()
-    print("   2. Is the rotating vs fixed logic working?")
-    print("      - Fixed: Same examples for all questions?")
-    print("      - Rotating: Different examples per question?")
-    print()
-    print("   3. Is current row exclusion working?")
-    print("      - Current question should never appear in its own few-shot")
-    print()
-    print("   4. Is the random_state logic correct?")
-    print("      - Rotating uses current_row_idx as random_state")
-    print("      - Should give consistent but different examples per row")
-    
-    print("\n🔍 Code Logic Review:")
-    print("   From fewshot.py lines 95-115:")
-    print("   - split='train' -> data[data.get('split', 'train') == 'train']")
-    print("   - available_data.drop(current_row_idx, errors='ignore')")
-    print("   - fixed: available_data.head(count)")
-    print("   - rotating: available_data.sample(n=count, random_state=current_row_idx)")
-    
-    print("\n✅ Analysis complete! Check the exported JSON files for verification.")
-
-
 if __name__ == "__main__":
-    # Run the few-shot behavior analysis
-    example_few_shot_behavior_analysis()
-    
-    print("\n🎉 Few-shot analysis completed!")
+    # Run the debug example
+    example_few_shot_train_test_split()
+    example_few_shot_rotating_vs_fixed()
+
+    # example_complex_template_debug()
+    example_many_augmenters_on_small_dataset()
+    # Uncomment other examples as needed:
+    # example_shuffle_template()
+    # example_with_sample_data_few_shot()
+    # example_with_enumerate()
+    # example_enumerate_types()
+    # example_enumerate_as_field_variation()
+    # example_with_system_prompt_few_shot()
+    # example_platform_switching()
+    # example_with_huggingface()
+    # example_different_templates()
+    # example_gold_field_formats()
+    # example_environment_variables()
+    # example_with_simple_qa()
+    # example_system_prompt_with_placeholder()
+    # example_system_prompt_with_placeholder_and_few_shot()
+
+    # Run context examples
+    # example_simple_context_variations()  # Works without API key
+    # example_system_prompt_with_context_and_few_shot()  # Full context example
+
+    # example_many_augmenters_on_small_dataset()
+    # example_paraphrase_instruction_only()
+
+    # New specialized augmenter examples
+    # example_format_structure()  # Semantic-preserving format variations
+    # example_typos_and_noise()  # Robustness testing with noise injection
+    # example_combined_specialized_augmenters()  # Both augmenters together
+    # example_backward_compatibility_rewording()  # Backward compatibility with REWORDING
+
+    print("\n🎉 All examples completed!")
     print("\nNext steps:")
-    print("1. Review the exported JSON files to analyze few-shot behavior")
-    print("2. Check if rotating vs fixed works as expected")
-    print("3. Verify train/test split is working correctly")
-    print("4. Examine the few-shot examples in each variation")
+    print("1. Install datasets library: pip install datasets")
+    print("2. Set your API keys:")
+    print("   export TOGETHER_API_KEY='your_together_key'")
+    print("   export OPENAI_API_KEY='your_openai_key'")
+    print("3. Try the new specialized augmenters:")
+    print("   - FORMAT_STRUCTURE: Semantic-preserving format changes")
+    print("   - TYPOS_AND_NOISE: Robustness testing with noise injection")
+    print("   - REWORDING: Backward compatibility (maps to TYPOS_AND_NOISE)")
+    print("4. Try the new enumerate feature in your templates:")
+    print("   'enumerate': {'field': 'options', 'type': '1234'}")
+    print("5. Try with your own data and templates")
