@@ -108,8 +108,8 @@ Templates control how prompts are structured and varied:
 |-----------------------|-------------|------------------|
 | `paraphrase_with_llm` | AI-powered rephrasing | ✅ |
 | `context`             | Adds background context | ✅ |
-| `format structure`    | Changes separators, casing, field order | ❌ |
-| `typos and noise`     | Adds typos, swaps, whitespace | ❌ |
+| `format_structure`    | Changes separators, casing, field connectors | ❌ |
+| `typos and noise`     | Injects typos, capitalization changes, spacing, character swaps, and punctuation noise | ❌ |
 | `shuffle`             | Reorders list items | ❌ |
 | `enumerate`           | Adds numbering (1. 2. 3.) | ❌ |
 
@@ -131,8 +131,8 @@ Templates use Python f-string syntax with custom variation annotations:
 ## Supported Variation Types
 
 - `paraphrase_with_llm` - Paraphrasing variations (LLM-based)
-- `format_structure` - Semantic-preserving format changes (e.g., separators, casing, field order)
-- `typos and noise` - Injects typos, random case, extra whitespace, and punctuation noise for robustness
+- `format_structure` - Semantic-preserving format changes (e.g., separators, casing, field connectors)
+- `typos and noise` - Injects typos, capitalization changes, spacing, character swaps, and punctuation noise
 - `context` - Context-based variations
 - `shuffle` - Shuffle options/elements (for multiple choice)
 - `enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4., A. B. C. D., roman numerals, etc.)
@@ -408,35 +408,14 @@ The Streamlit UI is the easiest way to explore, test, and generate prompt variat
 
 ## 🔧 Advanced Features
 
-### Gold Field Configuration
+### Performance Optimization
 
-**Simple format** (for text answers):
-```python
-'gold': 'answer'  # Just the column name
-```
+MultiPromptify automatically optimizes performance by pre-generating variations for shared fields:
 
-**Advanced format** (for index-based answers):
-```python
-'gold': {
-    'field': 'answer',
-    'type': 'index',        # Answer is an index
-    'options_field': 'options'  # Column with the options
-}
-```
+- **Instruction variations** (`instruction variations`) are generated once and reused across all data rows
+- **Prompt format variations** (`prompt format variations`) are generated once and reused across all data rows
 
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details. 
-## 🔧 Advanced Features
+This optimization is especially important for LLM-based augmenters like `paraphrase_with_llm` that would otherwise run the same API calls repeatedly for identical text.
 
 ### Gold Field Configuration
 
