@@ -101,15 +101,15 @@ class MultiPromptifier:
             # Fallback to generic API_KEY
             return os.getenv("API_KEY")
 
-    def load_dataset(self, dataset_name: str, split: str = "train", **kwargs) -> None:
+    def load_dataset(self, dataset_name: str, *args, **kwargs) -> None:
         """
         Load data from HuggingFace datasets library.
-        
+
         Args:
             dataset_name: Name of the HuggingFace dataset
-            split: Dataset split to load ("train", "test", "validation", etc.)
-            **kwargs: Additional arguments to pass to datasets.load_dataset()
-            
+            *args: Positional arguments to pass to datasets.load_dataset()
+            **kwargs: Keyword arguments to pass to datasets.load_dataset()
+
         Raises:
             ImportError: If datasets library is not installed
             ValueError: If dataset cannot be loaded
@@ -123,9 +123,10 @@ class MultiPromptifier:
             )
 
         try:
-            dataset = load_dataset(dataset_name, split=split, **kwargs)
+            dataset = load_dataset(dataset_name, *args, **kwargs)
+
             self.data = dataset.to_pandas()
-            print(f"✅ Loaded {len(self.data)} rows from {dataset_name} ({split} split)")
+            print(f"✅ Loaded {len(self.data)} rows from {dataset_name})")
         except Exception as e:
             raise DatasetLoadError(dataset_name, str(e))
 
