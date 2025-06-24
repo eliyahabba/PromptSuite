@@ -217,7 +217,7 @@ class MultiPromptifier:
                 },
                 FEW_SHOT_KEY: {
                     'count': 2,
-                    'format': 'fixed',
+                    'format': 'shared_first_n',
                     'split': 'all'
                 }
             }
