@@ -76,7 +76,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         for i, item in enumerate(data_list):
             enumerated_items.append(f"{enumeration_sequence[i]}. {item}")
 
-        return ListFormattingConstants.DEFAULT_SEPARATOR.join(enumerated_items)
+        return ListFormattingConstants.DEFAULT_LIST_SEPARATOR.join(enumerated_items)
 
     def enumerate_field(self, field_data: Any, enum_type: str) -> str:
         """
@@ -91,8 +91,14 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         """
         # Convert input to list
         if isinstance(field_data, str):
-            # Assume comma-separated format
-            data_list = [item.strip() for item in field_data.split(',')]
+            # Try different separators: comma first, then newline
+            if ',' in field_data:
+                data_list = [item.strip() for item in field_data.split(',')]
+            elif '\n' in field_data:
+                data_list = [item.strip() for item in field_data.split('\n') if item.strip()]
+            else:
+                # Single item
+                data_list = [field_data.strip()]
         elif isinstance(field_data, list):
             data_list = [str(item) for item in field_data]
         else:
