@@ -163,7 +163,7 @@ class MultiPromptify:
         target_split = None
         if few_shot_fields:
             target_split = few_shot_fields[0].few_shot_split
-            print(f"🎯 Filtering data to generate variations rows that not '{target_split}' split")
+            print(f"🎯 Filtering data to generate variations for rows that are NOT from '{target_split}' split")
         
         # Filter data for generation based on target split
         generation_data = self._filter_data_by_split(data, target_split)
@@ -508,6 +508,6 @@ class MultiPromptify:
             return data
         
         filtered_data = data[data['split'] != target_split].copy()
-        print(f"📊 Filtered data: {len(filtered_data)} rows from '{target_split}' split (out of {len(data)} total)")
+        print(f"📊 Filtered data: {len(filtered_data)} rows NOT from '{target_split}' split (out of {len(data)} total)")
         
         return filtered_data

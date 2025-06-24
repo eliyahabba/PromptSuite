@@ -1720,7 +1720,8 @@ def example_few_shot_train_test_split():
     variations_fixed = mp.generate(verbose=False)
     
     print(f"✅ Generated {len(variations_fixed)} variations with FIXED few-shot")
-    
+    mp.export("few_shot_train_test_fixed.json", format="json")
+
     # Show few-shot examples for each test question
     test_variations = [v for v in variations_fixed if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
     
@@ -1921,7 +1922,82 @@ def example_few_shot_rotating_vs_fixed():
     print("\n✅ Check the exported JSON files for detailed analysis!")
 
 
+def test_enumerated_gold_in_few_shot():
+    """Test that enumerated options show correct enumerated gold values in few-shot examples."""
+    print("\n" + "=" * 60)
+    print("🧪 TESTING ENUMERATED GOLD VALUES IN FEW-SHOT")
+    print("=" * 60)
+    
+    # Simple test data
+    data = pd.DataFrame({
+        'question': ['What is 2+2?', 'What is 3+3?', 'What is 4+4?'],
+        'options': ['3, 4, 5, 6', '5, 6, 7, 8', '7, 8, 9, 10'],
+        'answer': [1, 1, 1],  # All answers are index 1 (second option)
+        'split': ['train', 'train', 'test']
+    })
+    
+    print("📊 Test Data:")
+    print(data.to_string(index=True))
+    
+    template = {
+        INSTRUCTION: 'Answer the following multiple choice math questions.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+        OPTIONS_KEY: [ENUMERATE_VARIATION],  # This should enumerate the options
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': 'shared_first_n',
+            'split': 'train'
+        }
+    }
+    
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    mp.set_template(template)
+    mp.configure(max_rows=3, variations_per_field=1, max_variations_per_row=1)
+    
+    variations = mp.generate(verbose=False)
+    
+    print(f"\n✅ Generated {len(variations)} variations")
+    
+    # Show the test question result
+    test_var = None
+    for var in variations:
+        if var.get('original_row_index', 0) == 2:  # Test row
+            test_var = var
+            break
+    
+    if test_var:
+        print(f"\n📝 Test Question Result:")
+        conversation = test_var.get('conversation', [])
+        if conversation:
+            for msg in conversation:
+                if msg['role'] == 'user':
+                    print("PROMPT:")
+                    print(msg['content'])
+                    print("\n🎯 Expected: Few-shot answers should be '2. 4' and '2. 6' (enumerated format)")
+                    
+                    # Check if the few-shot examples show enumerated answers
+                    content = msg['content']
+                    if '2. 4' in content and '2. 6' in content:
+                        print("✅ SUCCESS: Few-shot examples show enumerated gold values!")
+                    elif '4' in content and '6' in content:
+                        print("⚠️  PARTIAL: Few-shot examples show gold values but not enumerated")
+                    else:
+                        print("❌ FAILED: Few-shot examples don't show expected gold values")
+                    break
+    else:
+        print("❌ Could not find test question variation")
+
+
 if __name__ == "__main__":
+    # Run the new test first
+    test_enumerated_gold_in_few_shot()
+    
     # Run the debug example
     example_few_shot_train_test_split()
     example_few_shot_rotating_vs_fixed()
