@@ -28,9 +28,6 @@ class ShuffleConstants:
         "comma_separated",  # "item1, item2, item3"
         "newline_separated"  # "item1\nitem2\nitem3"
     ]
-    
-    # Default separator for list items in prompts
-    DEFAULT_LIST_SEPARATOR = "\n"
 
 
 # Constants for FewShotAugmenter
@@ -116,25 +113,11 @@ class GenerationDefaults:
     RANDOM_SEED = 42
 
 
-# Constants for list formatting in prompts
+# Few-shot dynamic default (used in template builder UI)
+FEW_SHOT_DYNAMIC_DEFAULT = lambda available_rows: min(2, max(0, available_rows - 1)) if available_rows > 1 else 0
+
+# List formatting constants
 class ListFormattingConstants:
     """Constants for formatting lists in prompts."""
     # Default separator for list items when displaying in prompts
-    DEFAULT_SEPARATOR = "\n"
-    
-    # Alternative separators
-    COMMA_SEPARATOR = ", "
-    SPACE_SEPARATOR = " "
-    SEMICOLON_SEPARATOR = "; "
-    
-    # For numbered/lettered lists
-    NUMBERED_FORMAT = "{index}. {item}"
-    LETTERED_FORMAT = "{letter}. {item}"
-    
-    # Multiple choice formats
-    MULTIPLE_CHOICE_PARENTHESES = "{letter}) {item}"  # A) option1
-    MULTIPLE_CHOICE_DOT = "{letter}. {item}"          # A. option1
-
-
-# Few-shot dynamic default (used in template builder UI)
-FEW_SHOT_DYNAMIC_DEFAULT = lambda available_rows: min(2, max(0, available_rows - 1)) if available_rows > 1 else 0
+    DEFAULT_LIST_SEPARATOR = "\n"
