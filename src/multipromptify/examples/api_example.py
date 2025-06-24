@@ -1720,8 +1720,7 @@ def example_few_shot_train_test_split():
     variations_fixed = mp.generate(verbose=False)
     
     print(f"✅ Generated {len(variations_fixed)} variations with FIXED few-shot")
-    mp.export("few_shot_train_test_fixed.json", format="json")
-
+    
     # Show few-shot examples for each test question
     test_variations = [v for v in variations_fixed if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
     
@@ -1751,6 +1750,7 @@ def example_few_shot_train_test_split():
     template_rotating_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+        OPTIONS_KEY: [SHUFFLE_VARIATION],  # Shuffle options for variety
         ENUMERATE_VARIATION: {
             'field': 'options',  # Which field to enumerate
             'type': '1234'  # Use numbers: 1. 2. 3. 4.
