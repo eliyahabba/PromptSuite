@@ -108,13 +108,13 @@ def display_current_setup(df, template, template_name):
                         for sub_key, sub_value in value.items():
                             template_str += f"        '{sub_key}': {sub_value},\n"
                         template_str += "    },\n"
-            else:
+                    else:
                         template_str += f"    '{key}': {value},\n"
-                template_str += "}"
+                        template_str += "}"
                 st.code(template_str, language="python")
-        else:
-            # Old format - just display as string
-            st.code(template, language="text")
+            else:
+                # Old format - just display as string
+                st.code(template, language="text")
 
 
 def configure_generation():
@@ -127,47 +127,59 @@ def configure_generation():
     with col1:
         st.markdown("**🔢 Quantity Settings**")
 
-        # Max variations setting - support None for unlimited
-        if 'max_variations_per_row' not in st.session_state:
-            st.session_state.max_variations_per_row = GenerationDefaults.MAX_VARIATIONS_PER_ROW
-
-        # Create options for max variations including unlimited
-        max_variations_per_row_options = [
-            ("Unlimited (default)", None),
-            ("50 variations", 50),
-            ("100 variations", 100),
-            ("200 variations", 200),
-            ("500 variations", 500),
-            ("1000 variations", 1000)
-        ]
+        # Get basic data
+        df = st.session_state.uploaded_data
+        max_rows = st.session_state.get('max_rows', None)
         
-        # Add custom option if current value is not in the list
-        current_max_variations_per_row = st.session_state.max_variations_per_row
-        if current_max_variations_per_row is not None and current_max_variations_per_row not in [50, 100, 200, 500, 1000]:
-            max_variations_per_row_options.append((f"{current_max_variations_per_row} variations", current_max_variations_per_row))
+        # Use only the selected number of rows for estimation
+        effective_rows = len(df) if max_rows is None else min(max_rows, len(df))
         
-        max_variations_per_row_labels = [label for label, _ in max_variations_per_row_options]
-        max_variations_per_row_values = [value for _, value in max_variations_per_row_options]
-
-        if current_max_variations_per_row is None:
-            max_variations_per_row_index = 0
-        else:
-            try:
-                max_variations_per_row_index = max_variations_per_row_values.index(current_max_variations_per_row)
-            except ValueError:
-                max_variations_per_row_index = 0
-
-        selected_max_variations_per_row_label = st.selectbox(
-            "Maximum variations per row",
-            options=max_variations_per_row_labels,
-            index=max_variations_per_row_index,
-            key='max_variations_per_row_label',
-            help="Maximum number of variations to generate per data row. If a row has more variations than this limit, the same subset will be selected for all rows (None = unlimited)"
+        # Variations per field setting (first position)
+        variations_per_field = st.number_input(
+            "🔄 Variations per field",
+            min_value=1,
+            max_value=10,
+            value=st.session_state.get('variations_per_field', GenerationDefaults.VARIATIONS_PER_FIELD),
+            help="Number of variations to generate for each field that has variations enabled"
         )
-        st.session_state.max_variations_per_row = max_variations_per_row_values[max_variations_per_row_labels.index(selected_max_variations_per_row_label)]
+        st.session_state.variations_per_field = variations_per_field
+        
+        # Calculate estimated_per_row after variations_per_field is set
+        mp = MultiPromptify()
+        try:
+            variation_fields = mp.parse_template(st.session_state.selected_template)
+            num_variation_fields = len([f for f, v in variation_fields.items() if v is not None])
+
+            if num_variation_fields > 0:
+                # The system generates variations_per_field variations per field, not combinatorial product
+                # Each field gets variations_per_field variations, and they are combined
+                estimated_per_row = variations_per_field * num_variation_fields
+                estimated_total = estimated_per_row * effective_rows
+            else:
+                estimated_per_row = 1  # No variations, just one prompt per row
+                estimated_total = effective_rows
+        except Exception:
+            estimated_per_row = 100  # Fallback default per row
+            estimated_total = estimated_per_row * effective_rows
+
+        # Initialize max_variations_per_row with estimated_per_row if not set
+        if 'max_variations_per_row' not in st.session_state:
+            st.session_state.max_variations_per_row = estimated_per_row
+
+        # Ensure current value doesn't exceed estimated_per_row
+        if st.session_state.get('max_variations_per_row', 1) > estimated_per_row:
+            st.session_state.max_variations_per_row = estimated_per_row
+
+        # Use only key, let Streamlit manage the value
+        max_variations_per_row = st.number_input(
+            "📊 Maximum variations per row",
+            min_value=1,
+            max_value=estimated_per_row,
+            key='max_variations_per_row',
+            help=f"Maximum number of variations to generate per data row (max: {estimated_per_row:,} based on your template)"
+        )
 
         # Max rows setting
-        df = st.session_state.uploaded_data
         # Ensure max_rows is initialized before use
         if 'max_rows' not in st.session_state:
             st.session_state.max_rows = None
@@ -185,55 +197,33 @@ def configure_generation():
             options=max_rows_labels,
             index=max_rows_index,
             key='max_rows_label',
-            help=f"Select how many rows to use (total: {len(df)} rows)."
+            help="Maximum number of rows from your data to use for generation (None = all rows)"
         )
         st.session_state.max_rows = max_rows_values[max_rows_labels.index(selected_label)]
 
     with col2:
-        st.markdown("**⚙️ Generation Settings**")
+        st.markdown("**🎲 Randomization Settings**")
 
-        # Variations per field
-        if 'variations_per_field' not in st.session_state:
-            st.session_state.variations_per_field = GenerationDefaults.VARIATIONS_PER_FIELD
-
-        variations_per_field = st.number_input(
-            "🔄 Variations per field",
-            min_value=GenerationInterfaceConstants.MIN_VARIATIONS_PER_FIELD,
-            max_value=GenerationInterfaceConstants.MAX_VARIATIONS_PER_FIELD,
-            key='variations_per_field',
-            help="Number of variations to generate for each field with variation annotations"
+        # Random seed setting
+        random_seed = st.number_input(
+            "🌱 Random seed",
+            min_value=None,
+            max_value=None,
+            value=st.session_state.get('random_seed', GenerationDefaults.RANDOM_SEED),
+            help="Seed for reproducible random generation (None = random)"
         )
+        st.session_state.random_seed = random_seed
 
-        # Random seed for reproducibility
-        st.markdown("**🎲 Reproducibility Options**")
-        use_seed = st.checkbox("🔒 Use random seed for reproducible results")
-        if use_seed:
-            if 'random_seed' not in st.session_state:
-                st.session_state.random_seed = GenerationDefaults.RANDOM_SEED
-            seed = st.number_input("🌱 Random seed", min_value=0, value=st.session_state.random_seed, key='random_seed')
-        else:
-            st.session_state.random_seed = None
+        # API Configuration (only show if paraphrase is enabled)
+        has_paraphrase = False
+        try:
+            variation_fields = mp.parse_template(st.session_state.selected_template)
+            has_paraphrase = any('paraphrase' in str(v).lower() for v in variation_fields.values() if v is not None)
+        except Exception:
+            pass
 
-    # Check if template uses paraphrase variations
-    template = st.session_state.get('selected_template', '')
-
-    needs_api_key = False
-    for k, v in template.items():
-        if isinstance(v, list) and (PARAPHRASE_WITH_LLM in v or CONTEXT_VARIATION in v):
-            needs_api_key = True
-
-    if needs_api_key:
-        # Enhanced API Configuration in sidebar
-        with st.sidebar:
-            st.markdown("""
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
-                <h3 style="color: white; margin: 0;">🔑 API Configuration</h3>
-                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0 0;">Required for advanced variations</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            st.info("🤖 Your template uses paraphrase variations which require an API key.")
+        if has_paraphrase:
+            st.markdown("**🤖 AI Configuration**")
 
             # Platform selection
             platform = st.selectbox(
@@ -266,11 +256,11 @@ def configure_generation():
 
             if not api_key:
                 st.warning("⚠️ API key is required for paraphrase variations. Generation may not work without it.")
-    else:
-        # Clear API key if not needed
-        for key in ['api_key', 'api_platform', 'model_name']:
-            if key in st.session_state:
-                del st.session_state[key]
+        else:
+            # Clear API key if not needed
+            for key in ['api_key', 'api_platform', 'model_name']:
+                if key in st.session_state:
+                    del st.session_state[key]
 
     # Remove the old few-shot configuration interface
     st.session_state.generation_few_shot = None
@@ -282,9 +272,9 @@ def generate_variations_interface():
 
     # Estimation in a compact info box
     df = st.session_state.uploaded_data
-    max_variations_per_row = st.session_state.max_variations_per_row
-    variations_per_field = st.session_state.variations_per_field
-    max_rows = st.session_state.max_rows
+    max_variations_per_row = st.session_state.get('max_variations_per_row', None)
+    variations_per_field = st.session_state.get('variations_per_field', GenerationDefaults.VARIATIONS_PER_FIELD)
+    max_rows = st.session_state.get('max_rows', None)
 
     # Use only the selected number of rows for estimation
     effective_rows = len(df) if max_rows is None else min(max_rows, len(df))
@@ -298,11 +288,11 @@ def generate_variations_interface():
         if num_variation_fields > 0:
             if max_variations_per_row is None:
                 # No limit on variations
-                estimated_per_row = variations_per_field ** num_variation_fields
+                estimated_per_row = variations_per_field * num_variation_fields
                 estimated_total = estimated_per_row * effective_rows
             else:
-                # Limited variations per row
-                estimated_per_row = min(variations_per_field ** num_variation_fields, max_variations_per_row)
+                # Limited variations per row - use the actual max_variations_per_row value
+                estimated_per_row = min(variations_per_field * num_variation_fields, max_variations_per_row)
                 estimated_total = estimated_per_row * effective_rows
         else:
             estimated_total = effective_rows  # No variations, just one prompt per row
@@ -354,20 +344,20 @@ def generate_all_variations():
                 details_text.info("Setting up the generation engine with your configuration")
                 progress_bar.progress(0.1)
 
-                mp = MultiPromptify(max_variations_per_row=st.session_state.max_variations_per_row)
+                mp = MultiPromptify(max_variations_per_row=st.session_state.get('max_variations_per_row', None))
 
                 # Set random seed if specified
                 if st.session_state.get('random_seed') is not None:
                     import random
-                    random.seed(st.session_state.random_seed)
-                    details_text.info(f"🌱 Random seed set to: {st.session_state.random_seed}")
+                    random.seed(st.session_state.get('random_seed'))
+                    details_text.info(f"🌱 Random seed set to: {st.session_state.get('random_seed')}")
 
                 # Step 2: Prepare data
                 status_text.text("📊 Step 2/5: Preparing data...")
                 progress_bar.progress(0.2)
 
                 df = st.session_state.uploaded_data
-                max_rows = st.session_state.max_rows
+                max_rows = st.session_state.get('max_rows', None)
 
                 # Limit data to selected number of rows
                 if max_rows is not None and max_rows < len(df):
@@ -382,7 +372,7 @@ def generate_all_variations():
                 progress_bar.progress(0.3)
 
                 template = st.session_state.selected_template
-                variations_per_field = st.session_state.variations_per_field
+                variations_per_field = st.session_state.get('variations_per_field', GenerationDefaults.VARIATIONS_PER_FIELD)
                 api_key = st.session_state.get('api_key')
 
                 # Show configuration details
@@ -399,12 +389,38 @@ def generate_all_variations():
                 details_text.warning("🤖 AI is working hard to create your prompt variations...")
                 progress_bar.progress(0.4)
 
+                # Show basic progress information
+                progress_details = st.empty()
+                progress_details.info(f"📊 Processing {len(df)} rows...")
+
+                # Show simple progress indicator
+                row_progress = st.empty()
+                row_progress.info("🔄 Starting generation...")
+
+                # Create simple progress callback for UI updates
+                def update_ui_progress(row_idx, total_rows, variations_this_row, total_variations, eta):
+                    progress_percent = (row_idx + 1) / total_rows
+                    progress_bar.progress(0.4 + (progress_percent * 0.4))  # 40% to 80% of total progress
+                    progress_details.info(
+                        f"📊 Row {row_idx + 1}/{total_rows} • "
+                        f"Variations: {variations_this_row} • "
+                        f"Total: {total_variations}"
+                    )
+                    row_progress.info(f"🔄 Processing row {row_idx + 1} of {total_rows}...")
+
                 variations = mp.generate_variations(
                     template=template,
                     data=df,
                     variations_per_field=variations_per_field,
-                    api_key=api_key
+                    api_key=api_key,
+                    progress_callback=update_ui_progress
                 )
+
+                # Clear row progress after completion
+                row_progress.empty()
+
+                # Update progress details after generation
+                progress_details.success(f"✅ Generated {len(variations)} variations from {len(df)} rows")
 
                 # Step 5: Computing statistics
                 status_text.text("📈 Step 5/5: Computing statistics...")

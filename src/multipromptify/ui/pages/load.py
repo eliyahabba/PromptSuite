@@ -228,6 +228,29 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         }
                     },
                     {
+                        'name': 'Multiple Choice with Paraphrased Instruction',
+                        'template': {
+                            INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
+                            INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION],
+                            GOLD_KEY: {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            }
+                        },
+                        'description': 'Multiple choice with format structure, noise injection, option shuffling, and LLM-paraphrased instruction',
+                        'sample_data': {
+                            'question': ['What is the largest planet?', 'Which element has symbol O?',
+                                         'What is the fastest land animal?'],
+                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse'],
+                            'answer': [2, 0, 1]
+                        }
+                    },
+                    {
                         'name': 'Complex Multiple Choice with Few-shot',
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers).',
@@ -287,6 +310,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             INSTRUCTION: 'The following are multiple choice questions (with answers).',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
@@ -304,6 +328,25 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver, Hydrogen',
                                         'Lion, Cheetah, Horse, Tiger'],
                             'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
+                        }
+                    },
+                    {
+                        'name': 'Multiple Choice with Enumerate Only',
+                        'template': {
+                            INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
+                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+                            OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
+                            GOLD_KEY: {
+                                'field': 'answer',
+                                'type': 'index',
+                                'options_field': 'options'
+                            }
+                        },
+                        'description': 'Multiple choice with option shuffling and automatic enumeration (ENUMERATE_VARIATION as field variation)',
+                        'sample_data': {
+                            'question': ['What is the largest planet?', 'Which element has symbol O?', 'What is the fastest land animal?'],
+                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse'],
+                            'answer': [2, 0, 1]
                         }
                     }
                 ]
