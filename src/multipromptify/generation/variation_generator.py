@@ -116,44 +116,28 @@ class VariationGenerator:
             unique_variations.insert(0, instruction)
         return unique_variations[:variation_config.variations_per_field]
 
-    def generate_all_field_variations(
+    def generate_row_specific_field_variations(
             self,
-            prompt_format: str,
-            instruction: str,
             variation_fields: Dict[str, List[str]],
             row: pd.Series,
             variation_config: VariationConfig,
-            gold_config
+            gold_config,
+            pre_generated_variations: Dict[str, List[FieldVariation]]
     ) -> Dict[str, List[FieldVariation]]:
-        """Generate variations for all fields that have variation types specified."""
-
+        """
+        Generate variations for row-specific fields only (excluding instruction and prompt format variations).
+        This method uses pre-generated variations for instruction and prompt format to avoid
+        running the same augmenters multiple times.
+        """
         field_variations = {}
 
-        # Generate prompt_format variations
-        if PROMPT_FORMAT_VARIATIONS in variation_fields and variation_fields[PROMPT_FORMAT_VARIATIONS]:
-            prompt_format_vars = self.generate_prompt_format_variations(
-                prompt_format, variation_fields, variation_config
-            )
-            # Convert to FieldVariation objects
-            field_variations[PROMPT_FORMAT_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in
-                                                          prompt_format_vars]
-        else:
-            field_variations[PROMPT_FORMAT_VARIATIONS] = [FieldVariation(data=prompt_format, gold_update=None)]
+        # Use pre-generated instruction variations
+        field_variations[INSTRUCTION_VARIATIONS] = pre_generated_variations[INSTRUCTION_VARIATIONS]
 
-        # Generate prompt_format variations
-        if INSTRUCTION_VARIATIONS in variation_fields and variation_fields[INSTRUCTION_VARIATIONS]:
-            instruction = self.generate_instruction_variations(
-                instruction,
-                variation_fields,
-                variation_config
-            )
-            # Convert to FieldVariation objects
-            field_variations[INSTRUCTION_VARIATIONS] = [FieldVariation(data=var, gold_update=None) for var in
-                                                        instruction]
-        else:
-            field_variations[INSTRUCTION_VARIATIONS] = [FieldVariation(data=instruction, gold_update=None)]
+        # Use pre-generated prompt format variations
+        field_variations[PROMPT_FORMAT_VARIATIONS] = pre_generated_variations[PROMPT_FORMAT_VARIATIONS]
 
-        # Generate variations for other fields (including prompt format)
+        # Generate variations for other fields (row-specific fields only)
         for field_name, variation_types in variation_fields.items():
             if field_name in [PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS]:
                 continue  # Already handled above
@@ -174,23 +158,7 @@ class VariationGenerator:
                 # If field not in data, use empty variations
                 field_variations[field_name] = [FieldVariation(data='', gold_update=None)]
 
-        # Special handling for shuffle augmenter (and others) - update gold value extraction
-        # (No direct row[gold_config.field] here, but if you add, use extract_gold_value)
-
         return field_variations
-
-    @staticmethod
-    def deterministic_sample(lst, k, seed=42):
-        """
-        Return a deterministic random sample of k elements from lst using the given seed.
-        If lst has k or fewer elements, return all of them.
-        """
-        if len(lst) <= k:
-            return lst
-        rnd = random.Random(seed)
-        idxs = list(range(len(lst)))
-        rnd.shuffle(idxs)
-        return [lst[i] for i in idxs[:k]]
 
     def generate_field_variations(
             self,
@@ -272,8 +240,12 @@ class VariationGenerator:
                             if isinstance(v, dict) and 'shuffled_data' in v:
                                 next_variations.append(v['shuffled_data'])
                                 # Track gold update if needed
-                                if field_data.gold_config and field_data.gold_config.field == field_data.field_name and 'new_gold_index' in v:
-                                    next_gold_updates.append({field_data.field_name: v['new_gold_index']})
+                                if (field_data.gold_config
+                                        and field_data.gold_config.field
+                                        and 'new_gold_index' in v
+                                        and field_data.gold_config.type == 'index'):
+                                    # Always update the gold field specified in the gold configuration
+                                    next_gold_updates.append({field_data.gold_config.field: v['new_gold_index']})
                                 else:
                                     next_gold_updates.append(None)
                 # Special handling for enumerate
@@ -315,3 +287,16 @@ class VariationGenerator:
         sample_seed = getattr(field_data.variation_config, 'random_seed', 42)
         sampled = self.deterministic_sample(unique, field_data.variation_config.variations_per_field, seed=sample_seed)
         return sampled
+
+    @staticmethod
+    def deterministic_sample(lst, k, seed=42):
+        """
+        Return a deterministic random sample of k elements from lst using the given seed.
+        If lst has k or fewer elements, return all of them.
+        """
+        if len(lst) <= k:
+            return lst
+        rnd = random.Random(seed)
+        idxs = list(range(len(lst)))
+        rnd.shuffle(idxs)
+        return [lst[i] for i in idxs[:k]]

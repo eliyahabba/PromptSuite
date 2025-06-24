@@ -11,19 +11,21 @@ If your data doesn't meet these requirements, clean it before passing to MultiPr
 """
 
 import json
-from typing import Dict, List, Any, Optional
+import time
+from typing import Dict, List, Any, Optional, Callable
 
 import pandas as pd
+from tqdm import tqdm
 
 from multipromptify.core.exceptions import (
     InvalidTemplateError, MissingInstructionTemplateError,
     UnsupportedFileFormatError, UnsupportedExportFormatError
 )
 from multipromptify.core.models import (
-    GoldFieldConfig, VariationConfig, VariationContext
+    GoldFieldConfig, VariationConfig, VariationContext, FieldVariation
 )
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, FEW_SHOT_KEY
+    PROMPT_FORMAT, FEW_SHOT_KEY, INSTRUCTION_VARIATIONS, PROMPT_FORMAT_VARIATIONS
 )
 from multipromptify.core.template_parser import TemplateParser
 from multipromptify.generation import VariationGenerator, PromptBuilder, FewShotHandler
@@ -67,6 +69,7 @@ class MultiPromptify:
             variations_per_field: int = GenerationDefaults.VARIATIONS_PER_FIELD,
             api_key: str = None,
             seed: Optional[int] = None,
+            progress_callback: Optional[Callable] = None,
             **kwargs
     ) -> List[Dict[str, Any]]:
         """
@@ -78,6 +81,8 @@ class MultiPromptify:
             variations_per_field: Number of variations per field
             api_key: API key for services that require it
             seed: Random seed for reproducibility
+            progress_callback: Optional callback function for progress updates
+                              Should accept (row_idx, total_rows, variations_this_row, total_variations, eta)
         
         Returns:
             List of generated variations
@@ -118,51 +123,108 @@ class MultiPromptify:
         # Validate gold field requirement
         self.few_shot_handler.validate_gold_field_requirement(prompt_format, gold_config.field, few_shot_fields)
 
+        # PRE-GENERATE instruction and prompt format variations (shared across all rows)
+        # This avoids running the same augmenters (like paraphrase) multiple times
+        pre_generated_variations = {}
+        
+        # Generate instruction variations once
+        if INSTRUCTION_VARIATIONS in variation_fields and variation_fields[INSTRUCTION_VARIATIONS]:
+            print(f"🔄 Pre-generating instruction variations ({len(variation_fields[INSTRUCTION_VARIATIONS])} types)...")
+            instruction_variations = self.variation_generator.generate_instruction_variations(
+                instruction, variation_fields, variation_config
+            )
+            pre_generated_variations[INSTRUCTION_VARIATIONS] = [
+                FieldVariation(data=var, gold_update=None) for var in instruction_variations
+            ]
+            print(f"✅ Generated {len(instruction_variations)} instruction variations")
+        else:
+            pre_generated_variations[INSTRUCTION_VARIATIONS] = [
+                FieldVariation(data=instruction, gold_update=None)
+            ]
+
+        # Generate prompt format variations once
+        if PROMPT_FORMAT_VARIATIONS in variation_fields and variation_fields[PROMPT_FORMAT_VARIATIONS]:
+            print(f"🔄 Pre-generating prompt format variations ({len(variation_fields[PROMPT_FORMAT_VARIATIONS])} types)...")
+            prompt_format_variations = self.variation_generator.generate_prompt_format_variations(
+                prompt_format, variation_fields, variation_config
+            )
+            pre_generated_variations[PROMPT_FORMAT_VARIATIONS] = [
+                FieldVariation(data=var, gold_update=None) for var in prompt_format_variations
+            ]
+            print(f"✅ Generated {len(prompt_format_variations)} prompt format variations")
+        else:
+            pre_generated_variations[PROMPT_FORMAT_VARIATIONS] = [
+                FieldVariation(data=prompt_format, gold_update=None)
+            ]
+
         all_variations = []
 
         # For each data row
-        for row_idx, row in data.iterrows():
-            # Generate variations for all fields
-            field_variations = self.variation_generator.generate_all_field_variations(
-                prompt_format,
-                instruction,
-                variation_fields,
-                row,
-                variation_config,
-                gold_config
-            )
-
-            # Create variation context
-            variation_context = VariationContext(
-                row_data=row,
-                row_index=row_idx,
-                template=template,
-                field_variations=field_variations,
-                gold_config=gold_config,
-                variation_config=variation_config,
-                data=data
-            )
-
-            # Generate all possible row variations
-            all_row_variations = self.few_shot_handler.create_row_variations(
-                variation_context,
-                few_shot_fields[0] if few_shot_fields else None,
-                None,  # No limit - get all possible variations
-                self.prompt_builder
-            )
-
-            # Sample max_variations_per_row from all possible variations for this row
-            if self.max_variations_per_row is not None and len(all_row_variations) > self.max_variations_per_row:
-                # Use consistent sampling based on seed
-                sampled_variations = self._sample_variations_consistently(
-                    all_row_variations, 
-                    self.max_variations_per_row, 
-                    seed
+        start_time = time.time()
+        total_rows = len(data)
+        
+        with tqdm(data.iterrows(), desc="Generating variations", total=total_rows) as pbar:
+            for row_idx, row in pbar:
+                row_start_time = time.time()
+                
+                # Generate variations for row-specific fields only (not instruction/prompt format)
+                field_variations = self.variation_generator.generate_row_specific_field_variations(
+                    variation_fields,
+                    row,
+                    variation_config,
+                    gold_config,
+                    pre_generated_variations  # Pass pre-generated variations
                 )
-                all_variations.extend(sampled_variations)
-            else:
-                # Use all variations if we have fewer than max_variations_per_row
-                all_variations.extend(all_row_variations)
+
+                # Create variation context
+                variation_context = VariationContext(
+                    row_data=row,
+                    row_index=row_idx,
+                    template=template,
+                    field_variations=field_variations,
+                    gold_config=gold_config,
+                    variation_config=variation_config,
+                    data=data
+                )
+
+                # Generate all possible row variations
+                all_row_variations = self.few_shot_handler.create_row_variations(
+                    variation_context,
+                    few_shot_fields[0] if few_shot_fields else None,
+                    None,  # No limit - get all possible variations
+                    self.prompt_builder
+                )
+
+                # Sample max_variations_per_row from all possible variations for this row
+                if self.max_variations_per_row is not None and len(all_row_variations) > self.max_variations_per_row:
+                    # Use consistent sampling based on seed
+                    sampled_variations = self._sample_variations_consistently(
+                        all_row_variations, 
+                        self.max_variations_per_row, 
+                        seed
+                    )
+                    all_variations.extend(sampled_variations)
+                else:
+                    # Use all variations if we have fewer than max_variations_per_row
+                    all_variations.extend(all_row_variations)
+                
+                # Update progress bar with detailed information
+                row_time = time.time() - row_start_time
+                variations_this_row = len(all_row_variations) if self.max_variations_per_row is None else min(len(all_row_variations), self.max_variations_per_row)
+                total_variations_so_far = len(all_variations)
+                avg_time_per_row = (time.time() - start_time) / (row_idx + 1)
+                eta = avg_time_per_row * (total_rows - row_idx - 1)
+                
+                pbar.set_postfix({
+                    'row': f"{row_idx + 1}/{total_rows}",
+                    'variations': f"{variations_this_row}",
+                    'total': f"{total_variations_so_far}",
+                    'avg_time': f"{avg_time_per_row:.2f}s",
+                    'eta': f"{eta:.1f}s"
+                })
+                
+                if progress_callback:
+                    progress_callback(row_idx, total_rows, variations_this_row, total_variations_so_far, eta)
 
         return all_variations
 
