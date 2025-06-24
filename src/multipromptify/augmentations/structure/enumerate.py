@@ -137,8 +137,9 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
             # Define different enumeration types to try
             enum_types = ['1234', 'ABCD', 'abcd', 'roman']
             
-            # Randomly select enumeration types instead of using them in order
-            selected_types = self._rng.sample(enum_types, min(self.n_augments, len(enum_types)))
+            # Use deterministic selection to ensure consistency between few-shot and main variations
+            # Take the first n_augments types in order for consistency
+            selected_types = enum_types[:min(self.n_augments, len(enum_types))]
             
             # Generate variations with different types
             for enum_type in selected_types:
