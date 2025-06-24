@@ -61,7 +61,8 @@ This augmenter handles few-shot examples for NLP tasks.
             identification_data.get('current_row_idx', 0),
             identification_data.get('gold_field'),
             identification_data.get('gold_type', 'value'),
-            identification_data.get('options_field')
+            identification_data.get('options_field'),
+            identification_data.get('enumerate_configs')
         )
         # Return structured examples directly (not formatted strings)
         return structured_examples
@@ -85,7 +86,7 @@ This augmenter handles few-shot examples for NLP tasks.
 
     def generate_few_shot_examples_structured(self, few_shot_field, prompt_format_variant: str, data: pd.DataFrame,
                                               current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
-                                              options_field: str = None) -> List[Dict[str, str]]:
+                                              options_field: str = None, enumerate_configs: Dict[str, dict] = None) -> List[Dict[str, str]]:
         """Generate few-shot examples using the configured parameters with structured output.
         
         Few-shot formats:
@@ -137,7 +138,18 @@ This augmenter handles few-shot examples for NLP tasks.
                         example_row, gold_field, gold_type, options_field
                     )
                 else:
-                    input_values[col] = format_field_value(example_row[col])
+                    field_value = format_field_value(example_row[col])
+                    # Apply enumeration if configured
+                    if enumerate_configs and col in enumerate_configs:
+                        enum_config = enumerate_configs[col]
+                        enum_type = enum_config.get('type', '1234')
+                        try:
+                            from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
+                            enumerator = EnumeratorAugmenter()
+                            field_value = enumerator.enumerate_field(field_value, enum_type)
+                        except Exception as e:
+                            print(f"⚠️ Error enumerating field '{col}' in few-shot example: {e}")
+                    input_values[col] = field_value
             input_template = prompt_format_variant
             if gold_field:
                 gold_placeholder = f'{{{gold_field}}}'

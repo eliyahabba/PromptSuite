@@ -229,12 +229,8 @@ class FewShotHandler:
             # Assume clean data - skip empty columns but process all others
             if col in field_values:
                 field_data = field_values[col]
-                # Ensure even field variations go through formatting
+                # Field variations have already been applied, including enumeration if configured
                 processed_value = format_field_value(field_data.data)
-
-                # Apply enumerate if this field should be enumerated
-                processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
-
                 row_values[col] = processed_value
                 if field_data.gold_update:
                     gold_updates.update(field_data.gold_update)
@@ -243,10 +239,9 @@ class FewShotHandler:
                 continue
             else:
                 processed_value = format_field_value(variation_context.row_data[col])
-
-                # Apply enumerate if this field should be enumerated
-                processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
-
+                # Only apply enumerate if field doesn't have field variations (direct enumerate config only)
+                if 'enumerate' in variation_context.template:
+                    processed_value = self._apply_enumerate_if_needed(processed_value, col, enumerate_fields_config)
                 row_values[col] = processed_value
 
         # Always set gold_updates to the original value if not already set
@@ -259,11 +254,21 @@ class FewShotHandler:
 
     def _get_enumerate_fields_config(self, template: dict) -> Dict[str, dict]:
         """Extract enumerate field configurations from template."""
+        from multipromptify.core.template_keys import ENUMERATE_VARIATION
         enumerate_config = {}
+        
+        # Check for direct enumerate configuration
         if 'enumerate' in template:
             enum_field = template['enumerate'].get('field')
             if enum_field:
                 enumerate_config[enum_field] = template['enumerate']
+        
+        # Check for field variations that include enumeration (for few-shot examples only)
+        for field_name, variations in template.items():
+            if isinstance(variations, list) and ENUMERATE_VARIATION in variations:
+                # Field has enumeration as a variation - use default enumeration config for few-shot
+                enumerate_config[field_name] = {'type': '1234'}
+        
         return enumerate_config
 
     def _apply_enumerate_if_needed(self, value: str, field_name: str, enumerate_configs: Dict[str, dict]) -> str:
@@ -297,9 +302,12 @@ class FewShotHandler:
             current_row_idx=variation_context.row_index,
             gold_config=variation_context.gold_config
         )
+        identification_data = few_shot_context.to_identification_data()
+        # Add enumeration configuration
+        identification_data['enumerate_configs'] = self._get_enumerate_fields_config(variation_context.template)
         examples = self.few_shot_augmenter.augment(
             prompt_format_variant,
-            few_shot_context.to_identification_data()
+            identification_data
         )
         # Inject system prompt only in the first example if present
         instruction = variation_context.template.get(INSTRUCTION)
