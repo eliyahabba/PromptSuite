@@ -328,7 +328,7 @@ def example_platform_switching():
 
 
 def example_with_huggingface():
-    """Example using HuggingFace datasets (SQuAD) with classic QA template and gold field expression extraction."""
+    """Example using HuggingFace datasets (SQuAwith classic QA template and gold field expression extraction."""
     print("\n" + "=" * 50)
     print("🤗 HuggingFace Dataset Example (SQuAD, zero-shot, classic QA, gold field expression)")
     print("=" * 50)
@@ -1456,7 +1456,7 @@ def example_shuffle_template():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'fixed',
+            'format': 'shared_first_n',
             'split': 'all'
         }
     }
@@ -1661,15 +1661,15 @@ def example_few_shot_train_test_split():
         ],
         'options': [
             # Training options
-            'A) 3, B) 4, C) 5, D) 6',
-            'A) 5, B) 6, C) 7, D) 8', 
-            'A) 7, B) 8, C) 9, D) 10',
-            'A) 9, B) 10, C) 11, D) 12',
-            'A) 11, B) 12, C) 13, D) 14',
+            '3, 4, 5, 6',
+            '5, 6, 7, 8', 
+            '7, 8, 9, 10',
+            '9, 10, 11, 12',
+            '11, 12, 13, 14',
             # Test options
-            'A) 13, B) 14, C) 15, D) 16',
-            'A) 15, B) 16, C) 17, D) 18',
-            'A) 17, B) 18, C) 19, D) 20'
+            '13, 14, 15, 16',
+            '15, 16, 17, 18',
+            '17, 18, 19, 20'
         ],
         'answer': [1, 1, 1, 1, 1, 1, 1, 1],  # All answers are option B
         'split': ['train', 'train', 'train', 'train', 'train', 'test', 'test', 'test']
@@ -1701,6 +1701,7 @@ def example_few_shot_train_test_split():
     template_fixed_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+        OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],  # Shuffle options for variety
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -1708,13 +1709,13 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'fixed',    # Same examples for all questions
+            'format': 'shared_first_n',    # Same examples for all questions
             'split': 'train'      # Use only training data
         }
     }
     
     mp.set_template(template_fixed_train)
-    mp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)  # Process all rows
+    mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=2)  # Process all rows
     
     variations_fixed = mp.generate(verbose=False)
     
@@ -1749,6 +1750,10 @@ def example_few_shot_train_test_split():
     template_rotating_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+        ENUMERATE_VARIATION: {
+            'field': 'options',  # Which field to enumerate
+            'type': '1234'  # Use numbers: 1. 2. 3. 4.
+        },
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -1756,7 +1761,7 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': '',  # Different examples for each question
+            'format': 'shared_first_n',  # Different examples for each question
             'split': 'train'       # Use only training data
         }
     }
