@@ -1046,14 +1046,6 @@ def example_enumerate_as_field_variation():
 def example_many_augmenters_on_small_dataset():
     """Example: Apply context, shuffle, rewording, and paraphrase on a tiny dataset (2 rows)."""
     print("\n=== Many Augmenters on Small Dataset Example ===")
-    import os
-    from multipromptify import MultiPromptifier
-    import pandas as pd
-    from multipromptify.core.template_keys import (
-        INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
-        PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION
-    )
-
     # Check API key for context/paraphrase
     api_key = os.getenv("TOGETHER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -1099,9 +1091,9 @@ def example_many_augmenters_on_small_dataset():
         max_variations_per_row=16,
         random_seed=42
     )
-    mp.export("many_augmenters_small_dataset.json", format="json")
     print("\nGenerating variations...")
     variations = mp.generate(verbose=True)
+    mp.export("many_augmenters_small_dataset.json", format="json")
     print(f"\n✅ Generated {len(variations)} variations\n")
     for i, v in enumerate(variations):
         print(f"\nVariation {i + 1}:")
@@ -1115,15 +1107,19 @@ def example_paraphrase_instruction_only():
     """Test: Single multiple choice question, only INSTRUCTION uses PARAPHRASE_WITH_LLM, with {subject} placeholder."""
     print("\n=== Paraphrase Instruction Only Example ===")
     # Single example
+
     data = pd.DataFrame({
         'question': [
-            'What is the capital of France?'
+            'What is the capital of France?',
+            'What is 2+2?'
         ],
         'options': [
-            'London, Berlin, Paris, Madrid'
+            'London, Berlin, Paris, Madrid',
+            '3, 4, 5, 6'
         ],
-        'answer': [2],  # 0-based index
-        'subject': ['Geography']
+        'answer': [2, 1],
+        'subject': ['Geography','Geography']
+        # 0-based indices
     })
 
     mp = MultiPromptifier()
@@ -1143,7 +1139,7 @@ def example_paraphrase_instruction_only():
     mp.set_template(template)
     print("✅ Template with only instruction paraphrasing")
 
-    mp.configure(max_rows=1, variations_per_field=10, max_variations_per_row=20)
+    mp.configure(max_rows=3, variations_per_field=3, max_variations_per_row=20)
     variations = mp.generate(verbose=True)
     print(f"\n✅ Generated {len(variations)} variations\n")
     for i, v in enumerate(variations):
@@ -1412,6 +1408,86 @@ def example_backward_compatibility_rewording():
     mp.export("backward_compatibility_rewording.json", format="json")
     print("\n✅ Backward compatibility example completed!")
 
+def example_shuffle_template():
+    """Debug example for complex template with multiple variations to understand variation count."""
+    print("\n=== Complex Template Debug Example ===")
+    print("🔍 Debugging variation count with complex template")
+    print("=" * 60)
+
+    # Create instance
+    mp = MultiPromptifier()
+
+    # Load data with 4 examples
+    data = pd.DataFrame({
+        'question': [
+            'What is the largest planet?',
+            'Which element has symbol O?',
+            'What is the fastest land animal?',
+            'What is the smallest prime number?'
+        ],
+        'options': [
+            'Mars, Earth, Jupiter, Venus',
+            'Oxygen, Gold, Silver',
+            'Lion, Cheetah, Horse',
+            '1, 2, 3'
+        ],
+        'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
+    })
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} questions")
+
+    # Complex template with multiple variations
+    template = {
+        INSTRUCTION: 'The following are multiple choice questions (with answers).',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        OPTIONS_KEY: [SHUFFLE_VARIATION],
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': 'fixed',
+            'split': 'all'
+        }
+    }
+    mp.set_template(template)
+    print("✅ Template configured with complex variations:")
+    print("   - INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION]")
+    print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
+    print("   - QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION]")
+    print("   - OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
+    print("   - FEW_SHOT_KEY: count=2, format=fixed, split=all")
+
+    # Configure with 3 variations per field
+    mp.configure(
+        max_rows=3,
+        variations_per_field=3,
+        max_variations_per_row=10,  # High limit to see all variations
+        random_seed=42
+    )
+    variations = mp.generate(verbose=True)
+
+    # Show field values for first few variations to understand what's being varied
+    print(f"\n🔍 Field values analysis (first 3 variations):")
+    for i, var in enumerate(variations[:6]):
+        print(f"\nVariation {i + 1} (Row {var.get('original_row_index', 0)}):")
+        field_values = var.get('field_values', {})
+        for field, value in field_values.items():
+            # Truncate long values for readability
+            if len(str(value)) > 50:
+                value = str(value)[:50] + "..."
+            print(f"   - {field}: {value}")
+
+
+    # Export results for further analysis
+    mp.export("shuffle_template_debug.json", format="json")
+    print(f"\n✅ Exported to shuffle_template_debug.json for further analysis")
+
+    # Show final stats
+    mp.info()
+
 
 def example_complex_template_debug():
     """Debug example for complex template with multiple variations to understand variation count."""
@@ -1448,7 +1524,7 @@ def example_complex_template_debug():
         INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION],
         PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
         QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
-        OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION],
+        OPTIONS_KEY: [SHUFFLE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -1470,9 +1546,9 @@ def example_complex_template_debug():
 
     # Configure with 3 variations per field
     mp.configure(
-        max_rows=4,
+        max_rows=2,
         variations_per_field=3,
-        max_variations_per_row=150,  # High limit to see all variations
+        max_variations_per_row=10,  # High limit to see all variations
         random_seed=42
     )
     print(f"\n⚙️ Configuration:")
@@ -1557,9 +1633,10 @@ def example_complex_template_debug():
 
 if __name__ == "__main__":
     # Run the debug example
-    example_complex_template_debug()
-    
+    # example_complex_template_debug()
+    example_many_augmenters_on_small_dataset()
     # Uncomment other examples as needed:
+    # example_shuffle_template()
     # example_with_sample_data_few_shot()
     # example_with_enumerate()
     # example_enumerate_types()
