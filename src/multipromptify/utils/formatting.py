@@ -93,9 +93,15 @@ def convert_index_to_value(row: pd.Series, gold_field: str, gold_type: str, opti
     # If gold_type is 'index', try to extract from options
     if gold_type == 'index' and options_field and options_field in row.index:
         try:
-            options_text = str(row[options_field])
-            # Parse options using the same logic as ShuffleAugmenter
-            options_list = [item.strip() for item in options_text.split(',')]
+            options_data = row[options_field]
+            
+            # Handle both list and string formats
+            if isinstance(options_data, (list, tuple)):
+                options_list = [str(item).strip() for item in options_data]
+            else:
+                # Parse options as comma-separated string (existing logic)
+                options_text = str(options_data)
+                options_list = [item.strip() for item in options_text.split(',')]
 
             index = int(gold_value)
             if 0 <= index < len(options_list):
