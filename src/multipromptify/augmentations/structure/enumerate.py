@@ -5,6 +5,7 @@ from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.core.exceptions import (
     EnumeratorLengthMismatchError
 )
+from multipromptify.shared.constants import ListFormattingConstants
 
 
 class EnumeratorAugmenter(BaseAxisAugmenter):
@@ -75,7 +76,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         for i, item in enumerate(data_list):
             enumerated_items.append(f"{enumeration_sequence[i]}. {item}")
 
-        return " ".join(enumerated_items)
+        return ListFormattingConstants.DEFAULT_SEPARATOR.join(enumerated_items)
 
     def enumerate_field(self, field_data: Any, enum_type: str) -> str:
         """

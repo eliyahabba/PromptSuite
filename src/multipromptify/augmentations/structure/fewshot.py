@@ -5,6 +5,7 @@ import pandas as pd
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.core.exceptions import FewShotGoldFieldMissingError, FewShotDataInsufficientError
 from multipromptify.utils.formatting import format_field_value
+from multipromptify.shared.constants import ListFormattingConstants
 
 
 class FewShotAugmenter(BaseAxisAugmenter):
@@ -137,6 +138,30 @@ This augmenter handles few-shot examples for NLP tasks.
                     output_value = convert_index_to_value(
                         example_row, gold_field, gold_type, options_field
                     )
+                    # If the options field is enumerated and gold_type is 'index', 
+                    # we need to format the output to match the enumerated format
+                    if (gold_type == 'index' and options_field and 
+                        enumerate_configs and options_field in enumerate_configs):
+                        enum_config = enumerate_configs[options_field]
+                        enum_type = enum_config.get('type', '1234')
+                        try:
+                            gold_index = int(example_row[gold_field])
+                            from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
+                            enumerator = EnumeratorAugmenter()
+                                                         # Create enumerated format: "1. option1, 2. option2, ..." then extract the right one
+                             options_text = str(example_row[options_field])
+                             options_list = [item.strip() for item in options_text.split(ListFormattingConstants.COMMA_SEPARATOR.strip())]
+                            if 0 <= gold_index < len(options_list):
+                                # Format as enumerated item: "2. option_text"
+                                if enum_type == '1234':
+                                    output_value = f"{gold_index + 1}. {options_list[gold_index].strip()}"
+                                elif enum_type == 'ABCD':
+                                    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                                    if gold_index < len(letters):
+                                        output_value = f"{letters[gold_index]}. {options_list[gold_index].strip()}"
+                                # Add more enum types as needed
+                        except (ValueError, IndexError) as e:
+                            print(f"⚠️ Error formatting enumerated gold value: {e}")
                 else:
                     field_value = format_field_value(example_row[col])
                     # Apply enumeration if configured

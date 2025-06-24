@@ -5,6 +5,7 @@ Formatting utilities for MultiPromptify.
 from typing import Any, Optional
 import pandas as pd
 from multipromptify.core.exceptions import GoldFieldExtractionError
+from multipromptify.shared.constants import ListFormattingConstants
 
 
 def format_field_value(value: Any) -> str:
@@ -24,9 +25,9 @@ def format_field_value(value: Any) -> str:
     if value is None:
         return ""
     
-    # Handle Python lists and tuples - convert to comma-separated
+    # Handle Python lists and tuples - convert using default separator
     if isinstance(value, (list, tuple)):
-        return ", ".join(str(item) for item in value)
+        return ListFormattingConstants.COMMA_SEPARATOR.join(str(item) for item in value)
     
     # Everything else - just convert to string
     return str(value)
@@ -94,7 +95,7 @@ def convert_index_to_value(row: pd.Series, gold_field: str, gold_type: str, opti
         try:
             options_text = str(row[options_field])
             # Parse options using the same logic as ShuffleAugmenter
-            options_list = [item.strip() for item in options_text.split(',')]
+            options_list = [item.strip() for item in options_text.split(ListFormattingConstants.COMMA_SEPARATOR.strip())]
 
             index = int(gold_value)
             if 0 <= index < len(options_list):

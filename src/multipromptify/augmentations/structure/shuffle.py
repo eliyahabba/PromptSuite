@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.core.exceptions import AugmentationConfigurationError, InvalidAugmentationInputError, \
     ShuffleIndexError
-from multipromptify.shared.constants import BaseAugmenterConstants
+from multipromptify.shared.constants import BaseAugmenterConstants, ListFormattingConstants
 
 
 class ShuffleAugmenter(BaseAxisAugmenter):
@@ -82,8 +82,8 @@ class ShuffleAugmenter(BaseAxisAugmenter):
             original_correct_item = data_list[current_gold_index]
             new_gold_index = shuffled_list.index(original_correct_item)
 
-            # Convert back to comma-separated string
-            shuffled_data = ', '.join(shuffled_list)
+            # Convert back to string using default separator
+            shuffled_data = ListFormattingConstants.COMMA_SEPARATOR.join(shuffled_list)
 
             variations.append({
                 'shuffled_data': shuffled_data,
