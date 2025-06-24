@@ -147,9 +147,16 @@ This augmenter handles few-shot examples for NLP tasks.
                             gold_index = int(example_row[gold_field])
                             from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
                             enumerator = EnumeratorAugmenter()
-                            # Create enumerated format: "1. option1, 2. option2, ..." then extract the right one
-                            options_text = str(example_row[options_field])
-                            options_list = [item.strip() for item in options_text.split(',')]
+                            
+                            # Handle both list and string formats for options
+                            options_data = example_row[options_field]
+                            if isinstance(options_data, (list, tuple)):
+                                options_list = [str(item).strip() for item in options_data]
+                            else:
+                                # Create enumerated format: "1. option1, 2. option2, ..." then extract the right one
+                                options_text = str(options_data)
+                                options_list = [item.strip() for item in options_text.split(',')]
+                            
                             if 0 <= gold_index < len(options_list):
                                 # Format as enumerated item: "2. option_text"
                                 if enum_type == '1234':
@@ -158,6 +165,14 @@ This augmenter handles few-shot examples for NLP tasks.
                                     letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                                     if gold_index < len(letters):
                                         output_value = f"{letters[gold_index]}. {options_list[gold_index].strip()}"
+                                elif enum_type == 'abcd':
+                                    letters = 'abcdefghijklmnopqrstuvwxyz'
+                                    if gold_index < len(letters):
+                                        output_value = f"{letters[gold_index]}. {options_list[gold_index].strip()}"
+                                elif enum_type == 'roman':
+                                    romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+                                    if gold_index < len(romans):
+                                        output_value = f"{romans[gold_index]}. {options_list[gold_index].strip()}"
                                 # Add more enum types as needed
                         except (ValueError, IndexError) as e:
                             print(f"⚠️ Error formatting enumerated gold value: {e}")
