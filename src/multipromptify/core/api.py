@@ -10,7 +10,7 @@ import os
 import random
 import time
 from pathlib import Path
-from typing import Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Union, Optional, Callable
 
 import pandas as pd
 # Try to load environment variables
@@ -278,12 +278,14 @@ class MultiPromptifier:
 
         print(f"✅ Configuration updated: {len(kwargs)} parameters")
 
-    def generate(self, verbose: bool = False) -> List[Dict[str, Any]]:
+    def generate(self, verbose: bool = False, progress_callback: Optional[Callable] = None) -> List[Dict[str, Any]]:
         """
         Generate variations with optional progress logging.
         
         Args:
             verbose: If True, print progress messages
+            progress_callback: Optional callback function for progress updates
+                              Should accept (row_idx, total_rows, variations_this_row, total_variations, eta)
         
         Returns:
             List of generated variations
@@ -343,6 +345,16 @@ class MultiPromptifier:
             # Step 4: Generate variations
             if verbose:
                 print("⚡ Step 4/5: Generating variations... (AI is working on variations)")
+                print(f"   Processing {len(data_subset)} rows...")
+
+            # Create simple progress callback for verbose mode
+            def simple_progress_callback(row_idx, total_rows, variations_this_row, total_variations, eta):
+                if verbose:
+                    print(
+                        f"   📊 Row {row_idx + 1}/{total_rows} • Variations: {variations_this_row} • Total: {total_variations}")
+
+            # Use provided callback or simple verbose callback
+            final_callback = progress_callback if progress_callback else (simple_progress_callback if verbose else None)
 
             self.results = self.mp.generate_variations(
                 template=self.template,
@@ -350,6 +362,7 @@ class MultiPromptifier:
                 variations_per_field=self.config['variations_per_field'],
                 api_key=self.config['api_key'],
                 seed=self.config['random_seed'],
+                progress_callback=final_callback
             )
 
             # Step 5: Compute statistics
@@ -361,6 +374,8 @@ class MultiPromptifier:
 
             if verbose:
                 print(f"✅ Generated {len(self.results)} variations in {self.generation_time:.1f} seconds")
+                print(f"   Average: {len(self.results) / len(data_subset):.1f} variations per row")
+                print(f"   Speed: {self.generation_time / len(data_subset):.2f}s per row")
 
             return self.results
 
