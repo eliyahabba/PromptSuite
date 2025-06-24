@@ -22,9 +22,15 @@ from multipromptify.utils.formatting import format_field_value
 
 @dataclass
 class FewShotConfig:
-    """Configuration for few-shot examples."""
+    """Configuration for few-shot examples.
+    
+    Attributes:
+        count: Number of few-shot examples to use
+        format: Sampling strategy - 'shared_first_n', 'shared_random_n', or 'random_per_row'
+        split: Data split to use for few-shot examples - 'train', 'test', or 'all'
+    """
     count: int = 2
-    format: str = "rotating"  # 'fixed' or 'rotating'
+    format: str = "shared_first_n"  # 'shared_first_n', 'shared_random_n', or 'random_per_row'
     split: str = "all"  # 'train', 'test', or 'all'
 
 
@@ -63,13 +69,18 @@ class FewShotHandler:
         """
         Parse and validate few-shot configuration.
         Centralized from template_parser.py logic.
+        
+        Few-shot formats:
+        - "shared_first_n": Always use the first N examples from the available data (deterministic, shared for all rows)
+        - "shared_random_n": Always use the same N random examples (with fixed seed, shared for all rows)
+        - "random_per_row": Randomly sample different examples for each row (using row index as seed)
         """
         if not isinstance(config, dict):
             raise FewShotConfigurationError("config_type", type(config).__name__, ["dictionary"])
 
         few_shot_config = FewShotConfig(
             count=config.get("count", 2),
-            format=config.get("format", "rotating"),
+            format=config.get("format", "shared_first_n"),
             split=config.get("split", "all")
         )
 
@@ -77,8 +88,8 @@ class FewShotHandler:
         if few_shot_config.count <= 0:
             raise FewShotConfigurationError("count", few_shot_config.count)
 
-        if few_shot_config.format not in ['fixed', 'rotating']:
-            raise FewShotConfigurationError("format", few_shot_config.format, ['fixed', 'rotating'])
+        if few_shot_config.format not in ['shared_first_n', 'shared_random_n', 'random_per_row']:
+            raise FewShotConfigurationError("format", few_shot_config.format, ['shared_first_n', 'shared_random_n', 'random_per_row'])
 
         if few_shot_config.split not in ['all', 'train', 'test']:
             raise FewShotConfigurationError("split", few_shot_config.split, ['all', 'train', 'test'])

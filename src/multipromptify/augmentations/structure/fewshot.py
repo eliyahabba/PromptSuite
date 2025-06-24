@@ -86,75 +86,68 @@ This augmenter handles few-shot examples for NLP tasks.
     def generate_few_shot_examples_structured(self, few_shot_field, prompt_format_variant: str, data: pd.DataFrame,
                                               current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
                                               options_field: str = None) -> List[Dict[str, str]]:
-        """Generate few-shot examples using the configured parameters with structured output."""
+        """Generate few-shot examples using the configured parameters with structured output.
+        
+        Few-shot formats:
+        - "shared_first_n": Always use the first N examples from the available data (deterministic, shared for all rows)
+        - "shared_random_n": Always use the same N random examples (with fixed seed, shared for all rows)
+        - "random_per_row": Randomly sample different examples for each row (using row index as seed)
+        """
 
         if not few_shot_field:
             return []
 
         count = few_shot_field.few_shot_count or 2
-        few_shot_format = few_shot_field.few_shot_format or "rotating"
+        few_shot_format = few_shot_field.few_shot_format or "shared_first_n"
         split = few_shot_field.few_shot_split or "all"
 
-        # Get available data for few-shot examples
+        # Get available data for few-shot examples based on split configuration
         if split == "train":
-            # Use only training data
             available_data = data[data.get('split', 'train') == 'train']
         elif split == "test":
-            # Use only test data
             available_data = data[data.get('split', 'train') == 'test']
         else:
-            # Use all data
             available_data = data
 
-        # Remove current row to avoid data leakage
+        # Remove current row to avoid data leakage (regardless of its split)
         available_data = available_data.drop(current_row_idx, errors='ignore')
 
         if len(available_data) < count:
-            # Raise error with appropriate explanation instead of returning empty list
             raise FewShotDataInsufficientError(count, len(available_data), split)
 
-        # Sample examples
-        if few_shot_format == "fixed":
-            # Use the same first N examples for all questions
+        # Sample examples based on format
+        if few_shot_format == "shared_first_n":
             sampled_data = available_data.head(count)
-        else:
-            # Randomly sample different examples for each question
+        elif few_shot_format == "shared_random_n":
+            sampled_data = available_data.sample(n=count, random_state=42)
+        elif few_shot_format == "random_per_row":
             sampled_data = available_data.sample(n=count, random_state=current_row_idx)
+        else:
+            print(f"⚠️ Unknown few-shot format '{few_shot_format}', using 'shared_first_n'")
+            sampled_data = available_data.head(count)
 
         examples = []
-
         for _, example_row in sampled_data.iterrows():
-            # Create row values for input template (excluding gold field)
             input_values = {}
             output_value = ""
-
             for col in example_row.index:
-                # Assume clean data - process all columns
                 if gold_field and col == gold_field:
-                    # Extract the output value separately for the output field
                     from multipromptify.utils.formatting import convert_index_to_value
                     output_value = convert_index_to_value(
                         example_row, gold_field, gold_type, options_field
                     )
                 else:
-                    # Add to input values (everything except gold field)
                     input_values[col] = format_field_value(example_row[col])
-
-            # Fill template for input (without gold field placeholder)
             input_template = prompt_format_variant
-            # Remove gold field placeholder from input template
             if gold_field:
                 gold_placeholder = f'{{{gold_field}}}'
                 input_template = input_template.replace(gold_placeholder, '').strip()
-
             input_text = self._fill_template_placeholders(input_template, input_values)
-
             if input_text:
                 examples.append({
                     "input": input_text.strip(),
                     "output": output_value.strip() if output_value else ""
                 })
-
         return examples
 
     def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
