@@ -1702,6 +1702,8 @@ def example_few_shot_train_test_split():
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
         OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],  # Shuffle options for variety
+        # GOLD_KEY:'answer',
+
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -1715,12 +1717,13 @@ def example_few_shot_train_test_split():
     }
     
     mp.set_template(template_fixed_train)
-    mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=2)  # Process all rows
+    mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=6)  # Process all rows
     
     variations_fixed = mp.generate(verbose=False)
     
     print(f"✅ Generated {len(variations_fixed)} variations with FIXED few-shot")
-    
+    mp.export("few_shot_train_test_fixed.json", format="json")
+
     # Show few-shot examples for each test question
     test_variations = [v for v in variations_fixed if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
     
@@ -1768,7 +1771,7 @@ def example_few_shot_train_test_split():
     }
     
     mp.set_template(template_rotating_train)
-    mp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
+    mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=3)
     
     variations_rotating = mp.generate(verbose=False)
     

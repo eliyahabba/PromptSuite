@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 from multipromptify.augmentations.base import BaseAxisAugmenter
 from multipromptify.core.exceptions import AugmentationConfigurationError, InvalidAugmentationInputError, \
     ShuffleIndexError
-from multipromptify.shared.constants import BaseAugmenterConstants
+from multipromptify.shared.constants import BaseAugmenterConstants, ListFormattingConstants
 
 
 class ShuffleAugmenter(BaseAxisAugmenter):
@@ -46,7 +46,7 @@ class ShuffleAugmenter(BaseAxisAugmenter):
             raise InvalidAugmentationInputError("ShuffleAugmenter", "string", type(input_data).__name__)
 
         # Simple split by comma - input should already be formatted as "item1, item2, item3"
-        data_list = [item.strip() for item in input_data.split(',')]
+        data_list = [item.strip() for item in input_data.split(ListFormattingConstants.DEFAULT_LIST_SEPARATOR)]
 
         if len(data_list) <= 1:
             # Can't shuffle a list with 0 or 1 items
