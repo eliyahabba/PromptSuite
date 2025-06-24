@@ -108,7 +108,7 @@ template = {
     },
     'few_shot': {
         'count': 2,
-        'format': 'rotating',
+        'format': 'random_per_row',
         'split': 'all'
     }
 }
@@ -181,7 +181,7 @@ template = {
     },
     'few_shot': {                           # Few-shot configuration
         'count': 2,
-        'format': 'fixed',                   # 'fixed' or 'rotating'
+        'format': 'random_per_row',        # 'shared_first_n', 'shared_random_n', or 'random_per_row'
         'split': 'all'                       # 'all', 'train', or 'test'
     }
 }
@@ -392,7 +392,7 @@ template = {
     },
     'few_shot': {
         'count': 2,
-        'format': 'rotating',
+        'format': 'random_per_row',
         'split': 'all'
     }
 }
@@ -506,4 +506,25 @@ mp.export("debug_output.json", format="json")
 - **typos and noise**: When you want to test model robustness to input noise
 - **paraphrase_with_llm**: When you want semantic variations that preserve meaning
 - **shuffle**: For multiple choice questions to test option order independence
-- **enumerate**: To add structure to list fields 
+- **enumerate**: To add structure to list fields
+
+### Few-Shot Configuration
+
+Few-shot examples can be configured with different sampling strategies:
+
+| Format | Description | Use Case |
+|--------|-------------|----------|
+| `shared_first_n` | Always uses the first N examples from available data (deterministic, shared for all rows) | When you want consistent, predictable examples |
+| `shared_random_n` | Always uses the same N random examples (with fixed seed, shared for all rows) | When you want random but consistent examples across all rows |
+| `random_per_row` | Randomly samples different examples for each row (using row index as seed) | When you want variety and different examples per question |
+
+**Example:**
+```python
+"few_shot": {
+    "count": 2,                    # Number of examples to use
+    "format": "shared_random_n",   # Sampling strategy
+    "split": "train"               # Use only training data for examples
+}
+```
+
+### Supported Variation Types 
