@@ -1,6 +1,6 @@
 # Constants for MultiPromptify pipeline
-VARIATIONS_PER_ROW = 10
-MAX_ROWS_PER_DATASET = 10
+VARIATIONS_PER_ROW = 50
+MAX_ROWS_PER_DATASET = 50
 
 # Model configuration constants
 DEFAULT_MAX_TOKENS = 1024

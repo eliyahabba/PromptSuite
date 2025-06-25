@@ -90,8 +90,9 @@ This augmenter handles few-shot examples for NLP tasks.
         """Generate few-shot examples using the configured parameters with structured output.
         
         Few-shot formats:
-        - "shared_first_n": Always use the first N examples from the available data (deterministic, shared for all rows)
-        - "shared_random_n": Always use the same N random examples (with fixed seed, shared for all rows)
+        - "shared_ordered_first_n": Always use the first N examples from the available data (deterministic, shared for all rows)
+        - "shared_ordered_random_n": Always use the same N random examples (with fixed seed, shared for all rows)
+        - "shared_unordered_random_n": Samples the same random rows but shuffles their order
         - "random_per_row": Randomly sample different examples for each row (using row index as seed)
         """
 
@@ -99,7 +100,7 @@ This augmenter handles few-shot examples for NLP tasks.
             return []
 
         count = few_shot_field.few_shot_count or 2
-        few_shot_format = few_shot_field.few_shot_format or "shared_first_n"
+        few_shot_format = few_shot_field.few_shot_format or "shared_ordered_first_n"
         split = few_shot_field.few_shot_split or "all"
 
         # Get available data for few-shot examples based on split configuration
@@ -117,14 +118,17 @@ This augmenter handles few-shot examples for NLP tasks.
             raise FewShotDataInsufficientError(count, len(available_data), split)
 
         # Sample examples based on format
-        if few_shot_format == "shared_first_n":
+        if few_shot_format == "shared_ordered_first_n":
             sampled_data = available_data.head(count)
-        elif few_shot_format == "shared_random_n":
+        elif few_shot_format == "shared_ordered_random_n":
             sampled_data = available_data.sample(n=count, random_state=42)
+        elif few_shot_format == "shared_unordered_random_n":
+            # Sample the same random rows but shuffle their order
+            sampled_data = available_data.sample(n=count, random_state=42).sample(frac=1.0, random_state=current_row_idx)
         elif few_shot_format == "random_per_row":
             sampled_data = available_data.sample(n=count, random_state=current_row_idx)
         else:
-            print(f"⚠️ Unknown few-shot format '{few_shot_format}', using 'shared_first_n'")
+            print(f"⚠️ Unknown few-shot format '{few_shot_format}', using 'shared_ordered_first_n'")
             sampled_data = available_data.head(count)
 
         examples = []

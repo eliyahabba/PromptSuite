@@ -14,7 +14,10 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from multipromptify import MultiPromptifier
-from multipromptify_tasks.constants import VARIATIONS_PER_ROW, MAX_ROWS_PER_DATASET
+from multipromptify_tasks.constants import (
+    VARIATIONS_PER_ROW, MAX_ROWS_PER_DATASET, 
+    DEFAULT_PLATFORM, MODELS
+)
 
 
 class BaseTask(ABC):
@@ -41,6 +44,37 @@ class BaseTask(ABC):
     def get_template(self) -> Dict[str, Any]:
         """Get the template configuration for this task."""
         pass
+
+    def get_variations_per_field(self) -> int:
+        """
+        Get the number of variations per field.
+        Child classes can override this to provide custom values.
+        
+        Returns:
+            Number of variations per field (default: 4)
+        """
+        return 4
+
+    def get_api_platform(self) -> str:
+        """
+        Get the API platform to use.
+        Child classes can override this to provide custom values.
+        
+        Returns:
+            API platform name (default: "TogetherAI")
+        """
+        return DEFAULT_PLATFORM
+
+    def get_model_name(self) -> str:
+        """
+        Get the model name to use.
+        Child classes can override this to provide custom values.
+        
+        Returns:
+            Model name (default: "default" model for the platform)
+        """
+        platform = self.get_api_platform()
+        return MODELS[platform]["default"]
 
     def override_config(self, rows: int = None, variations: int = None) -> None:
         """
@@ -80,16 +114,23 @@ class BaseTask(ABC):
         # Get configuration values (use overrides if provided)
         max_rows = getattr(self, '_override_rows', MAX_ROWS_PER_DATASET)
         variations_per_row = getattr(self, '_override_variations', VARIATIONS_PER_ROW)
+        variations_per_field = self.get_variations_per_field()
+        api_platform = self.get_api_platform()
+        model_name = self.get_model_name()
         
         # Configure generation parameters
         print(f"\n3. Configuring generation ({variations_per_row} variations per row, {max_rows} rows)...")
+        print(f"   Variations per field: {variations_per_field}")
+        print(f"   API Platform: {api_platform}")
+        print(f"   Model: {model_name}")
+        
         self.mp.configure(
             max_rows=max_rows,
-            variations_per_field=4,
+            variations_per_field=variations_per_field,
             max_variations_per_row=variations_per_row,
             random_seed=42,
-            api_platform="TogetherAI",
-            model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+            api_platform=api_platform,
+            model_name=model_name
         )
 
         # Generate variations
