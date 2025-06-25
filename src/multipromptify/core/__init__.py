@@ -2,7 +2,7 @@
 MultiPromptify: A tool that creates multi-prompt datasets from single-prompt datasets using templates.
 """
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 
 # Import main classes for easier access
 from .engine import MultiPromptify
