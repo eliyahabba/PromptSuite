@@ -70,6 +70,7 @@ class MultiPromptify:
             api_key: str = None,
             seed: Optional[int] = None,
             progress_callback: Optional[Callable] = None,
+            max_rows: Optional[int] = None,
             **kwargs
     ) -> List[Dict[str, Any]]:
         """
@@ -83,6 +84,7 @@ class MultiPromptify:
             seed: Random seed for reproducibility
             progress_callback: Optional callback function for progress updates
                               Should accept (row_idx, total_rows, variations_this_row, total_variations, eta)
+            max_rows: Optional maximum number of rows to process
         
         Returns:
             List of generated variations
@@ -167,6 +169,11 @@ class MultiPromptify:
         
         # Filter data for generation based on target split
         generation_data = self._filter_data_by_split(data, target_split)
+        
+        # Apply max_rows filter
+        if max_rows is not None and len(generation_data) > max_rows:
+            generation_data = generation_data.iloc[:max_rows]
+            print(f"📊 Limited to first {len(generation_data)} rows after split filtering")
         
         # For each data row (only from the target split)
         start_time = time.time()
@@ -329,14 +336,17 @@ class MultiPromptify:
         enhanced_variations = []
 
         for variation in variations:
-            # Create a new variation with only the required API fields
+            # Create a new variation with reorganized structure
             enhanced_var = {
-                'prompt': variation.get('prompt', ''),
                 'original_row_index': variation.get('original_row_index', 0),
                 'variation_count': variation.get('variation_count', 1),
-                'template_config': variation.get('template_config', {}),
-                'field_values': variation.get('field_values', {}),
-                'gold_updates': variation.get('gold_updates')
+                'prompt': variation.get('prompt', ''),
+                'conversation': None,  # Will be set below
+                'gold_updates': variation.get('gold_updates'),
+                'configuration': {
+                    'template_config': variation.get('template_config', {}),
+                    'field_values': variation.get('field_values', {})
+                }
             }
 
             # Add conversation field if not already present

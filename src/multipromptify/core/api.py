@@ -327,17 +327,12 @@ class MultiPromptifier:
             if verbose:
                 print(f"📊 Step 2/5: Preparing data... (using first {self.config['max_rows']} rows)")
 
-            # Limit data to selected number of rows
-            if self.config['max_rows'] is not None:
-                data_subset = self.data.head(self.config['max_rows']).copy()
-            else:
-                data_subset = self.data.copy()
-
             # Ensure data types are consistent to avoid pandas array comparison issues
-            for col in data_subset.columns:
-                if data_subset[col].dtype == 'object':
+            data_for_engine = self.data.copy()
+            for col in data_for_engine.columns:
+                if data_for_engine[col].dtype == 'object':
                     # Convert object columns to string to avoid array comparison issues
-                    data_subset[col] = data_subset[col].astype(str)
+                    data_for_engine[col] = data_for_engine[col].astype(str)
 
             # Step 3: Configure parameters
             if verbose:
@@ -346,7 +341,7 @@ class MultiPromptifier:
             # Step 4: Generate variations
             if verbose:
                 print("⚡ Step 4/5: Generating variations... (AI is working on variations)")
-                print(f"   Processing {len(data_subset)} rows...")
+                print(f"   Processing {len(data_for_engine)} rows...")
 
             # Create simple progress callback for verbose mode
             def simple_progress_callback(row_idx, total_rows, variations_this_row, total_variations, eta):
@@ -359,11 +354,12 @@ class MultiPromptifier:
 
             self.results = self.mp.generate_variations(
                 template=self.template,
-                data=data_subset,
+                data=data_for_engine,
                 variations_per_field=self.config['variations_per_field'],
                 api_key=self.config['api_key'],
                 seed=self.config['random_seed'],
-                progress_callback=final_callback
+                progress_callback=final_callback,
+                max_rows=self.config['max_rows']  # Pass max_rows to engine
             )
 
             # Step 5: Compute statistics
@@ -375,8 +371,8 @@ class MultiPromptifier:
 
             if verbose:
                 print(f"✅ Generated {len(self.results)} variations in {self.generation_time:.1f} seconds")
-                print(f"   Average: {len(self.results) / len(data_subset):.1f} variations per row")
-                print(f"   Speed: {self.generation_time / len(data_subset):.2f}s per row")
+                print(f"   Average: {len(self.results) / len(data_for_engine):.1f} variations per row")
+                print(f"   Speed: {self.generation_time / len(data_for_engine):.2f}s per row")
 
             return self.results
 

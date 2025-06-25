@@ -1961,7 +1961,7 @@ def test_enumerated_gold_in_few_shot():
     mp = MultiPromptifier()
     mp.load_dataframe(data)
     mp.set_template(template)
-    mp.configure(max_rows=3, variations_per_field=1, max_variations_per_row=1)
+    mp.configure(max_rows=3, variations_per_field=3, max_variations_per_row=3)
     
     variations = mp.generate(verbose=False)
     
@@ -1997,17 +1997,112 @@ def test_enumerated_gold_in_few_shot():
         print("❌ Could not find test question variation")
 
 
-if __name__ == "__main__":
-    # Run the new test first
-    test_enumerated_gold_in_few_shot()
+def example_list_data_support():
+    """Example demonstrating support for list data format (instead of comma-separated strings)."""
+    print("\n=== List Data Format Support Example ===")
     
-    # Run the debug example
+    # Create sample data with actual Python lists instead of comma-separated strings
+    data = pd.DataFrame({
+        'question': [
+            'Which technique is used for DNA amplification?',
+            'What is the most common programming language for data science?',
+            'What is the capital of France?',
+            'Which planet is closest to the Sun?'
+        ],
+        'choices': [
+            ['polymerase chain reaction.', 'single strand conformational polymorphism analysis.', 'Southern blotting.', 'Western blotting.'],
+            ['Python', 'R', 'Java', 'C++'],
+            ['London', 'Paris', 'Berlin', 'Madrid'],
+            ['Venus', 'Mercury', 'Earth', 'Mars']
+        ],
+        'answer': [0, 0, 1, 1],  # Correct choice indices
+        'subject': ['Biology', 'Computer Science', 'Geography', 'Astronomy']
+    })
+    
+    print("📊 Sample Data with List Format:")
+    print(f"   Question 1 choices: {data.iloc[0]['choices']}")
+    print(f"   Question 2 choices: {data.iloc[1]['choices']}")
+    print(f"   Data type: {type(data.iloc[0]['choices'])}")
+    
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    print(f"📝 Loaded {len(data)} questions with list-format choices")
+
+    # Configure template with shuffle and enumerate operations
+    template = {
+        INSTRUCTION: "The following are multiple choice questions (with answers) about {subject}.",
+        PROMPT_FORMAT: "Question: {question}\nChoices: {choices}\nAnswer:\n{answer}",
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
+        'choices': [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'choices'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,  # Reduced from 5 to work with smaller datasets
+            'format': 'shared_first_n',
+            'split': 'all'
+        }
+    }
+    
+    mp.set_template(template)
+    print("✅ Template configured with list data support:")
+    print("   - choices field: shuffle + enumerate operations")
+    print("   - Gold field: index-based with choices as options_field")
+
+    # Configure generation parameters
+    mp.configure(
+        max_rows=4,
+        variations_per_field=2,
+        max_variations_per_row=4,
+        random_seed=42
+    )
+
+    # Generate variations
+    print("\n🚀 Generating variations with list data...")
+    variations = mp.generate(verbose=True)
+
+    # Show results
+    print(f"\n✅ Generated {len(variations)} variations with list data support")
+    
+    # Display first few variations to see shuffle and enumerate in action
+    for i, variation in enumerate(variations[:4]):
+        print(f"\nVariation {i + 1}:")
+        print("-" * 50)
+        print(variation.get('prompt', 'No prompt found'))
+        print("-" * 50)
+        
+        # Show field values to see how list was processed
+        field_values = variation.get('field_values', {})
+        if 'choices' in field_values:
+            print(f"Processed choices: {field_values['choices']}")
+        
+        # Show gold updates
+        gold_updates = variation.get('gold_updates', {})
+        if gold_updates:
+            print(f"Gold updates: {gold_updates}")
+
+    # Export results
+    mp.export("list_data_support_example.json", format="json")
+    print("\n✅ List data support example completed!")
+    print("✅ Exported to list_data_support_example.json")
+
+
+if __name__ == "__main__":
+    # Run the new list data support example first
+    # example_list_data_support()
+    #
+    # # Run the new test first
+    # test_enumerated_gold_in_few_shot()
+    #
+    # # Run the debug example
     example_few_shot_train_test_split()
     example_few_shot_rotating_vs_fixed()
 
-    # example_complex_template_debug()
-    example_many_augmenters_on_small_dataset()
-    # Uncomment other examples as needed:
+    # # example_complex_template_debug()
+    # example_many_augmenters_on_small_dataset()
+    # # Uncomment other examples as needed:
     # example_shuffle_template()
     # example_with_sample_data_few_shot()
     # example_with_enumerate()

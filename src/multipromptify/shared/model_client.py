@@ -4,7 +4,7 @@ Client for interacting with language models.
 import os
 from typing import List, Dict, Optional
 from together import Together
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 from multipromptify.shared.constants import GenerationDefaults
@@ -23,8 +23,9 @@ if TOGETHER_API_KEY:
     together_client = Together(api_key=TOGETHER_API_KEY)
 
 # Initialize OpenAI client if API key is available
+openai_client = None
 if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 def get_model_response(messages: List[Dict[str, str]], 
@@ -72,7 +73,7 @@ def _get_together_response(messages: List[Dict[str, str]], model_name: str, max_
 
 def _get_openai_response(messages: List[Dict[str, str]], model_name: str, max_tokens: Optional[int] = None) -> str:
     """Get response from OpenAI."""
-    if not OPENAI_API_KEY:
+    if not openai_client:
         raise APIKeyMissingError("OpenAI")
     
     # Prepare parameters
@@ -84,8 +85,8 @@ def _get_openai_response(messages: List[Dict[str, str]], model_name: str, max_to
     # Add max_tokens if provided
     if max_tokens is not None:
         params["max_tokens"] = max_tokens
-    
-    response = openai.ChatCompletion.create(**params)
+
+    response = openai_client.chat.completions.create(**params)
     return response.choices[0].message.content
 
 
@@ -152,24 +153,27 @@ def get_completion_with_key(prompt: str,
     
     elif platform == "OpenAI":
         # Create a temporary OpenAI client with the provided API key
-        temp_openai = openai
-        temp_openai.api_key = api_key
-        
+        client = OpenAI(api_key=api_key)
+
+        # Prepare the messages
         messages = [
             {"role": "user", "content": prompt}
         ]
-        
+
         # Prepare parameters
         params = {
             "model": model_name,
             "messages": messages,
         }
-        
+
         # Add max_tokens if provided
         if max_tokens is not None:
             params["max_tokens"] = max_tokens
-        
-        response = temp_openai.ChatCompletion.create(**params)
+
+        # Create chat completion
+        response = client.chat.completions.create(**params)
+
+        # Return the response content
         return response.choices[0].message.content
     
     else:
@@ -187,7 +191,7 @@ if __name__ == "__main__":
     else:
         print("No TogetherAI API key available for testing")
     
-    if OPENAI_API_KEY:
+    if openai_client:
         response = get_completion(test_prompt, platform="OpenAI", model_name="gpt-4o-mini")
         print(f"OpenAI Response: {response}")
     else:
