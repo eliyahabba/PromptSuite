@@ -62,7 +62,8 @@ This augmenter handles few-shot examples for NLP tasks.
             identification_data.get('gold_field'),
             identification_data.get('gold_type', 'value'),
             identification_data.get('options_field'),
-            identification_data.get('enumerate_configs')
+            identification_data.get('enumerate_configs'),
+            identification_data
         )
         # Return structured examples directly (not formatted strings)
         return structured_examples
@@ -86,7 +87,8 @@ This augmenter handles few-shot examples for NLP tasks.
 
     def generate_few_shot_examples_structured(self, few_shot_field, prompt_format_variant: str, data: pd.DataFrame,
                                               current_row_idx: int, gold_field: str = None, gold_type: str = 'value',
-                                              options_field: str = None, enumerate_configs: Dict[str, dict] = None) -> List[Dict[str, str]]:
+                                              options_field: str = None, enumerate_configs: Dict[str, dict] = None,
+                                              identification_data: Dict[str, Any] = None) -> List[Dict[str, str]]:
         """Generate few-shot examples using the configured parameters with structured output.
         
         Few-shot formats:
@@ -124,9 +126,13 @@ This augmenter handles few-shot examples for NLP tasks.
             sampled_data = available_data.sample(n=count, random_state=42)
         elif few_shot_format == "shared_unordered_random_n":
             # Sample the same random rows but shuffle their order
-            sampled_data = available_data.sample(n=count, random_state=42).sample(frac=1.0, random_state=current_row_idx)
+            # Use order_seed from identification_data if available for variations
+            order_seed = identification_data.get('order_seed', current_row_idx) if identification_data else current_row_idx
+            sampled_data = available_data.sample(n=count, random_state=42).sample(frac=1.0, random_state=order_seed)
         elif few_shot_format == "random_per_row":
-            sampled_data = available_data.sample(n=count, random_state=current_row_idx)
+            # Use selection_seed from identification_data if available for variations
+            selection_seed = identification_data.get('selection_seed', current_row_idx) if identification_data else current_row_idx
+            sampled_data = available_data.sample(n=count, random_state=selection_seed)
         else:
             print(f"⚠️ Unknown few-shot format '{few_shot_format}', using 'shared_ordered_first_n'")
             sampled_data = available_data.head(count)

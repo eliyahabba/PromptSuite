@@ -15,7 +15,7 @@ from multipromptify.core.exceptions import (
 )
 from multipromptify.core.models import VariationContext, FieldVariation, FewShotContext
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT_VARIATIONS, INSTRUCTION, INSTRUCTION_VARIATIONS
+    PROMPT_FORMAT_VARIATIONS, INSTRUCTION, INSTRUCTION_VARIATIONS, FEW_SHOT_KEY
 )
 from multipromptify.utils.formatting import format_field_value
 
@@ -373,6 +373,16 @@ class FewShotHandler:
         if not few_shot_field or variation_context.data is None:
             return []
 
+        # Check if we have few-shot variations in field_values
+        few_shot_config = few_shot_field.__dict__.copy()  # Start with base config
+        
+        # If few-shot is treated as a variation axis, use the specific variation config
+        if field_values and FEW_SHOT_KEY in field_values:
+            few_shot_variation = field_values[FEW_SHOT_KEY]
+            if isinstance(few_shot_variation.data, dict):
+                # Update config with variation-specific settings
+                few_shot_config.update(few_shot_variation.data)
+
         few_shot_context = FewShotContext(
             prompt_format_template=prompt_format_variant,
             few_shot_field=few_shot_field,
@@ -381,6 +391,13 @@ class FewShotHandler:
             gold_config=variation_context.gold_config
         )
         identification_data = few_shot_context.to_identification_data()
+        
+        # Add few-shot configuration modifications for variations
+        if '_order_seed' in few_shot_config:
+            identification_data['order_seed'] = few_shot_config['_order_seed']
+        if '_selection_seed' in few_shot_config:
+            identification_data['selection_seed'] = few_shot_config['_selection_seed']
+            
         # Add enumeration configuration - use current variation's enumeration type if available
         identification_data['enumerate_configs'] = self._get_enumerate_fields_config_for_variation(
             variation_context.template, field_values

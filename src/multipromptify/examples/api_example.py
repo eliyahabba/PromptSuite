@@ -2155,7 +2155,7 @@ def example_few_shot_unordered_random():
     }
     
     mp.set_template(template_unordered)
-    mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=6)
+    mp.configure(max_rows=1, variations_per_field=5, max_variations_per_row=10)
     
     variations_unordered = mp.generate(verbose=False)
     
@@ -2337,11 +2337,11 @@ if __name__ == "__main__":
     # example_list_data_support()
 
     # Run the new test first
-    test_enumerated_gold_in_few_shot()
+    # test_enumerated_gold_in_few_shot()
 
     # Run the debug example
-    example_few_shot_train_test_split()
-    example_few_shot_rotating_vs_fixed()
+    # example_few_shot_train_test_split()
+    # example_few_shot_rotating_vs_fixed()
 
     # # example_complex_template_debug()
     # example_many_augmenters_on_small_dataset()

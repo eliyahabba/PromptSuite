@@ -189,7 +189,8 @@ class MultiPromptify:
                     row,
                     variation_config,
                     gold_config,
-                    pre_generated_variations  # Pass pre-generated variations
+                    pre_generated_variations,  # Pass pre-generated variations
+                    template  # Pass template for few-shot handling
                 )
 
                 # Create variation context
