@@ -13,7 +13,7 @@ from multipromptify.core.models import (
 )
 from multipromptify.core.template_keys import (
     PROMPT_FORMAT_VARIATIONS, SHUFFLE_VARIATION, ENUMERATE_VARIATION,
-    INSTRUCTION_VARIATIONS
+    INSTRUCTION_VARIATIONS, FEW_SHOT_KEY
 )
 from multipromptify.utils.formatting import format_field_value, extract_gold_value
 
@@ -116,13 +116,86 @@ class VariationGenerator:
             unique_variations.insert(0, instruction)
         return unique_variations[:variation_config.variations_per_field]
 
+    def generate_few_shot_variations(
+            self,
+            few_shot_config: dict,
+            variation_config: VariationConfig
+    ) -> List[FieldVariation]:
+        """
+        Generate few-shot variations for formats that create meaningful variations.
+        
+        Args:
+            few_shot_config: Few-shot configuration from template
+            variation_config: Variation configuration
+            
+        Returns:
+            List of FieldVariation objects representing different few-shot configurations
+        """
+        few_shot_format = few_shot_config.get('format', 'shared_first_n')
+        
+        # Only generate variations for formats that create meaningful differences
+        if few_shot_format not in ['shared_unordered_random_n', 'random_per_row']:
+            # For non-varying formats, return single configuration
+            return [FieldVariation(data=few_shot_config, gold_update=None)]
+        
+        variations = []
+        
+        if few_shot_format == 'shared_unordered_random_n':
+            # For shared_unordered_random_n, we need to find seeds that actually produce different orderings
+            # Since we only have 2 items, there are only 2 possible orderings: [0,1] and [1,0]
+            few_shot_count = few_shot_config.get('count', 2)
+            
+            # Test a wide range of seeds to find ones that produce different orderings
+            import random
+            seen_orderings = set()
+            tested_seeds = []
+            
+            # Test many seeds to find diverse orderings using pandas (to match actual behavior)
+            import pandas as pd
+            temp_data = pd.DataFrame({'idx': range(few_shot_count)})
+            
+            for i in range(1000):  # Test up to 1000 seeds
+                test_seed = i + 1  # Start from 1
+                # Use pandas sampling to match the actual behavior in FewShotAugmenter
+                shuffled = temp_data.sample(frac=1.0, random_state=test_seed)
+                ordering_signature = tuple(shuffled['idx'].tolist())
+                
+                if ordering_signature not in seen_orderings:
+                    seen_orderings.add(ordering_signature)
+                    tested_seeds.append(test_seed)
+                
+                # Stop if we have enough unique orderings
+                if len(tested_seeds) >= variation_config.variations_per_field:
+                    break
+            
+            # Create variations using only the unique seeds found
+            # Return only the number of unique orderings possible, don't repeat
+            for seed in tested_seeds:
+                config_variation = few_shot_config.copy()
+                config_variation['_order_seed'] = seed
+                variations.append(FieldVariation(data=config_variation, gold_update=None))
+        
+        elif few_shot_format == 'random_per_row':
+            # For random_per_row, we can generate meaningful variations based on different selection seeds
+            # The number of possible unique selections depends on the dataset size and few-shot count
+            # We'll generate up to the requested number, but not more than what makes sense
+            for i in range(variation_config.variations_per_field):
+                config_variation = few_shot_config.copy()
+                # Use a more spread out seed range to ensure different selections
+                config_variation['_selection_seed'] = (variation_config.seed or 42) * 100 + i * 23
+                variations.append(FieldVariation(data=config_variation, gold_update=None))
+        
+        # Return only the requested number of variations
+        return variations[:variation_config.variations_per_field]
+
     def generate_row_specific_field_variations(
             self,
             variation_fields: Dict[str, List[str]],
             row: pd.Series,
             variation_config: VariationConfig,
             gold_config,
-            pre_generated_variations: Dict[str, List[FieldVariation]]
+            pre_generated_variations: Dict[str, List[FieldVariation]],
+            template: dict = None
     ) -> Dict[str, List[FieldVariation]]:
         """
         Generate variations for row-specific fields only (excluding instruction and prompt format variations).
@@ -141,6 +214,18 @@ class VariationGenerator:
         for field_name, variation_types in variation_fields.items():
             if field_name in [PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS]:
                 continue  # Already handled above
+
+            # Special handling for few-shot variations
+            if field_name == FEW_SHOT_KEY and 'few_shot_variation' in variation_types:
+                if template and FEW_SHOT_KEY in template:
+                    few_shot_config = template[FEW_SHOT_KEY]
+                    field_variations[field_name] = self.generate_few_shot_variations(
+                        few_shot_config, variation_config
+                    )
+                else:
+                    # Fallback if template not available
+                    field_variations[field_name] = [FieldVariation(data={}, gold_update=None)]
+                continue
 
             # Assume clean data - process all fields that exist in the row
             if field_name in row.index:

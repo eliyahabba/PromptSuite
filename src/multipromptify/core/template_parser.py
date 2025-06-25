@@ -110,11 +110,20 @@ class TemplateParser:
             elif field_name == FEW_SHOT_KEY:
                 # Special handling for few_shot
                 if isinstance(config, dict):
+                    few_shot_format = config.get("format", "shared_first_n")
+                    
+                    # Determine if this few-shot configuration should be treated as a variation axis
+                    # For formats that create meaningful variations, treat as variation axis
+                    variation_types = []
+                    if few_shot_format in ['shared_unordered_random_n', 'random_per_row']:
+                        # These formats create meaningful variations, so include as variation axis
+                        variation_types = ['few_shot_variation']
+                    
                     field = TemplateField(
                         name=FEW_SHOT_KEY,
-                        variation_types=[],
+                        variation_types=variation_types,
                         few_shot_count=config.get("count", 2),
-                        few_shot_format=config.get("format", "shared_ordered_first_n"),
+                        few_shot_format=few_shot_format,
                         few_shot_split=config.get("split", "all")
                     )
                     self.fields.append(field)

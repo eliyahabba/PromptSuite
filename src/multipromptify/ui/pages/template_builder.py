@@ -508,11 +508,17 @@ def template_builder_interface(available_columns):
         with col2:
             few_shot_format = st.selectbox(
                 "Example selection",
-                options=["rotating", "fixed"],
+                options=["random_per_row", "shared_ordered_first_n", "shared_unordered_random_n"],
+                format_func=lambda x: {
+                    "random_per_row": "Random per row (different examples for each row)",
+                    "shared_ordered_first_n": "Shared ordered (same examples, same order)",
+                    "shared_unordered_random_n": "Shared unordered (same examples, random order)"
+                }.get(x, x),
                 index=0 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format',
-                                                                                      'rotating') == 'rotating' else 1,
+                                                                                      'random_per_row') == 'random_per_row' else (
+                    1 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format') == 'shared_ordered_first_n' else 2),
                 key="few_shot_format",
-                help="Rotating: different examples per row, Fixed: same examples for all rows"
+                help="Choose how few-shot examples are selected and ordered"
             )
 
         with col3:
