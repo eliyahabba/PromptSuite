@@ -42,7 +42,7 @@ def example_with_sample_data_few_shot():
         'gold': 'answer',
         'few_shot': {
             'count': 2,  # Use 2 examples
-            'format': 'shared_first_n',  # Different examples each time
+            'format': 'shared_ordered_first_n',  # Different examples each time
             'split': 'all'  # Use all data for examples
         }
     }
@@ -406,7 +406,7 @@ def example_different_templates():
         },
         FEW_SHOT_KEY: {
             'count': 1,
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'all'
         }
     }
@@ -555,7 +555,7 @@ def example_with_simple_qa():
         GOLD_KEY: 'answer',
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'all'
         }
     }
@@ -635,7 +635,7 @@ def example_with_system_prompt_few_shot():
         GOLD_KEY: 'answer',
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'all'
         }
     }
@@ -728,7 +728,7 @@ def example_system_prompt_with_placeholder_and_few_shot():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'all'
         }
     }
@@ -863,7 +863,7 @@ def example_system_prompt_with_context_and_few_shot():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',    # Same examples for all questions
+            'format': 'shared_ordered_first_n',    # Same examples for all questions
             'split': 'train'      # Use only training data
         }
     }
@@ -1456,7 +1456,7 @@ def example_shuffle_template():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'all'
         }
     }
@@ -1540,7 +1540,7 @@ def example_complex_template_debug():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'all'
         }
     }
@@ -1550,7 +1550,7 @@ def example_complex_template_debug():
     print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
     print("   - QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION]")
     print("   - OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
-    print("   - FEW_SHOT_KEY: count=2, format=shared_first_n, split=all")
+    print("   - FEW_SHOT_KEY: count=2, format=shared_ordered_first_n, split=all")
 
     # Configure with 3 variations per field
     mp.configure(
@@ -1640,7 +1640,7 @@ def example_complex_template_debug():
 
 
 def example_few_shot_train_test_split():
-    """Test few-shot behavior with train/test split to understand how shared_first_n/fixed works."""
+    """Test few-shot behavior with train/test split to understand how shared_ordered_first_n/fixed works."""
     print("\n" + "=" * 60)
     print("🔍 Testing Few-Shot with Train/Test Split")
     print("=" * 60)
@@ -1711,7 +1711,7 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',    # Same examples for all questions
+            'format': 'shared_ordered_first_n',    # Same examples for all questions
             'split': 'train'      # Use only training data
         }
     }
@@ -1765,7 +1765,7 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',  # Different examples for each question
+            'format': 'shared_ordered_first_n',  # Different examples for each question
             'split': 'train'       # Use only training data
         }
     }
@@ -1839,7 +1839,7 @@ def example_few_shot_rotating_vs_fixed():
     print(f"   - Test: {len(data[data['split'] == 'test'])} examples")
     
     # Test both formats with same configuration
-    formats = ['shared_first_n', 'random_per_row']
+    formats = ['shared_ordered_first_n', 'random_per_row']
     
     for format_type in formats:
         print(f"\n" + "=" * 30)
@@ -1907,7 +1907,7 @@ def example_few_shot_rotating_vs_fixed():
     print("=" * 60)
     
     print("📊 Expected Behavior:")
-    print("   SHARED_FIRST_N format:")
+    print("   SHARED_ORDERED_FIRST_N format:")
     print("     - Should use the SAME 2 training examples for ALL test questions")
     print("     - Examples: Always questions 0,1 (France, Germany)")
     print()
@@ -1917,7 +1917,7 @@ def example_few_shot_rotating_vs_fixed():
     print("     - Each test question gets different training examples")
     
     print("\n💡 Key Points to Verify:")
-    print("   1. Does 'shared_first_n' really use the same examples for all test questions?")
+    print("   1. Does 'shared_ordered_first_n' really use the same examples for all test questions?")
     print("   2. Does 'random_per_row' use different examples for each test question?")
     print("   3. Are only TRAIN examples used (no test examples in few-shot)?")
     print("   4. Is the current question excluded from few-shot examples?")
@@ -1953,7 +1953,7 @@ def test_enumerated_gold_in_few_shot():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'train'
         }
     }
@@ -2041,7 +2041,7 @@ def example_list_data_support():
         },
         FEW_SHOT_KEY: {
             'count': 2,  # Reduced from 5 to work with smaller datasets
-            'format': 'shared_first_n',
+            'format': 'shared_ordered_first_n',
             'split': 'all'
         }
     }
@@ -2089,14 +2089,257 @@ def example_list_data_support():
     print("✅ Exported to list_data_support_example.json")
 
 
+def example_few_shot_unordered_random():
+    """Example demonstrating the new shared_unordered_random_n few-shot format."""
+    print("\n" + "=" * 60)
+    print("🔄 Few-Shot Unordered Random Example")
+    print("=" * 60)
+    
+    # Create dataset with train/test split
+    data = pd.DataFrame({
+        'question': [
+            # Training examples (will be used for few-shot)
+            'What is 2+2?',
+            'What is 3+3?', 
+            'What is 4+4?',
+            'What is 5+5?',
+            'What is 6+6?',
+            # Test examples (will be the target questions)
+            'What is 7+7?',
+            'What is 8+8?',
+            'What is 9+9?'
+        ],
+        'options': [
+            # Training options
+            '3, 4, 5, 6',
+            '5, 6, 7, 8', 
+            '7, 8, 9, 10',
+            '9, 10, 11, 12',
+            '11, 12, 13, 14',
+            # Test options
+            '13, 14, 15, 16',
+            '15, 16, 17, 18',
+            '17, 18, 19, 20'
+        ],
+        'answer': [1, 1, 1, 1, 1, 1, 1, 1],  # All answers are option B
+        'split': ['train', 'train', 'train', 'train', 'train', 'test', 'test', 'test']
+    })
+    
+    print(f"📊 Dataset Overview:")
+    print(f"   - Total examples: {len(data)}")
+    print(f"   - Train examples: {len(data[data['split'] == 'train'])}")
+    print(f"   - Test examples: {len(data[data['split'] == 'test'])}")
+    
+    # Test shared_unordered_random_n format
+    print("\n" + "=" * 40)
+    print("🔧 Testing shared_unordered_random_n format")
+    print("=" * 40)
+    
+    mp = MultiPromptifier()
+    mp.load_dataframe(data)
+    
+    template_unordered = {
+        INSTRUCTION: 'Answer the following multiple choice math questions.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+        OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': 'shared_unordered_random_n',  # Same examples but shuffled order
+            'split': 'train'
+        }
+    }
+    
+    mp.set_template(template_unordered)
+    mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=6)
+    
+    variations_unordered = mp.generate(verbose=False)
+    
+    print(f"✅ Generated {len(variations_unordered)} variations with shared_unordered_random_n")
+    mp.export("few_shot_unordered_random_example.json", format="json")
+
+    # Show few-shot examples for each test question
+    test_variations = [v for v in variations_unordered if v.get('original_row_index', 0) >= 5]
+    
+    for i, var in enumerate(test_variations):
+        row_idx = var.get('original_row_index', 0)
+        question = data.iloc[row_idx]['question']
+        print(f"\n📋 Test Question {i+1} (Row {row_idx}): {question}")
+        print("Few-shot examples used (same examples, different order):")
+        
+        conversation = var.get('conversation', [])
+        if conversation:
+            for msg in conversation:
+                if msg['role'] == 'user':
+                    content = msg['content']
+                    if 'Question:' in content:
+                        examples = content.split('Question:')[:-1]
+                        for j, example in enumerate(examples):
+                            if example.strip():
+                                print(f"   Example {j+1}: Question: {example.strip()}")
+    
+    print(f"\n" + "=" * 60)
+    print("🔍 ANALYSIS: shared_unordered_random_n vs shared_ordered_random_n")
+    print("=" * 60)
+    
+    print("📊 Expected Behavior:")
+    print("   SHARED_UNORDERED_RANDOM_N format:")
+    print("     - Uses the SAME 2 random training examples for ALL test questions")
+    print("     - BUT shuffles the ORDER of these examples for each test question")
+    print("     - Examples: Same random selection, but order varies per question")
+    print()
+    print("   vs SHARED_ORDERED_RANDOM_N format:")
+    print("     - Uses the SAME 2 random training examples for ALL test questions")
+    print("     - AND keeps the SAME ORDER for all test questions")
+    print("     - Examples: Same random selection, same order always")
+    
+    print("\n💡 Key Benefits of shared_unordered_random_n:")
+    print("   1. Consistent example selection (same random examples)")
+    print("   2. Order variation (shuffled order per question)")
+    print("   3. Reduces position bias in few-shot examples")
+    print("   4. Maintains reproducibility with fixed seed")
+    
+    print("\n✅ Check the exported JSON file for detailed analysis!")
+
+
+def example_few_shot_rotating_vs_fixed():
+    """Detailed comparison of rotating vs fixed few-shot to understand the differences."""
+    print("\n" + "=" * 60)
+    print("⚖️  Detailed Comparison: Rotating vs Fixed Few-Shot")
+    print("=" * 60)
+    
+    # Create a larger dataset to see rotation effects
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is the capital of Germany?', 
+            'What is the capital of Italy?',
+            'What is the capital of Spain?',
+            'What is the capital of UK?',
+            'What is the capital of Japan?',
+            'What is the capital of China?',
+            'What is the capital of Russia?'
+        ],
+        'options': [
+            'London, Paris, Berlin, Madrid',
+            'Paris, Berlin, Rome, Madrid', 
+            'Berlin, Rome, Paris, London',
+            'Madrid, Paris, Berlin, Rome',
+            'London, Berlin, Paris, Madrid',
+            'Tokyo, Beijing, Seoul, Bangkok',
+            'Beijing, Tokyo, Seoul, Bangkok',
+            'Moscow, Kiev, Warsaw, Prague'
+        ],
+        'answer': [1, 1, 1, 0, 0, 0, 0, 0],  # Correct answers
+        'split': ['train', 'train', 'train', 'train', 'test', 'test', 'test', 'test']
+    })
+    
+    print(f"📊 Dataset: {len(data)} geography questions")
+    print(f"   - Train: {len(data[data['split'] == 'train'])} examples")
+    print(f"   - Test: {len(data[data['split'] == 'test'])} examples")
+    
+    # Test both formats with same configuration
+    formats = ['shared_ordered_first_n', 'random_per_row']
+    
+    for format_type in formats:
+        print(f"\n" + "=" * 30)
+        print(f"🔍 Testing {format_type.upper()} format")
+        print("=" * 30)
+        
+        mp = MultiPromptifier()
+        mp.load_dataframe(data)
+        
+        template = {
+            INSTRUCTION: 'Answer the following geography questions.',
+            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
+            GOLD_KEY: {
+                'field': 'answer',
+                'type': 'index',
+                'options_field': 'options'
+            },
+            FEW_SHOT_KEY: {
+                'count': 2,
+                'format': format_type,
+                'split': 'train'
+            }
+        }
+        
+        mp.set_template(template)
+        mp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
+        
+        variations = mp.generate(verbose=False)
+        
+        # Analyze test questions only
+        test_variations = [v for v in variations if v.get('original_row_index', 0) >= 4]
+        
+        print(f"📋 {format_type.upper()} Results:")
+        
+        for i, var in enumerate(test_variations):
+            row_idx = var.get('original_row_index', 0)
+            question = data.iloc[row_idx]['question']
+            
+            print(f"\n   Test Question {i+1} (Row {row_idx}):")
+            print(f"   Q: {question}")
+            
+            # Extract few-shot examples
+            conversation = var.get('conversation', [])
+            few_shot_questions = []
+            
+            if conversation:
+                for msg in conversation:
+                    if msg['role'] == 'user':
+                        content = msg['content']
+                        # Find all questions in the content
+                        lines = content.split('\n')
+                        for line in lines:
+                            if line.startswith('Question:') and line != f"Question: {question}":
+                                few_shot_questions.append(line.replace('Question: ', ''))
+            
+            print(f"   Few-shot examples:")
+            for j, fs_q in enumerate(few_shot_questions):
+                print(f"     {j+1}. {fs_q}")
+        
+        # Export for this format
+        mp.export(f"few_shot_{format_type}_analysis.json", format="json")
+    
+    print(f"\n" + "=" * 60)
+    print("🔍 ANALYSIS SUMMARY")
+    print("=" * 60)
+    
+    print("📊 Expected Behavior:")
+    print("   SHARED_ORDERED_FIRST_N format:")
+    print("     - Should use the SAME 2 training examples for ALL test questions")
+    print("     - Examples: Always questions 0,1 (France, Germany)")
+    print()
+    print("   RANDOM_PER_ROW format:")
+    print("     - Should use DIFFERENT training examples for each test question")
+    print("     - Based on random_state=current_row_idx")
+    print("     - Each test question gets different training examples")
+    
+    print("\n💡 Key Points to Verify:")
+    print("   1. Does 'shared_ordered_first_n' really use the same examples for all test questions?")
+    print("   2. Does 'random_per_row' use different examples for each test question?")
+    print("   3. Are only TRAIN examples used (no test examples in few-shot)?")
+    print("   4. Is the current question excluded from few-shot examples?")
+    
+    print("\n✅ Check the exported JSON files for detailed analysis!")
+
+
 if __name__ == "__main__":
+    # Run the new unordered random few-shot example
+    example_few_shot_unordered_random()
+    
     # Run the new list data support example first
     # example_list_data_support()
-    #
-    # # Run the new test first
-    # test_enumerated_gold_in_few_shot()
-    #
-    # # Run the debug example
+
+    # Run the new test first
+    test_enumerated_gold_in_few_shot()
+
+    # Run the debug example
     example_few_shot_train_test_split()
     example_few_shot_rotating_vs_fixed()
 

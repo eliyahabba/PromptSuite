@@ -45,7 +45,7 @@ class MultiPromptify:
         "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
-            "format": "shared_first_n",  # 'shared_first_n', 'shared_random_n', or 'random_per_row'
+            "format": "shared_ordered_first_n",  # 'shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', or 'random_per_row'
             "split": "train"    # or "test" or "all"
         },
         "input": ["surface"]

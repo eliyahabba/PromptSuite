@@ -16,14 +16,14 @@ from multipromptify.core.template_keys import (
 @dataclass
 class TemplateField:
     """Represents a field in a template with its variation types.
-    few_shot_format: 'shared_first_n', 'shared_random_n', or 'random_per_row'
+    few_shot_format: 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
     """
     name: str
     variation_types: List[str] = None
     is_literal: bool = False
     # Few-shot specific parameters
     few_shot_count: Optional[int] = None
-    few_shot_format: Optional[str] = None  # 'shared_first_n', 'shared_random_n', or 'random_per_row'
+    few_shot_format: Optional[str] = None  # 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
     few_shot_split: Optional[str] = None  # 'train', 'test', or 'all' for data splitting
     # Enumerate specific parameters
     enumerate_field: Optional[str] = None  # Which field to enumerate
@@ -46,7 +46,7 @@ class TemplateParser:
         "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
-            "format": "shared_first_n",  # 'shared_first_n', 'shared_random_n', or 'random_per_row'
+            "format": "shared_ordered_first_n",  # 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
             "split": "train"    # or "test" or "all"
         },
         "input": ["surface"]
@@ -114,7 +114,7 @@ class TemplateParser:
                         name=FEW_SHOT_KEY,
                         variation_types=[],
                         few_shot_count=config.get("count", 2),
-                        few_shot_format=config.get("format", "shared_first_n"),
+                        few_shot_format=config.get("format", "shared_ordered_first_n"),
                         few_shot_split=config.get("split", "all")
                     )
                     self.fields.append(field)
@@ -278,8 +278,8 @@ class TemplateParser:
                 if field.few_shot_count and field.few_shot_count <= 0:
                     errors.append(f"Few-shot count must be positive, got {field.few_shot_count}")
 
-                if field.few_shot_format not in ['shared_first_n', 'shared_random_n', 'random_per_row']:
-                    errors.append(f"Few-shot format must be 'shared_first_n', 'shared_random_n', or 'random_per_row', got {field.few_shot_format}")
+                if field.few_shot_format not in ['shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', 'random_per_row']:
+                    errors.append(f"Few-shot format must be 'shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', or 'random_per_row', got {field.few_shot_format}")
 
                 if field.few_shot_split not in ['all', 'train', 'test']:
                     errors.append(f"Few-shot split must be 'all', 'train', or 'test', got {field.few_shot_split}")

@@ -132,7 +132,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 2,
-                                'format': 'shared_first_n',
+                                'format': 'shared_ordered_first_n',
                                 'split': 'all'
                             }
                         },
@@ -185,7 +185,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 3,
-                                'format': 'shared_first_n',
+                                'format': 'shared_ordered_first_n',
                                 'split': 'all'
                             }
                         },
@@ -266,7 +266,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 2,
-                                'format': 'shared_first_n',
+                                'format': 'shared_ordered_first_n',
                                 'split': 'all'
                             }
                         },
@@ -405,11 +405,34 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 3,
-                                'format': 'shared_first_n',
+                                'format': 'shared_ordered_first_n',
                                 'split': 'all'
                             }
                         },
                         'description': 'Text classification with format structure, noise injection, and rotating few-shot examples',
+                        'sample_data': {
+                            'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?',
+                                     'Order pizza for dinner', 'Check my account balance'],
+                            'category': ['travel', 'service', 'information', 'food', 'banking']
+                        }
+                    },
+                    {
+                        'name': 'Text Classification with Unordered Few-shot',
+                        'template': {
+                            INSTRUCTION: 'Classify the following text.',
+                            PROMPT_FORMAT: 'Text: "{text}"\nCategory: {category}',
+                            'text': [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
+                            GOLD_KEY: {
+                                'field': 'category',
+                                'type': 'value'
+                            },
+                            FEW_SHOT_KEY: {
+                                'count': 3,
+                                'format': 'shared_unordered_random_n',
+                                'split': 'all'
+                            }
+                        },
+                        'description': 'Text classification with same random examples but shuffled order for each row',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?',
                                      'Order pizza for dinner', 'Check my account balance'],
@@ -527,7 +550,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 2,
-                                'format': 'shared_first_n',
+                                'format': 'shared_ordered_first_n',
                                 'split': 'all'
                             }
                         },
@@ -551,7 +574,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 3,
-                                'format': 'shared_first_n',
+                                'format': 'shared_ordered_first_n',
                                 'split': 'train'
                             }
                         },
@@ -580,7 +603,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             GOLD_KEY: 'answer',
                             FEW_SHOT_KEY: {
                                 'count': 2,
-                                'format': 'shared_first_n',
+                                'format': 'shared_ordered_first_n',
                                 'split': 'all'
                             }
                         },
