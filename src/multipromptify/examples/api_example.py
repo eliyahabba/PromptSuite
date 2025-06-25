@@ -1466,7 +1466,7 @@ def example_shuffle_template():
     print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
     print("   - QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION]")
     print("   - OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
-    print("   - FEW_SHOT_KEY: count=2, format=fixed, split=all")
+    print("   - FEW_SHOT_KEY: count=2, format=shared_ordered_first_n, split=all")
 
     # Configure with 3 variations per field
     mp.configure(
@@ -1640,7 +1640,7 @@ def example_complex_template_debug():
 
 
 def example_few_shot_train_test_split():
-    """Test few-shot behavior with train/test split to understand how shared_ordered_first_n/fixed works."""
+    """Test few-shot behavior with train/test split to understand how shared_ordered_first_n works."""
     print("\n" + "=" * 60)
     print("🔍 Testing Few-Shot with Train/Test Split")
     print("=" * 60)
@@ -1690,15 +1690,15 @@ def example_few_shot_train_test_split():
     for i, row in test_data.iterrows():
         print(f"   {i}: {row['question']} -> {row['options'].split(', ')[row['answer']]}")
     
-    # Test 1: Fixed few-shot with train split
+    # Test 1: Ordered few-shot with train split
     print("\n" + "=" * 40)
-    print("🔧 Test 1: FIXED few-shot using TRAIN split")
+    print("🔧 Test 1: ORDERED few-shot using TRAIN split")
     print("=" * 40)
     
     mp = MultiPromptifier()
     mp.load_dataframe(data)
     
-    template_fixed_train = {
+    template_ordered_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
         OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],  # Shuffle options for variety
@@ -1716,16 +1716,16 @@ def example_few_shot_train_test_split():
         }
     }
     
-    mp.set_template(template_fixed_train)
+    mp.set_template(template_ordered_train)
     mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=6)  # Process all rows
     
-    variations_fixed = mp.generate(verbose=False)
+    variations_ordered = mp.generate(verbose=False)
     
-    print(f"✅ Generated {len(variations_fixed)} variations with FIXED few-shot")
-    mp.export("few_shot_train_test_fixed.json", format="json")
+    print(f"✅ Generated {len(variations_ordered)} variations with ORDERED few-shot")
+    mp.export("few_shot_train_test_ordered.json", format="json")
 
     # Show few-shot examples for each test question
-    test_variations = [v for v in variations_fixed if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
+    test_variations = [v for v in variations_ordered if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
     
     for i, var in enumerate(test_variations):
         row_idx = var.get('original_row_index', 0)
@@ -1745,12 +1745,12 @@ def example_few_shot_train_test_split():
                             if example.strip():
                                 print(f"   Example {j+1}: Question: {example.strip()}")
     
-    # Test 2: Rotating few-shot with train split
+    # Test 2: Random per row few-shot with train split
     print("\n" + "=" * 40)
-    print("🔄 Test 2: ROTATING few-shot using TRAIN split")
+    print("🔄 Test 2: RANDOM PER ROW few-shot using TRAIN split")
     print("=" * 40)
     
-    template_rotating_train = {
+    template_random_per_row_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
         OPTIONS_KEY: [SHUFFLE_VARIATION],  # Shuffle options for variety
@@ -1765,22 +1765,22 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',  # Different examples for each question
+            'format': 'random_per_row',  # Different examples for each question
             'split': 'train'       # Use only training data
         }
     }
     
-    mp.set_template(template_rotating_train)
+    mp.set_template(template_random_per_row_train)
     mp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=3)
     
-    variations_rotating = mp.generate(verbose=False)
+    variations_random_per_row = mp.generate(verbose=False)
     
-    print(f"✅ Generated {len(variations_rotating)} variations with ROTATING few-shot")
+    print(f"✅ Generated {len(variations_random_per_row)} variations with RANDOM PER ROW few-shot")
     
     # Show few-shot examples for each test question
-    test_variations_rotating = [v for v in variations_rotating if v.get('original_row_index', 0) >= 5]
+    test_variations_random_per_row = [v for v in variations_random_per_row if v.get('original_row_index', 0) >= 5]
     
-    for i, var in enumerate(test_variations_rotating):
+    for i, var in enumerate(test_variations_random_per_row):
         row_idx = var.get('original_row_index', 0)
         question = data.iloc[row_idx]['question']
         print(f"\n🔄 Test Question {i+1} (Row {row_idx}): {question}")
@@ -1802,10 +1802,10 @@ def example_few_shot_train_test_split():
     print(f"\n✅ Exported analysis to few_shot_train_test_analysis.json")
 
 
-def example_few_shot_rotating_vs_fixed():
-    """Detailed comparison of rotating vs fixed few-shot to understand the differences."""
+def example_few_shot_random_per_row_vs_ordered():
+    """Detailed comparison of random_per_row vs ordered few-shot to understand the differences."""
     print("\n" + "=" * 60)
-    print("⚖️  Detailed Comparison: Rotating vs Fixed Few-Shot")
+    print("⚖️  Detailed Comparison: Random Per Row vs Ordered Few-Shot")
     print("=" * 60)
     
     # Create a larger dataset to see rotation effects
@@ -2206,10 +2206,10 @@ def example_few_shot_unordered_random():
     print("\n✅ Check the exported JSON file for detailed analysis!")
 
 
-def example_few_shot_rotating_vs_fixed():
-    """Detailed comparison of rotating vs fixed few-shot to understand the differences."""
+def example_few_shot_random_per_row_vs_ordered_2():
+    """Detailed comparison of random_per_row vs ordered few-shot to understand the differences."""
     print("\n" + "=" * 60)
-    print("⚖️  Detailed Comparison: Rotating vs Fixed Few-Shot")
+    print("⚖️  Detailed Comparison: Random Per Row vs Ordered Few-Shot")
     print("=" * 60)
     
     # Create a larger dataset to see rotation effects
@@ -2341,7 +2341,7 @@ if __name__ == "__main__":
 
     # Run the debug example
     # example_few_shot_train_test_split()
-    # example_few_shot_rotating_vs_fixed()
+    # example_few_shot_random_per_row_vs_ordered_2()
 
     # # example_complex_template_debug()
     # example_many_augmenters_on_small_dataset()

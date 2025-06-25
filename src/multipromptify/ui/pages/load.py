@@ -409,7 +409,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'split': 'all'
                             }
                         },
-                        'description': 'Text classification with format structure, noise injection, and rotating few-shot examples',
+                        'description': 'Text classification with format structure, noise injection, and ordered few-shot examples',
                         'sample_data': {
                             'text': ['Book a flight to Paris', 'Cancel my subscription', 'What is the weather today?',
                                      'Order pizza for dinner', 'Check my account balance'],
@@ -561,7 +561,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         }
                     },
                     {
-                        'name': 'Complex Q&A with Fixed Examples',
+                        'name': 'Complex Q&A with Ordered Examples',
                         'template': {
                             INSTRUCTION: 'Answer the following question.',
                             PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
