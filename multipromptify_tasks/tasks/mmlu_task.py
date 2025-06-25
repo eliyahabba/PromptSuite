@@ -24,12 +24,22 @@ from multipromptify.core.template_keys import (
 )
 
 from multipromptify_tasks.tasks.base_task import BaseTask
+from multipromptify_tasks.constants import (
+    DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
+    DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
+)
 
 
 class MMLUTask(BaseTask):
     """Task for generating MMLU prompt variations by subject."""
     
-    def __init__(self, subject: str = None):
+    def __init__(self, subject: str = None,
+                 variations_per_field: int = DEFAULT_VARIATIONS_PER_FIELD,
+                 api_platform: str = DEFAULT_PLATFORM,
+                 model_name: str = DEFAULT_MODEL_NAME,
+                 max_rows: int = DEFAULT_MAX_ROWS,
+                 max_variations_per_row: int = DEFAULT_MAX_VARIATIONS_PER_ROW,
+                 random_seed: int = DEFAULT_RANDOM_SEED):
         self.subject = subject
         self.original_subject = subject  # Keep original subject name for file naming
         if subject:
@@ -43,7 +53,13 @@ class MMLUTask(BaseTask):
         
         super().__init__(
             task_name=task_name,
-            output_filename=output_filename
+            output_filename=output_filename,
+            variations_per_field=variations_per_field,
+            api_platform=api_platform,
+            model_name=model_name,
+            max_rows=max_rows,  # Pass through from MMLUTask __init__
+            max_variations_per_row=max_variations_per_row,  # Pass through
+            random_seed=random_seed  # Pass through
         )
     
     def load_data(self) -> None:
@@ -107,7 +123,7 @@ def get_available_subjects() -> List[str]:
     return sorted(subjects)
 
 
-def generate_all_subjects():
+def generate_all_subjects(variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed):
     """Generate variations for all subjects separately."""
     # Create output directory
     output_dir = Path(__file__).parent.parent / "data" / "mmlu"
@@ -127,7 +143,15 @@ def generate_all_subjects():
         print("=" * 50)
         
         try:
-            task = MMLUTask(subject=subject)
+            task = MMLUTask(
+                subject=subject,
+                variations_per_field=variations_per_field,
+                api_platform=api_platform,
+                model_name=model_name,
+                max_rows=max_rows,  # Pass from generate_all_subjects
+                max_variations_per_row=max_variations_per_row,  # Pass from generate_all_subjects
+                random_seed=random_seed  # Pass from generate_all_subjects
+            )
             
             # Override output path to save in mmlu folder
             output_file = output_dir / f"mmlu_{subject}_variations.json"
@@ -137,29 +161,27 @@ def generate_all_subjects():
                 """Custom generate method that uses the correct output path."""
                 print(f"🚀 Starting {task.task_name}")
                 print("=" * 60)
-
-                # Load data
                 print("\n1. Loading data...")
                 task.load_data()
-
-                # Configure template
                 print("\n2. Setting up template...")
                 template = task.get_template()
                 task.mp.set_template(template)
                 print("✅ Template configured")
-
-                # Configure generation parameters
                 print(f"\n3. Configuring generation...")
+                print(f"   Variations per field: {task.variations_per_field}")
+                print(f"   API Platform: {task.api_platform}")
+                print(f"   Model: {task.model_name}")
+                print(f"   Max rows: {task.max_rows}")
+                print(f"   Max variations per row: {task.max_variations_per_row}")
+                print(f"   Random seed: {task.random_seed}")
                 task.mp.configure(
-                    max_rows=10,  # Use a reasonable default
-                    variations_per_field=4,
-                    max_variations_per_row=10,
-                    random_seed=42,
-                    api_platform="TogetherAI",
-                    model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+                    max_rows=task.max_rows,
+                    variations_per_field=task.variations_per_field,
+                    max_variations_per_row=task.max_variations_per_row,
+                    random_seed=task.random_seed,
+                    api_platform=task.api_platform,
+                    model_name=task.model_name
                 )
-
-                # Generate variations
                 print("\n4. Generating prompt variations...")
                 variations = task.mp.generate(verbose=True)
 
@@ -200,33 +222,51 @@ def generate_all_subjects():
     print(f"\n🎉 All subjects completed! Generated {len(generated_files)} files:")
     for file in generated_files:
         print(f"  📄 {file}")
-    
-    return generated_files
 
 
 if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Generate MMLU prompt variations")
-    parser.add_argument("--subject", help="Generate variations for a specific subject only")
-    parser.add_argument("--list-subjects", action="store_true", help="List available subjects")
-    parser.add_argument("--all", action="store_true", help="Generate variations for all subjects", default=True)
-    
+    parser.add_argument("--subject", help="Specific subject to process (e.g., anatomy, chemistry)")
+    parser.add_argument("--all", action="store_true", help="Process all subjects")
+    parser.add_argument("--rows", type=int, help="Number of rows to process")
+    parser.add_argument("--variations", type=int, help="Number of variations per row")
+    parser.add_argument("--variations_per_field", type=int, default=DEFAULT_VARIATIONS_PER_FIELD)
+    parser.add_argument("--api_platform", type=str, default=DEFAULT_PLATFORM)
+    parser.add_argument("--model_name", type=str, default=DEFAULT_MODEL_NAME)
+    parser.add_argument("--random_seed", type=int, help="Random seed for generation")
     args = parser.parse_args()
     
-    if args.list_subjects:
-        subjects = get_available_subjects()
-        print(f"Available subjects ({len(subjects)}):")
-        for subject in subjects:
-            display_name = subject.replace('_', ' ')
-            print(f"  - {display_name} ({subject})")
+    if args.all:
+        generate_all_subjects(
+            variations_per_field=args.variations_per_field,
+            api_platform=args.api_platform,
+            model_name=args.model_name,
+            max_rows=args.rows,  # Pass through from argparse
+            max_variations_per_row=args.variations,  # Pass through
+            random_seed=args.random_seed  # Pass through
+        )
     elif args.subject:
-        task = MMLUTask(subject=args.subject)
-        output_file = task.generate()
-        display_name = args.subject.replace('_', ' ')
-        print(f"\n🎉 MMLU task for {display_name} completed! Output saved to: {output_file}")
-    elif args.all:
-        generate_all_subjects()
+        task = MMLUTask(
+            subject=args.subject,
+            variations_per_field=args.variations_per_field,
+            api_platform=args.api_platform,
+            model_name=args.model_name,
+            max_rows=args.rows,  # Pass from argparse to MMLUTask __init__
+            max_variations_per_row=args.variations,  # Pass from argparse
+            random_seed=args.random_seed  # Pass from argparse
+        )
+        if args.rows is not None or args.variations is not None:
+            task.override_config(rows=args.rows, variations=args.variations)
+        task.generate()
     else:
-        print("Please specify --subject <name>, --all, or --list-subjects")
-        print("Use --list-subjects to see available subjects") 
+        print("Please specify either --subject <subject_name> or --all")
+        print("\nAvailable subjects:")
+        try:
+            subjects = get_available_subjects()
+            for subject in subjects:
+                display_name = subject.replace('_', ' ')
+                print(f"  - {display_name} ({subject})")
+        except Exception as e:
+            print(f"Error getting subjects: {e}") 

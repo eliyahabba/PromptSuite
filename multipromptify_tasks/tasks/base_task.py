@@ -15,24 +15,44 @@ sys.path.insert(0, str(project_root))
 
 from multipromptify import MultiPromptifier
 from multipromptify_tasks.constants import (
-    VARIATIONS_PER_ROW, MAX_ROWS_PER_DATASET, 
-    DEFAULT_PLATFORM, MODELS
+    DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
+    DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
 
 
 class BaseTask(ABC):
-    """Base class for all MultiPromptify tasks."""
+    """
+    Base class for all MultiPromptify tasks.
+    Allows configuration of variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed via __init__ arguments.
+    """
 
-    def __init__(self, task_name: str, output_filename: str):
+    def __init__(self, task_name: str, output_filename: str,
+                 variations_per_field: int = DEFAULT_VARIATIONS_PER_FIELD,
+                 api_platform: str = DEFAULT_PLATFORM,
+                 model_name: str = DEFAULT_MODEL_NAME,
+                 max_rows: int = DEFAULT_MAX_ROWS,
+                 max_variations_per_row: int = DEFAULT_MAX_VARIATIONS_PER_ROW,
+                 random_seed: int = DEFAULT_RANDOM_SEED):
         """
         Initialize the base task.
-        
         Args:
             task_name: Name of the task for display
             output_filename: Name of the output file
+            variations_per_field: Number of variations per field (default: from constants)
+            api_platform: API platform to use (default: from constants)
+            model_name: Model name to use (default: from constants)
+            max_rows: Max rows to process (default: from constants)
+            max_variations_per_row: Max variations per row (default: from constants)
+            random_seed: Random seed (default: from constants)
         """
         self.task_name = task_name
         self.output_filename = output_filename
+        self.variations_per_field = variations_per_field
+        self.api_platform = api_platform
+        self.model_name = model_name
+        self.max_rows = max_rows
+        self.max_variations_per_row = max_variations_per_row
+        self.random_seed = random_seed
         self.mp = MultiPromptifier()
 
     @abstractmethod
@@ -45,56 +65,23 @@ class BaseTask(ABC):
         """Get the template configuration for this task."""
         pass
 
-    def get_variations_per_field(self) -> int:
-        """
-        Get the number of variations per field.
-        Child classes can override this to provide custom values.
-        
-        Returns:
-            Number of variations per field (default: 4)
-        """
-        return 4
-
-    def get_api_platform(self) -> str:
-        """
-        Get the API platform to use.
-        Child classes can override this to provide custom values.
-        
-        Returns:
-            API platform name (default: "TogetherAI")
-        """
-        return DEFAULT_PLATFORM
-
-    def get_model_name(self) -> str:
-        """
-        Get the model name to use.
-        Child classes can override this to provide custom values.
-        
-        Returns:
-            Model name (default: "default" model for the platform)
-        """
-        platform = self.get_api_platform()
-        return MODELS[platform]["default"]
-
     def override_config(self, rows: int = None, variations: int = None) -> None:
         """
         Override the default configuration with command line arguments.
-        
         Args:
-            rows: Number of rows to process (overrides MAX_ROWS_PER_DATASET)
-            variations: Number of variations per row (overrides VARIATIONS_PER_ROW)
+            rows: Number of rows to process (overrides max_rows)
+            variations: Number of variations per row (overrides max_variations_per_row)
         """
-        self._override_rows = rows
-        self._override_variations = variations
         if rows is not None:
-            print(f"   Overriding rows: {rows} (default: {MAX_ROWS_PER_DATASET})")
+            self.max_rows = rows
+            print(f"   Overriding rows: {rows} (default: {DEFAULT_MAX_ROWS})")
         if variations is not None:
-            print(f"   Overriding variations: {variations} (default: {VARIATIONS_PER_ROW})")
+            self.max_variations_per_row = variations
+            print(f"   Overriding variations: {variations} (default: {DEFAULT_MAX_VARIATIONS_PER_ROW})")
 
     def generate(self) -> str:
         """
         Generate variations for this task.
-        
         Returns:
             Path to the output file
         """
@@ -111,26 +98,21 @@ class BaseTask(ABC):
         self.mp.set_template(template)
         print("✅ Template configured")
 
-        # Get configuration values (use overrides if provided)
-        max_rows = getattr(self, '_override_rows', MAX_ROWS_PER_DATASET)
-        variations_per_row = getattr(self, '_override_variations', VARIATIONS_PER_ROW)
-        variations_per_field = self.get_variations_per_field()
-        api_platform = self.get_api_platform()
-        model_name = self.get_model_name()
-        
         # Configure generation parameters
-        print(f"\n3. Configuring generation ({variations_per_row} variations per row, {max_rows} rows)...")
-        print(f"   Variations per field: {variations_per_field}")
-        print(f"   API Platform: {api_platform}")
-        print(f"   Model: {model_name}")
-        
+        print(
+            f"\n3. Configuring generation ({self.max_variations_per_row} variations per row, {self.max_rows} rows)...")
+        print(f"   Variations per field: {self.variations_per_field}")
+        print(f"   API Platform: {self.api_platform}")
+        print(f"   Model: {self.model_name}")
+        print(f"   Random seed: {self.random_seed}")
+
         self.mp.configure(
-            max_rows=max_rows,
-            variations_per_field=variations_per_field,
-            max_variations_per_row=variations_per_row,
-            random_seed=42,
-            api_platform=api_platform,
-            model_name=model_name
+            max_rows=self.max_rows,
+            variations_per_field=self.variations_per_field,
+            max_variations_per_row=self.max_variations_per_row,
+            random_seed=self.random_seed,
+            api_platform=self.api_platform,
+            model_name=self.model_name
         )
 
         # Generate variations
