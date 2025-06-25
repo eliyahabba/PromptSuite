@@ -100,7 +100,7 @@ Templates control how prompts are structured and varied:
 | `instruction` | System prompt (optional) {placeholders}| `'You are a helpful assistant. Answer the following questions about {subject}.''` |
 | `prompt format` | Main template with {placeholders} | `'Q: {question}\nA: {answer}'`                                                                                        |
 | `gold` | Correct answer field | `'answer'` or `{'field': 'answer', 'type': 'index'}`                                                                  |
-| `few_shot` | Few-shot configuration | `{'count': 2, 'format': 'shared_random_n', 'split': 'train'}`                                                                  |
+| `few_shot` | Few-shot configuration | `{'count': 2, 'format': 'shared_ordered_random_n', 'split': 'train'}`                                                                  |
 
 ### Variation Types
 
@@ -157,7 +157,7 @@ template = {
   },
   "few_shot": {
     'count': 2,
-    'format': 'shared_random_n',
+    'format': 'shared_ordered_random_n',
     'split': 'train'
   }
 }
@@ -237,7 +237,7 @@ template = {
   'gold': 'answer',
   'few_shot': {
     'count': 2,
-    'format': 'shared_random_n',
+    'format': 'shared_ordered_random_n',
     'split': 'train'
   }
 }
@@ -289,7 +289,7 @@ template = {
     },
     'few_shot': {
         'count': 2,
-        'format': 'shared_random_n',
+        'format': 'shared_ordered_random_n',
         'split': 'train'
     }
 }
@@ -325,7 +325,7 @@ A typical output from `mp.generate()` or the exported JSON file looks like this 
       },
       "few_shot": {
         "count": 1,
-        "format": "shared_random_n",
+        "format": "shared_ordered_random_n",
         "split": "train"
       }
     },
@@ -439,15 +439,16 @@ Few-shot examples can be configured with different sampling strategies:
 
 | Format | Description | Use Case |
 |--------|-------------|----------|
-| `shared_first_n` | Always uses the first N examples from available data (deterministic, shared for all rows) | When you want consistent, predictable examples |
-| `shared_random_n` | Always uses the same N random examples (with fixed seed, shared for all rows) | When you want random but consistent examples across all rows |
+| `shared_ordered_first_n` | Always uses the first N examples from available data (deterministic, shared for all rows) | When you want consistent, predictable examples |
+| `shared_ordered_random_n` | Always uses the same N random examples (with fixed seed, shared for all rows) | When you want random but consistent examples across all rows |
+| `shared_unordered_random_n` | Always uses the same N random examples but shuffles their order for each row | When you want consistent examples but varied order to reduce position bias |
 | `random_per_row` | Randomly samples different examples for each row (using row index as seed) | When you want variety and different examples per question |
 
 **Example:**
 ```python
 "few_shot": {
     "count": 2,                    # Number of examples to use
-    "format": "shared_random_n",   # Sampling strategy
+    "format": "shared_ordered_random_n",   # Sampling strategy
     "split": "train"               # Use only training data for examples
 }
 ```
