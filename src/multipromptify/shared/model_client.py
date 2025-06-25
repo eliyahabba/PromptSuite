@@ -61,6 +61,7 @@ def _get_together_response(messages: List[Dict[str, str]], model_name: str, max_
     params = {
         "model": model_name,
         "messages": messages,
+        "temperature": 0,
     }
     
     # Add max_tokens if provided
@@ -80,6 +81,7 @@ def _get_openai_response(messages: List[Dict[str, str]], model_name: str, max_to
     params = {
         "model": model_name,
         "messages": messages,
+        "temperature": 0,
     }
     
     # Add max_tokens if provided
@@ -142,6 +144,7 @@ def get_completion_with_key(prompt: str,
         params = {
             "model": model_name,
             "messages": messages,
+        "temperature": 0,
         }
         
         # Add max_tokens if provided
@@ -164,6 +167,7 @@ def get_completion_with_key(prompt: str,
         params = {
             "model": model_name,
             "messages": messages,
+        "temperature": 0,
         }
 
         # Add max_tokens if provided
