@@ -204,30 +204,19 @@ class MultiPromptify:
                     data=data  # Pass full data for few-shot examples
                 )
 
-                # Generate all possible row variations
-                all_row_variations = self.few_shot_handler.create_row_variations(
+                # Generate row variations with limit for efficiency
+                row_variations = self.few_shot_handler.create_row_variations(
                     variation_context,
                     few_shot_fields[0] if few_shot_fields else None,
-                    None,  # No limit - get all possible variations
+                    self.max_variations_per_row,  # Pass the limit directly
                     self.prompt_builder
                 )
 
-                # Sample max_variations_per_row from all possible variations for this row
-                if self.max_variations_per_row is not None and len(all_row_variations) > self.max_variations_per_row:
-                    # Use consistent sampling based on seed
-                    sampled_variations = self._sample_variations_consistently(
-                        all_row_variations, 
-                        self.max_variations_per_row, 
-                        seed
-                    )
-                    all_variations.extend(sampled_variations)
-                else:
-                    # Use all variations if we have fewer than max_variations_per_row
-                    all_variations.extend(all_row_variations)
+                all_variations.extend(row_variations)
                 
                 # Update progress bar with detailed information
                 row_time = time.time() - row_start_time
-                variations_this_row = len(all_row_variations) if self.max_variations_per_row is None else min(len(all_row_variations), self.max_variations_per_row)
+                variations_this_row = len(row_variations)
                 total_variations_so_far = len(all_variations)
                 avg_time_per_row = (time.time() - start_time) / (row_idx + 1)
                 eta = avg_time_per_row * (total_rows - row_idx - 1)
@@ -436,69 +425,7 @@ class MultiPromptify:
         else:
             raise UnsupportedExportFormatError(format, ["json", "csv", "txt"])
 
-    def _sample_variations_consistently(
-            self, 
-            variations: List[Dict[str, Any]], 
-            max_variations_per_row: int, 
-            seed: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
-        """
-        Sample max_variations_per_row from all possible variations consistently.
-        
-        This ensures that if we have 10 variations and want 5, we'll always
-        select the same 5 indices across all rows (e.g., indices 0,2,4,6,8).
-        
-        Args:
-            variations: All possible variations for a row
-            max_variations_per_row: Number of variations to sample
-            seed: Random seed for consistent sampling
-            
-        Returns:
-            List of sampled variations
-        """
-        if len(variations) <= max_variations_per_row:
-            return variations
-        
-        # Set seed for consistent sampling across rows
-        if seed is not None:
-            import random
-            random.seed(seed)
-        
-        # Generate consistent indices based on the total number of variations
-        # This ensures the same pattern is used across all rows
-        total_variations = len(variations)
-        
-        # Create a deterministic pattern based on the total count
-        # We'll use a simple pattern: take every nth variation
-        if max_variations_per_row >= total_variations:
-            return variations
-        
-        # Calculate step size to get max_variations_per_row samples
-        step = total_variations / max_variations_per_row
-        
-        # Generate indices
-        indices = []
-        for i in range(max_variations_per_row):
-            index = int(i * step)
-            if index >= total_variations:
-                index = total_variations - 1
-            indices.append(index)
-        
-        # Remove duplicates while preserving order
-        unique_indices = []
-        for idx in indices:
-            if idx not in unique_indices:
-                unique_indices.append(idx)
-        
-        # If we don't have enough unique indices, add more from the end
-        while len(unique_indices) < max_variations_per_row and len(unique_indices) < total_variations:
-            for i in range(total_variations):
-                if i not in unique_indices:
-                    unique_indices.append(i)
-                    break
-        
-        # Return sampled variations
-        return [variations[i] for i in unique_indices[:max_variations_per_row]]
+
 
     def _filter_data_by_split(self, data: pd.DataFrame, target_split: Optional[str]) -> pd.DataFrame:
         """

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
 
 import pandas as pd
+from tqdm import tqdm
 
 from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
 from multipromptify.augmentations.structure.fewshot import FewShotAugmenter
@@ -122,16 +123,24 @@ class FewShotHandler:
 
         # Create all possible combinations of field variations
         variation_combinations = self._create_variation_combinations(variation_context.field_variations)
+        
+        # Create a list of (combination, original_index) pairs to track original indices
+        indexed_combinations = [(combo, idx) for idx, combo in enumerate(variation_combinations)]
+        
+        # If we have a limit, sample deterministically based on seed
+        if max_variations_per_row is not None and len(indexed_combinations) > max_variations_per_row:
+            import random
+            # Create a new random instance with seed for consistent sampling
+            seed = variation_context.variation_config.seed if variation_context.variation_config.seed is not None else 42
+            rng = random.Random(seed)
+            indexed_combinations = rng.sample(indexed_combinations, max_variations_per_row)
 
-        for combination in variation_combinations:
-            # Check limit only if max_variations_per_row is not None
-            if max_variations_per_row is not None and len(variations) >= max_variations_per_row:
-                break
+        for combination, original_index in tqdm(indexed_combinations, desc="Creating row variations", unit="variation"):
 
-            # Build a single variation
+            # Build a single variation using the original index
             variation = self._build_single_variation(
                 combination, varying_fields, variation_context,
-                few_shot_field, prompt_builder, len(variations) + 1
+                few_shot_field, prompt_builder, original_index + 1  # +1 for 1-based counting
             )
 
             if variation:
