@@ -125,8 +125,17 @@ class MultiPromptifier:
         try:
             dataset = load_dataset(dataset_name, *args, **kwargs)
 
-            self.data = dataset.to_pandas()
-            print(f"✅ Loaded {len(self.data)} rows from {dataset_name})")
+            # Handle dict of splits
+            if isinstance(dataset, dict):
+                dfs = []
+                for split_name, split_dataset in dataset.items():
+                    df = split_dataset.to_pandas()
+                    df['split'] = split_name
+                    dfs.append(df)
+                self.data = pd.concat(dfs, ignore_index=True)
+            else:
+                self.data = dataset.to_pandas()
+            print(f"✅ Loaded {len(self.data)} rows from {dataset_name}")
         except Exception as e:
             raise DatasetLoadError(dataset_name, str(e))
 
