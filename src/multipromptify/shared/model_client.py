@@ -28,10 +28,11 @@ if OPENAI_API_KEY:
     openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 
-def get_model_response(messages: List[Dict[str, str]], 
-                      model_name: str = GenerationDefaults.MODEL_NAME,
-                      max_tokens: Optional[int] = None,
-                      platform: str = "TogetherAI") -> str:
+def get_model_response(messages: List[Dict[str, str]],
+                       model_name: str = GenerationDefaults.MODEL_NAME,
+                       max_tokens: Optional[int] = None,
+                       platform: str = "TogetherAI",
+                       temperature: float = 0.0) -> str:
     """
     Get a response from the language model.
 
@@ -40,50 +41,53 @@ def get_model_response(messages: List[Dict[str, str]],
         model_name: Name of the model to use (defaults to the value in constants)
         max_tokens: Maximum number of tokens for the response
         platform: Platform to use ("TogetherAI" or "OpenAI")
+        temperature: Temperature for response generation (0.0 = deterministic, 1.0 = creative)
 
     Returns:
         The model's response text
     """
     if platform == "TogetherAI":
-        return _get_together_response(messages, model_name, max_tokens)
+        return _get_together_response(messages, model_name, max_tokens, temperature)
     elif platform == "OpenAI":
-        return _get_openai_response(messages, model_name, max_tokens)
+        return _get_openai_response(messages, model_name, max_tokens, temperature)
     else:
         raise ValueError(f"Unsupported platform: {platform}. Supported platforms: TogetherAI, OpenAI")
 
 
-def _get_together_response(messages: List[Dict[str, str]], model_name: str, max_tokens: Optional[int] = None) -> str:
+def _get_together_response(messages: List[Dict[str, str]], model_name: str, max_tokens: Optional[int] = None,
+                           temperature: float = 0.0) -> str:
     """Get response from TogetherAI."""
     if not together_client:
         raise APIKeyMissingError("TogetherAI")
-    
+
     # Prepare parameters
     params = {
         "model": model_name,
         "messages": messages,
-        "temperature": 0,
+        "temperature": temperature,
     }
-    
+
     # Add max_tokens if provided
     if max_tokens is not None:
         params["max_tokens"] = max_tokens
-    
+
     response = together_client.chat.completions.create(**params)
     return response.choices[0].message.content
 
 
-def _get_openai_response(messages: List[Dict[str, str]], model_name: str, max_tokens: Optional[int] = None) -> str:
+def _get_openai_response(messages: List[Dict[str, str]], model_name: str, max_tokens: Optional[int] = None,
+                         temperature: float = 0.0) -> str:
     """Get response from OpenAI."""
     if not openai_client:
         raise APIKeyMissingError("OpenAI")
-    
+
     # Prepare parameters
     params = {
         "model": model_name,
         "messages": messages,
-        "temperature": 0,
+        "temperature": temperature,
     }
-    
+
     # Add max_tokens if provided
     if max_tokens is not None:
         params["max_tokens"] = max_tokens
@@ -92,10 +96,10 @@ def _get_openai_response(messages: List[Dict[str, str]], model_name: str, max_to
     return response.choices[0].message.content
 
 
-def get_completion(prompt: str, 
-                  model_name: str = GenerationDefaults.MODEL_NAME,
-                  max_tokens: Optional[int] = None,
-                  platform: str = "TogetherAI") -> str:
+def get_completion(prompt: str,
+                   model_name: str = GenerationDefaults.MODEL_NAME,
+                   max_tokens: Optional[int] = None,
+                   platform: str = "TogetherAI") -> str:
     """
     Get a completion from the language model using a simple prompt.
     
