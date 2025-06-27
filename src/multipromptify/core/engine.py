@@ -256,14 +256,16 @@ class MultiPromptify:
         list columns became strings like "['item1', 'item2', 'item3']"
         """
         import ast
-
+        import warnings
         def safe_eval(value):
-            """Try to evaluate a string as a Python literal, return original if it fails."""
+            """Try to evaluate a string as a Python literal, suppressing SyntaxWarnings."""
             if isinstance(value, str):
-                try:
-                    return ast.literal_eval(value)
-                except (ValueError, SyntaxError):
-                    return value
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", SyntaxWarning)
+                    try:
+                        return ast.literal_eval(value)
+                    except (ValueError, SyntaxError):
+                        return value
             return value
 
         df_copy = df.copy()
