@@ -12,16 +12,20 @@ import os
 import sys
 
 # Add the project root to the path to import multipromptify and multipromptify_tasks
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+# Add current directory to path for local imports
+current_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(current_dir))
 
 from multipromptify.core import PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY
 from multipromptify.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, GOLD_KEY,
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, INSTRUCTION_VARIATIONS
 )
-from multipromptify_tasks.tasks.base_task import BaseTask
-from multipromptify_tasks.constants import (
+from .base_task import BaseTask
+from constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -174,7 +178,7 @@ def get_available_language_pairs() -> List[str]:
 def generate_all_language_pairs(variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed):
     """Generate variations for all language pairs separately."""
     # Create output directory
-    output_dir = Path(__file__).parent.parent.parent / "project_data/generated_data/data/translation"
+    output_dir = Path(__file__).parent.parent / "data" / "translation"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     language_pairs = get_available_language_pairs()

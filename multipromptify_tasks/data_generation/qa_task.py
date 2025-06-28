@@ -12,8 +12,12 @@ import pandas as pd
 from datasets import load_dataset
 
 # Add the project root to the path to import multipromptify and multipromptify_tasks
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+# Add current directory to path for local imports
+current_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(current_dir))
 
 from multipromptify.core import FEW_SHOT_KEY
 from multipromptify.core.template_keys import (
@@ -21,8 +25,8 @@ from multipromptify.core.template_keys import (
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, INSTRUCTION_VARIATIONS,
     PROMPT_FORMAT_VARIATIONS, CONTEXT_VARIATION
 )
-from multipromptify_tasks.tasks.base_task import BaseTask
-from multipromptify_tasks.constants import (
+from .base_task import BaseTask
+from constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -106,7 +110,7 @@ def process(variations_per_field=DEFAULT_VARIATIONS_PER_FIELD,
             random_seed=DEFAULT_RANDOM_SEED):
     """Process QA task with train/test split functionality."""
     # Create output directory
-    output_dir = Path(__file__).parent.parent.parent / "project_data/generated_data/data"
+    output_dir = Path(__file__).parent.parent / "data"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("🎯 Processing Question Answering Task: SQuAD")

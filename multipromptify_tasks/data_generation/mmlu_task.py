@@ -13,8 +13,12 @@ import ast
 from typing import Dict, Any, List
 
 # Add the project root to the path to import multipromptify and multipromptify_tasks
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+# Add current directory to path for local imports
+current_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(current_dir))
 
 from multipromptify.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
@@ -23,8 +27,8 @@ from multipromptify.core.template_keys import (
     FEW_SHOT_KEY
 )
 
-from multipromptify_tasks.tasks.base_task import BaseTask
-from multipromptify_tasks.constants import (
+from .base_task import BaseTask
+from constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -64,7 +68,7 @@ class MMLUTask(BaseTask):
     
     def load_data(self) -> None:
         """Load MMLU data from local CSV file."""
-        csv_path = Path(__file__).parent.parent.parent / "project_data/raw_data/mmlu_sample.csv"
+        csv_path = Path(__file__).parent.parent / "raw_data/mmlu_sample.csv"
         if not csv_path.exists():
             raise FileNotFoundError(f"MMLU CSV file not found: {csv_path}")
         
@@ -114,7 +118,7 @@ class MMLUTask(BaseTask):
 
 def get_available_subjects() -> List[str]:
     """Get list of available subjects from the MMLU dataset."""
-    csv_path = Path(__file__).parent.parent.parent / "project_data/raw_data/mmlu_sample.csv"
+    csv_path = Path(__file__).parent.parent / "raw_data/mmlu_sample.csv"
     if not csv_path.exists():
         raise FileNotFoundError(f"MMLU CSV file not found: {csv_path}")
     
@@ -126,7 +130,7 @@ def get_available_subjects() -> List[str]:
 def generate_all_subjects(variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed):
     """Generate variations for all subjects separately."""
     # Create output directory
-    output_dir = Path(__file__).parent.parent.parent / "project_data/generated_data/data/mmlu"
+    output_dir = Path(__file__).parent.parent / "data" / "mmlu"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     subjects = get_available_subjects()

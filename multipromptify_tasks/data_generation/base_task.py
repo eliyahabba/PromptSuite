@@ -10,11 +10,15 @@ from pathlib import Path
 from typing import Dict, Any
 
 # Add the project root to the path to import multipromptify
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+# Add current directory to path for local imports
+current_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(current_dir))
+
 from multipromptify import MultiPromptifier
-from multipromptify_tasks.constants import (
+from constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -134,7 +138,7 @@ class BaseTask(ABC):
             print("-" * 50)
 
         # Export results
-        output_file = Path(__file__).parent.parent.parent / "project_data/generated_data/data" / self.output_filename
+        output_file = Path(__file__).parent.parent / "data" / self.output_filename
         print(f"\n6. Exporting results to {output_file}...")
         self.mp.export(str(output_file), format="json")
         print("✅ Export completed!")
