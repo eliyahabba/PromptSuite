@@ -68,7 +68,7 @@ def main():
     parser.add_argument("--parallel_workers", type=int, default=LM_DEFAULT_PARALLEL_WORKERS,
                         help=f"Number of parallel workers for model calls (1=sequential, default: {LM_DEFAULT_PARALLEL_WORKERS})")
     parser.add_argument("--gold_field", type=str,
-                        help="Field name in gold_updates containing the gold answer/label (e.g., 'label', 'answer', 'en', 'highlights')")
+                        help="Field name in gold_updates containing the gold answer/label (auto-detected by file type if not specified)")
 
     args = parser.parse_args()
 
@@ -83,7 +83,7 @@ def main():
     # Create output filename in main results directory
     input_path = Path(input_file)
     main_dir = Path(__file__).parent.parent  # Go to project root
-    results_dir = main_dir / "task_data" / "results"
+    results_dir = main_dir / "tasks_data" / "results"
 
     # Create subdirectory based on input file location
     if "mmlu" in str(input_path):
@@ -105,6 +105,19 @@ def main():
     # Use original filename without model prefix
     output_file = results_dir / f"{input_path.stem}.json"
 
+    # Auto-detect gold_field if not specified
+    if not args.gold_field:
+        input_filename = input_path.name.lower()
+        if "mmlu" in input_filename:
+            args.gold_field = "answer"
+        elif "sentiment" in input_filename:
+            args.gold_field = "label"
+        elif "summarization" in input_filename or "summary" in input_filename:
+            args.gold_field = "highlights"
+        elif "qa" in input_filename or "question" in input_filename:
+            args.gold_field = "answer"
+        # For translation, leave as None for auto-detection
+
     print("🤖 MultiPromptify Language Model Runner")
     print("=" * 50)
     print(f"Input file: {input_file}")
@@ -113,6 +126,8 @@ def main():
     print(f"Output file: {output_file}")
     if args.gold_field:
         print(f"Gold field: {args.gold_field}")
+    else:
+        print("Gold field: auto-detect (translation)")
     print("=" * 50)
 
     # Load variations

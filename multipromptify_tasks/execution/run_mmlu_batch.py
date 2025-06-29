@@ -139,7 +139,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run language model on all MMLU subject variations")
 
     # Setup common arguments
-    default_data_dir = str(Path(__file__).parent.parent / "task_data" / "generated_data" / "mmlu")
+    default_data_dir = str(Path(__file__).parent.parent / "tasks_data" / "generated_data" / "mmlu")
     runner.setup_common_args(parser, default_data_dir)
 
     # Add MMLU-specific arguments
@@ -149,6 +149,9 @@ def main():
                         help="Exclude specific subjects (e.g., --exclude anatomy chemistry)")
     parser.add_argument("--list_subjects", action="store_true",
                         help="List available subjects and exit")
+    
+    # Add gold_field with MMLU-specific default
+    runner.add_gold_field_with_default(parser, "answer", "Field name in gold_updates containing the correct answer index (default: 'answer')")
 
     args = parser.parse_args()
 
@@ -236,7 +239,7 @@ def main():
     # Save summary and print final results
     total_duration = time.time() - total_start_time
     model_short = MODEL_SHORT_NAMES.get(full_model_name, full_model_name.replace(" ", "_"))
-    results_dir = Path(__file__).parent.parent / "task_data" / "results" / "mmlu"
+    results_dir = Path(__file__).parent.parent / "tasks_data" / "results" / "mmlu"
 
     runner.save_batch_summary(results, results_dir, model_short)
 

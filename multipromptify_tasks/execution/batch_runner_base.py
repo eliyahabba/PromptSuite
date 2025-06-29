@@ -413,7 +413,7 @@ class BatchRunnerBase:
             
             # Create output file path
             main_dir = Path(__file__).parent.parent  # Go to project root
-            results_dir = main_dir / "task_data" / "results" / self.data_dir_name
+            results_dir = main_dir / "tasks_data" / "results" / self.data_dir_name
             model_short = MODEL_SHORT_NAMES.get(full_model_name, "unknown")
             results_dir = results_dir / model_short
             results_dir.mkdir(parents=True, exist_ok=True)
@@ -551,12 +551,14 @@ class BatchRunnerBase:
         parser.add_argument("--parallel_workers", type=int, default=LM_DEFAULT_PARALLEL_WORKERS,
                             help=f"Number of parallel workers for model calls (1=sequential, default: {LM_DEFAULT_PARALLEL_WORKERS})")
 
-        # Gold field configuration
-        parser.add_argument("--gold_field", type=str,
-                          help="Field name in gold_updates containing the gold answer/label (e.g., 'label', 'answer', 'en', 'highlights')")
+        # Note: gold_field is added by each specific batch runner with appropriate defaults
+
+    def add_gold_field_with_default(self, parser: argparse.ArgumentParser, default_value: str, description: str = None) -> None:
+        """Add gold_field argument with a specific default value."""
+        if description is None:
+            description = f"Field name in gold_updates containing the gold answer/label (default: '{default_value}')"
         
-        # Set resume based on no_resume flag
-        parser.set_defaults(resume=True)
+        parser.add_argument("--gold_field", type=str, default=default_value, help=description)
 
     def print_header(self, args: argparse.Namespace, full_model_name: str, files: List[Path]) -> None:
         """Print processing header information."""

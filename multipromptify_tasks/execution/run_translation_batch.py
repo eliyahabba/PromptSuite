@@ -148,6 +148,9 @@ def main():
                         help="Run only specific language pairs (e.g., --pairs en-de fr-en)")
     parser.add_argument("--list_pairs", action="store_true",
                         help="List available language pairs and exit")
+    
+    # Add gold_field with translation-specific default (None for auto-detect)
+    runner.add_gold_field_with_default(parser, None, "Field name in gold_updates containing the translation (default: auto-detect language codes)")
 
     args = parser.parse_args()
 
