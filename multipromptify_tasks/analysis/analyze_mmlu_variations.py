@@ -45,7 +45,7 @@ def analyze_mmlu_variations(model_dir):
     plt.tight_layout()
     
     # Save to figures directory
-    figures_dir = Path(__file__).parent.parent.parent / "project_data/figures" / "mmlu"
+    figures_dir = Path(__file__).parent.parent / "tasks_data" / "figures" / "mmlu"
     figures_dir.mkdir(parents=True, exist_ok=True)
     plt.savefig(figures_dir / f'{model_dir.name}_variation_performance.png', dpi=300, bbox_inches='tight')
     plt.show()
