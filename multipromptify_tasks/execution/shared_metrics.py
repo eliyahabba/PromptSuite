@@ -273,22 +273,22 @@ def calculate_qa_correctness_and_metrics(variation: dict, model_response: str, g
         return f"Error calculating QA metrics: {str(e)}", False, {}
 
 
-def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_response: str, gold_field: str = "numeric_answer") -> tuple:
+def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_response: str, gold_field: str = "answer") -> tuple:
     """
     Calculate correctness for math problem solving tasks.
     
     Args:
         variation: The variation dictionary containing gold_updates
         model_response: The model's response string
-        gold_field: Field name in gold_updates containing the numeric answer (default: "numeric_answer")
+        gold_field: Field name in gold_updates containing the answer (default: "answer")
         
     Returns:
-        tuple: (gold_answer_text, is_correct, empty_metrics_dict)
+        tuple: (gold_answer_text, is_correct, metrics_dict_with_parsed_answers)
     """
     try:
         gold_updates = variation.get('gold_updates', {})
         
-        # Get the gold numeric answer
+        # Get the gold answer (full GSM8K format answer)
         gold_answer = gold_updates.get(gold_field)
         if gold_answer is None:
             return f"No gold answer in gold_updates['{gold_field}']", False, {}
@@ -317,22 +317,49 @@ def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_resp
             
             return None
         
-        # Convert gold answer to float
+        # Extract numeric value from gold answer (GSM8K format)
+        def extract_numeric_from_gold_answer(answer_text: str) -> float:
+            """Extract the final numeric answer from GSM8K answer format."""
+            import re
+            
+            # GSM8K answers end with "#### [number]" format
+            regex_pattern = r"#### (\-?[0-9\.\,]+)"
+            matches = re.findall(regex_pattern, answer_text)
+            
+            if matches:
+                # Take the first (and should be only) match
+                numeric_part = matches[0]
+                # Remove commas and return the clean number
+                try:
+                    return float(numeric_part.replace(',', ''))
+                except ValueError:
+                    pass
+            
+            # If no #### pattern found, this is an error in the dataset
+            raise ValueError(f"No numeric answer found in expected format '#### [number]' in: {answer_text}")
+        
+        # Extract numeric answers from both gold and model response
         try:
-            gold_numeric = float(str(gold_answer).replace(',', ''))
-        except (ValueError, TypeError):
-            return f"Invalid gold answer format: {gold_answer}", False, {}
+            gold_numeric = extract_numeric_from_gold_answer(str(gold_answer))
+        except (ValueError, TypeError) as e:
+            return f"Invalid gold answer format: {gold_answer} - {str(e)}", False, {}
         
         # Extract predicted numeric answer
         predicted_numeric = extract_numeric_from_response(model_response)
         
         if predicted_numeric is None:
-            return str(gold_numeric), False, {}
+            return str(gold_answer), False, {
+                'gold_numeric_answer': gold_numeric,
+                'parsed_answer': None
+            }
         
         # Check if answers match (allowing for small floating point differences)
         is_correct = abs(gold_numeric - predicted_numeric) < 1e-6
         
-        return str(gold_numeric), is_correct, {'predicted_numeric': predicted_numeric}
+        return str(gold_answer), is_correct, {
+            'gold_numeric_answer': gold_numeric,
+            'parsed_answer': predicted_numeric
+        }
         
     except Exception as e:
         return f"Error calculating math correctness: {str(e)}", False, {}

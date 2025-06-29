@@ -344,7 +344,7 @@ def save_results_as_csv(results: List[Dict[str, Any]], csv_file: str) -> None:
     base_columns = ['variation_index', 'original_row_index', 'model_name', 'model_response', 'gold_answer', 'is_correct']
     
     # Add metric columns if they exist in any result
-    metric_columns = ['bleu', 'rouge1', 'rouge2', 'rougeL', 'sacrebleu', 'predicted_score', 'mse', 'mae', 'absolute_error']
+    metric_columns = ['bleu', 'rouge1', 'rouge2', 'rougeL', 'sacrebleu', 'predicted_score', 'mse', 'mae', 'absolute_error', 'parsed_answer', 'gold_numeric_answer']
     available_metrics = [col for col in metric_columns if any(col in result for result in results)]
     
     columns = base_columns + available_metrics

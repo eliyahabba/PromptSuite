@@ -138,7 +138,7 @@ class BaseTask(ABC):
             print("-" * 50)
 
         # Export results
-        output_file = Path(__file__).parent.parent / "tasks_data"/ "generated_data"/ "data" / self.output_filename
+        output_file = Path(__file__).parent.parent / "tasks_data" / "generated_data" / self.output_filename
         print(f"\n6. Exporting results to {output_file}...")
         self.mp.export(str(output_file), format="json")
         print("✅ Export completed!")
