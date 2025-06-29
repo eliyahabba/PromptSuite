@@ -273,6 +273,71 @@ def calculate_qa_correctness_and_metrics(variation: dict, model_response: str, g
         return f"Error calculating QA metrics: {str(e)}", False, {}
 
 
+def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_response: str, gold_field: str = "numeric_answer") -> tuple:
+    """
+    Calculate correctness for math problem solving tasks.
+    
+    Args:
+        variation: The variation dictionary containing gold_updates
+        model_response: The model's response string
+        gold_field: Field name in gold_updates containing the numeric answer (default: "numeric_answer")
+        
+    Returns:
+        tuple: (gold_answer_text, is_correct, empty_metrics_dict)
+    """
+    try:
+        gold_updates = variation.get('gold_updates', {})
+        
+        # Get the gold numeric answer
+        gold_answer = gold_updates.get(gold_field)
+        if gold_answer is None:
+            return f"No gold answer in gold_updates['{gold_field}']", False, {}
+        
+        # Extract numeric value from model response
+        def extract_numeric_from_response(response: str) -> float:
+            """Extract numeric answer from model response."""
+            import re
+            
+            # First try to find #### pattern (if model follows GSM8K format)
+            gsm8k_pattern = r"#### (\-?[0-9\.\,]+)"
+            gsm8k_matches = re.findall(gsm8k_pattern, response)
+            if gsm8k_matches:
+                try:
+                    return float(gsm8k_matches[0].replace(',', ''))
+                except ValueError:
+                    pass
+            
+            # Fallback: look for any numbers in the response, prioritizing the last one
+            numbers = re.findall(r'-?\d+(?:\.\d+)?', response.strip())
+            if numbers:
+                try:
+                    return float(numbers[-1].replace(',', ''))
+                except ValueError:
+                    pass
+            
+            return None
+        
+        # Convert gold answer to float
+        try:
+            gold_numeric = float(str(gold_answer).replace(',', ''))
+        except (ValueError, TypeError):
+            return f"Invalid gold answer format: {gold_answer}", False, {}
+        
+        # Extract predicted numeric answer
+        predicted_numeric = extract_numeric_from_response(model_response)
+        
+        if predicted_numeric is None:
+            return str(gold_numeric), False, {}
+        
+        # Check if answers match (allowing for small floating point differences)
+        is_correct = abs(gold_numeric - predicted_numeric) < 1e-6
+        
+        return str(gold_numeric), is_correct, {'predicted_numeric': predicted_numeric}
+        
+    except Exception as e:
+        return f"Error calculating math correctness: {str(e)}", False, {}
+
+
 def calculate_bertscore_metrics(predictions: list, references: list, lang: str = "en") -> list:
     """
     Calculate BERTScore for a list of predictions and references.

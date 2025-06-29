@@ -82,7 +82,6 @@ def print_translation_summary(results_dir: Path, model_short: str) -> None:
 
     # Find all JSON result files
     json_files = list(model_dir.glob("*.json"))
-    json_files = [f for f in json_files if f.name != "translation_batch_summary.json"]
     
     if not json_files:
         print("📊 No translation data available")
@@ -232,17 +231,15 @@ def main():
     # Save summary and print final results
     total_duration = time.time() - total_start_time
     model_short = MODEL_SHORT_NAMES.get(full_model_name, full_model_name.replace(" ", "_"))
-    results_dir = Path(__file__).parent.parent.parent / "project_data" / "results" / "translation"
-    
-    runner.save_batch_summary(results, results_dir, model_short)
-    
+    results_dir = Path(__file__).parent.parent / "tasks_data" / "results" / "translation"
+
     # Print simple summary
     successful = len([r for r in results if r["status"] == "success"])
     print(f"\n🎉 Translation Processing Completed!")
     print(f"   ✅ Successful: {successful}/{len(results)}")
     print(f"   ⏱️  Total time: {total_duration:.1f}s")
-    
-    # Print translation summary
+
+    # Print accuracy summary
     print_translation_summary(results_dir, model_short)
 
 

@@ -344,4 +344,21 @@ def analyze_multiple_metrics(
         print(f"  Average: {avg_score:.4f}")
         print(f"  Best: {max_score:.4f}")
         print(f"  Worst: {min_score:.4f}")
-        print(f"  Range: {max_score - min_score:.4f}") 
+        print(f"  Range: {max_score - min_score:.4f}")
+
+
+def analyze_math_variations(model_dir: Path) -> None:
+    """
+    Analyze math problem solving variations for accuracy.
+    
+    Args:
+        model_dir: Directory containing the model results for math problems
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="math",
+        metric_name="is_correct",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )

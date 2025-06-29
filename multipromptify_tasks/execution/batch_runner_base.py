@@ -9,6 +9,7 @@ import sys
 import time
 import os
 import csv
+import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from threading import Lock
@@ -296,7 +297,21 @@ def run_model_on_variations(variations: List[Dict[str, Any]],
 
 
 def load_existing_results(output_file: str) -> List[Dict[str, Any]]:
-    """Load existing results from output file if it exists."""
+    """Load existing results from CSV file if it exists (for resume functionality)."""
+    # Check for CSV file first (faster loading for resume)
+    csv_file = str(output_file).replace('.json', '.csv')
+    if os.path.exists(csv_file):
+        try:
+            # Use pandas to read CSV - much faster and cleaner
+            df = pd.read_csv(csv_file)
+            # Convert to list of dictionaries
+            results = df.to_dict('records')
+            print(f"📂 Loaded {len(results)} existing results from {csv_file}")
+            return results
+        except Exception as e:
+            print(f"⚠️  Error loading CSV results, trying JSON: {e}")
+    
+    # Fallback to JSON if CSV doesn't exist or failed to load
     if not os.path.exists(output_file):
         return []
 
@@ -474,30 +489,6 @@ class BatchRunnerBase:
                 identifier, "error", time.time() - start_time,
                 error=str(e)
             )
-    
-    def save_batch_summary(self, results: List[Dict[str, Any]], output_dir: Path, model_short: str) -> Dict[str, Any]:
-        """Save a summary of all batch results."""
-        # Create model-specific directory for summary
-        model_dir = output_dir / model_short
-        model_dir.mkdir(parents=True, exist_ok=True)
-        summary_file = model_dir / f"{self.data_dir_name}_batch_summary.json"
-        
-        summary = {
-            f"total_{self.data_dir_name}": len(results),
-            "successful": len([r for r in results if r["status"] == "success"]),
-            "failed": len([r for r in results if r["status"] == "failed"]),
-            "errors": len([r for r in results if r["status"] == "error"]),
-            "timeouts": len([r for r in results if r["status"] == "timeout"]),
-            "total_duration": sum(r["duration"] for r in results),
-            "model": model_short,
-            "results": results
-        }
-        
-        with open(summary_file, 'w', encoding='utf-8') as f:
-            json.dump(summary, f, indent=2, ensure_ascii=False)
-        
-        print(f"\n📊 Batch summary saved to: {summary_file}")
-        return summary
     
     def print_progress_summary(self, results: List[Dict[str, Any]], current: int, total: int) -> None:
         """Print a progress summary."""

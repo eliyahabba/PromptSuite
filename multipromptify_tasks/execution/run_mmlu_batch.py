@@ -76,7 +76,6 @@ def print_mmlu_accuracy_summary(results_dir: Path, model_short: str) -> None:
 
     # Find all JSON result files
     json_files = list(model_dir.glob("*.json"))
-    json_files = [f for f in json_files if f.name != "mmlu_batch_summary.json"]
 
     if not json_files:
         print("📊 No accuracy data available")
@@ -240,8 +239,6 @@ def main():
     total_duration = time.time() - total_start_time
     model_short = MODEL_SHORT_NAMES.get(full_model_name, full_model_name.replace(" ", "_"))
     results_dir = Path(__file__).parent.parent / "tasks_data" / "results" / "mmlu"
-
-    runner.save_batch_summary(results, results_dir, model_short)
 
     # Print simple summary
     successful = len([r for r in results if r["status"] == "success"])
