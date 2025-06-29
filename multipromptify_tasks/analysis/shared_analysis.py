@@ -139,7 +139,7 @@ def analyze_task_variations(
     plt.tight_layout()
     
     # Save the plot to figures directory
-    figures_dir = Path(__file__).parent.parent.parent / "project_data/figures" / task_type.lower()
+    figures_dir = Path(__file__).parent.parent / "tasks_data" /"figures" / task_type.lower()
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_filename = f'{model_dir.name}_{task_type}_{metric_name}_variation_performance.png'
     plt.savefig(figures_dir / output_filename, dpi=300, bbox_inches='tight')
@@ -320,7 +320,7 @@ def analyze_multiple_metrics(
     plt.tight_layout()
     
     # Save the plot to figures directory
-    figures_dir = Path(__file__).parent.parent.parent / "project_data/figures" / task_type.lower()
+    figures_dir = Path(__file__).parent.parent / "tasks_data" /"figures" / task_type.lower()
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_filename = f'{model_dir.name}_{task_type}_multi_metric_variation_performance.png'
     plt.savefig(figures_dir / output_filename, dpi=300, bbox_inches='tight')

@@ -329,7 +329,7 @@ def save_results_as_csv(results: List[Dict[str, Any]], csv_file: str) -> None:
     base_columns = ['variation_index', 'original_row_index', 'model_name', 'model_response', 'gold_answer', 'is_correct']
     
     # Add metric columns if they exist in any result
-    metric_columns = ['bleu', 'rouge1', 'rouge2', 'rougeL', 'sacrebleu']
+    metric_columns = ['bleu', 'rouge1', 'rouge2', 'rougeL', 'sacrebleu', 'predicted_score', 'mse', 'mae', 'absolute_error']
     available_metrics = [col for col in metric_columns if any(col in result for result in results)]
     
     columns = base_columns + available_metrics
@@ -394,8 +394,10 @@ class BatchRunnerBase:
     def get_metrics_function(self) -> Optional[Callable]:
         """Return the metrics function for this task type. Override in subclasses."""
         return None
-
-    # Static methods removed - use the module-level functions directly
+    
+    def create_metrics_function_with_gold_field(self, gold_field: str) -> Optional[Callable]:
+        """Create a metrics function that uses the specified gold_field. Override in subclasses."""
+        return None
 
     def run_language_model_on_file(self, file_path: Path, args: argparse.Namespace) -> Dict[str, Any]:
         """Run the language model on a single file."""
@@ -410,8 +412,8 @@ class BatchRunnerBase:
             full_model_name = get_model_name(args.platform, args.model)
             
             # Create output file path
-            main_dir = Path(__file__).parent.parent.parent  # Go to project root
-            results_dir = main_dir / "project_data" / "results" / self.data_dir_name
+            main_dir = Path(__file__).parent.parent  # Go to project root
+            results_dir = main_dir / "task_data" / "results" / self.data_dir_name
             model_short = MODEL_SHORT_NAMES.get(full_model_name, "unknown")
             results_dir = results_dir / model_short
             results_dir.mkdir(parents=True, exist_ok=True)
@@ -438,31 +440,39 @@ class BatchRunnerBase:
                     error="No variations to process after filtering"
                 )
             
-            print(f"   📊 Processing {len(filtered_variations)} variations")
+            # Get metrics function - check if gold_field is specified
+            metrics_function = None
+            if hasattr(args, 'gold_field') and args.gold_field:
+                metrics_function = self.create_metrics_function_with_gold_field(args.gold_field)
+            else:
+                metrics_function = self.get_metrics_function()
             
-            # Run model on filtered variations
-            parallel_workers = getattr(args, 'parallel_workers', LM_DEFAULT_PARALLEL_WORKERS)
-            metrics_function = self.get_metrics_function()
-            
+            # Run model on variations
             run_model_on_variations(
-                filtered_variations, full_model_name, args.max_tokens, args.platform, str(output_file),
-                temperature=args.temperature, max_retries=args.max_retries, retry_sleep=args.retry_sleep,
-                batch_size=args.batch_size, resume=not args.no_resume,
-                parallel_workers=parallel_workers, metrics_function=metrics_function
+                filtered_variations,
+                full_model_name,
+                args.max_tokens,
+                args.platform,
+                str(output_file),
+                temperature=args.temperature,
+                max_retries=args.max_retries,
+                retry_sleep=args.retry_sleep,
+                batch_size=args.batch_size,
+                resume=not args.no_resume,
+                parallel_workers=args.parallel_workers,
+                metrics_function=metrics_function
             )
             
-            end_time = time.time()
-            duration = end_time - start_time
-            
             return self.create_result_dict(
-                identifier, "success", duration, 
-                variations_processed=len(filtered_variations), 
+                identifier, "success", time.time() - start_time,
+                variations_processed=len(filtered_variations),
                 output_file=str(output_file)
             )
             
         except Exception as e:
             return self.create_result_dict(
-                identifier, "error", time.time() - start_time, error=str(e)
+                identifier, "error", time.time() - start_time,
+                error=str(e)
             )
     
     def save_batch_summary(self, results: List[Dict[str, Any]], output_dir: Path, model_short: str) -> Dict[str, Any]:
@@ -503,48 +513,51 @@ class BatchRunnerBase:
             print(f"   ⏱️  ETA: {estimated_remaining / 60:.1f} minutes")
     
     def setup_common_args(self, parser: argparse.ArgumentParser, default_data_dir: str) -> None:
-        """Setup common command line arguments."""
+        """Setup common command line arguments for all batch runners."""
         # Input/output options
         parser.add_argument(f"--{self.data_dir_name}_dir",
                            default=default_data_dir,
                            help=f"Directory containing {self.task_name} variation files")
-        
-        # Model options
-        parser.add_argument("--platform", choices=list(PLATFORMS.keys()), default=LM_DEFAULT_PLATFORM,
-                           help="Platform to use (TogetherAI or OpenAI)")
+
+        # Model configuration
         parser.add_argument("--model", default="default",
                            help="Model key to use (e.g., 'default', 'gpt_4o_mini', 'llama_3_3_70b')")
+        parser.add_argument("--platform", choices=list(PLATFORMS.keys()), default=LM_DEFAULT_PLATFORM,
+                           help="Platform to use (TogetherAI or OpenAI)")
         parser.add_argument("--max_tokens", type=int, default=LM_DEFAULT_MAX_TOKENS,
-                           help="Maximum tokens for model response")
+                          help=f"Maximum tokens for response (default: {LM_DEFAULT_MAX_TOKENS})")
         parser.add_argument("--temperature", type=float, default=LM_DEFAULT_TEMPERATURE,
-                           help="Temperature for model response (default: 0.0)")
+                          help=f"Temperature for response generation (default: {LM_DEFAULT_TEMPERATURE})")
         
         # Processing options
         parser.add_argument("--rows", type=int, default=None,
                            help="Maximum number of rows to process per item (None = all rows)")
         parser.add_argument("--variations", type=int, default=None,
                            help="Maximum variations per row to process (None = all variations)")
-        
+
         # Retry and batch options
         parser.add_argument("--max_retries", type=int, default=3,
-                           help="Maximum number of retries for rate limit errors (default: 3)")
+                            help="Maximum number of retries for rate limit errors (default: 3)")
         parser.add_argument("--retry_sleep", type=int, default=60,
-                           help="Base sleep time in seconds for rate limit retries (default: 60)")
+                            help="Base sleep time in seconds for rate limit retries (default: 60)")
         parser.add_argument("--batch_size", type=int, default=10,
-                           help="Number of variations to process before saving intermediate results (default: 10)")
-        
+                            help="Number of variations to process before saving intermediate results (default: 10)")
+
         # Resume options
         parser.add_argument("--no_resume", action="store_true",
-                           help="Don't resume from existing results files (start fresh)")
-        
+                            help="Don't resume from existing results files (start fresh)")
+
         # Parallel processing options
         parser.add_argument("--parallel_workers", type=int, default=LM_DEFAULT_PARALLEL_WORKERS,
-                           help=f"Number of parallel workers for model calls (1=sequential, default: {LM_DEFAULT_PARALLEL_WORKERS})")
+                            help=f"Number of parallel workers for model calls (1=sequential, default: {LM_DEFAULT_PARALLEL_WORKERS})")
+
+        # Gold field configuration
+        parser.add_argument("--gold_field", type=str,
+                          help="Field name in gold_updates containing the gold answer/label (e.g., 'label', 'answer', 'en', 'highlights')")
         
-        # Execution options
-        parser.add_argument("--dry_run", action="store_true",
-                           help="Show what would be run without actually running it")
-    
+        # Set resume based on no_resume flag
+        parser.set_defaults(resume=True)
+
     def print_header(self, args: argparse.Namespace, full_model_name: str, files: List[Path]) -> None:
         """Print processing header information."""
         data_dir = getattr(args, f"{self.data_dir_name}_dir")

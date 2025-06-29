@@ -42,7 +42,7 @@ def main():
     """Main function to run the language model on variation files."""
     parser = argparse.ArgumentParser(description="Run language model on prompt variations")
     parser.add_argument("--input_folder", help="Input folder containing variation files",
-                        default=str(Path(__file__).parent.parent.parent / "project_data" / "generated_data" / "data"))
+                        default=str(Path(__file__).parent / "tasks_data" / "generated_data" / "data"))
     parser.add_argument("--input_file", help="Input JSON file with variations (e.g., mmlu_local_variations.json)",
                         default="mmlu_local_variations.json")
     parser.add_argument("--platform", choices=list(PLATFORMS.keys()), default=LM_DEFAULT_PLATFORM,
@@ -67,6 +67,8 @@ def main():
                         help="Don't resume from existing results file (start fresh)")
     parser.add_argument("--parallel_workers", type=int, default=LM_DEFAULT_PARALLEL_WORKERS,
                         help=f"Number of parallel workers for model calls (1=sequential, default: {LM_DEFAULT_PARALLEL_WORKERS})")
+    parser.add_argument("--gold_field", type=str,
+                        help="Field name in gold_updates containing the gold answer/label (e.g., 'label', 'answer', 'en', 'highlights')")
 
     args = parser.parse_args()
 
@@ -80,12 +82,20 @@ def main():
     input_file = Path(args.input_folder).resolve() / args.input_file
     # Create output filename in main results directory
     input_path = Path(input_file)
-    main_dir = Path(__file__).parent.parent.parent
-    results_dir = main_dir / "project_data" / "results"
+    main_dir = Path(__file__).parent.parent  # Go to project root
+    results_dir = main_dir / "task_data" / "results"
 
     # Create subdirectory based on input file location
     if "mmlu" in str(input_path):
         results_dir = results_dir / "mmlu"
+    elif "translation" in str(input_path):
+        results_dir = results_dir / "translation"
+    elif "sentiment" in str(input_path):
+        results_dir = results_dir / "sentiment"
+    elif "summarization" in str(input_path) or "summary" in str(input_path):
+        results_dir = results_dir / "summarization"
+    elif "qa" in str(input_path) or "question" in str(input_path):
+        results_dir = results_dir / "question_answering"
 
     # Create model-specific subdirectory
     model_short = MODEL_SHORT_NAMES.get(full_model_name, "unknown")
@@ -101,6 +111,8 @@ def main():
     print(f"Platform: {args.platform}")
     print(f"Model: {full_model_name}")
     print(f"Output file: {output_file}")
+    if args.gold_field:
+        print(f"Gold field: {args.gold_field}")
     print("=" * 50)
 
     # Load variations
@@ -119,19 +131,54 @@ def main():
         print("❌ No variations to process after filtering")
         return
 
-    # Determine metrics function based on input file type
+    # Determine metrics function based on input file type and gold_field
     metrics_function = None
     input_filename = input_path.name.lower()
     
     if "mmlu" in input_filename:
-        metrics_function = calculate_mmlu_correctness_and_metrics
+        if args.gold_field:
+            def mmlu_metrics_with_field(variation, response):
+                return calculate_mmlu_correctness_and_metrics(variation, response, args.gold_field)
+            metrics_function = mmlu_metrics_with_field
+        else:
+            metrics_function = calculate_mmlu_correctness_and_metrics
         print("📊 Using MMLU correctness metrics")
     elif "translation" in input_filename:
-        metrics_function = calculate_translation_correctness_and_metrics
+        if args.gold_field:
+            def translation_metrics_with_field(variation, response):
+                return calculate_translation_correctness_and_metrics(variation, response, args.gold_field)
+            metrics_function = translation_metrics_with_field
+        else:
+            metrics_function = calculate_translation_correctness_and_metrics
         print("📊 Using translation metrics (BLEU, ROUGE, SacreBlEU)")
+    elif "sentiment" in input_filename:
+        if args.gold_field:
+            def sentiment_metrics_with_field(variation, response):
+                from multipromptify_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
+                return calculate_sentiment_correctness_and_metrics(variation, response, args.gold_field)
+            metrics_function = sentiment_metrics_with_field
+        else:
+            from multipromptify_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
+            metrics_function = calculate_sentiment_correctness_and_metrics
+        print("📊 Using sentiment analysis metrics")
     elif "summarization" in input_filename or "summary" in input_filename:
-        metrics_function = calculate_summarization_metrics
+        if args.gold_field:
+            def summarization_metrics_with_field(variation, response):
+                return calculate_summarization_metrics(variation, response, args.gold_field)
+            metrics_function = summarization_metrics_with_field
+        else:
+            metrics_function = calculate_summarization_metrics
         print("📊 Using summarization metrics (BLEU, ROUGE, SacreBlEU)")
+    elif "qa" in input_filename or "question" in input_filename:
+        if args.gold_field:
+            def qa_metrics_with_field(variation, response):
+                from multipromptify_tasks.execution.shared_metrics import calculate_qa_correctness_and_metrics
+                return calculate_qa_correctness_and_metrics(variation, response, args.gold_field)
+            metrics_function = qa_metrics_with_field
+        else:
+            from multipromptify_tasks.execution.shared_metrics import calculate_qa_correctness_and_metrics
+            metrics_function = calculate_qa_correctness_and_metrics
+        print("📊 Using question answering metrics")
     else:
         print("📊 Using default correctness checking")
 

@@ -66,6 +66,12 @@ class TranslationBatchRunner(BatchRunnerBase):
         """Return the metrics function for translation tasks."""
         return calculate_translation_correctness_and_metrics
 
+    def create_metrics_function_with_gold_field(self, gold_field: str) -> Optional[Callable]:
+        """Create a metrics function that uses the specified gold_field for translation."""
+        def translation_metrics_with_field(variation: Dict[str, Any], model_response: str) -> tuple:
+            return calculate_translation_correctness_and_metrics(variation, model_response, gold_field)
+        return translation_metrics_with_field
+
 
 def print_translation_summary(results_dir: Path, model_short: str) -> None:
     """Print translation accuracy and metrics summary."""
@@ -134,7 +140,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run language model on all translation language pair variations")
     
     # Setup common arguments
-    default_data_dir = str(Path(__file__).parent.parent.parent / "project_data" / "generated_data" / "data" / "translation")
+    default_data_dir = str(Path(__file__).parent.parent.parent / "project_data" / "generated_data" / "translation")
     runner.setup_common_args(parser, default_data_dir)
     
     # Add translation-specific arguments
@@ -196,10 +202,6 @@ def main():
 
     # Print header and process files
     runner.print_header(args, full_model_name, translation_files)
-
-    if args.dry_run:
-        print("🏃‍♂️ DRY RUN - No actual processing will be performed")
-        return
 
     # Process files
     results = []

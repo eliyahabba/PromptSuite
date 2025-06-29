@@ -41,6 +41,12 @@ class MMLUBatchRunner(BatchRunnerBase):
         """Return the metrics function for MMLU multiple choice tasks."""
         return calculate_mmlu_correctness_and_metrics
 
+    def create_metrics_function_with_gold_field(self, gold_field: str) -> Optional[Callable]:
+        """Create a metrics function that uses the specified gold_field for MMLU."""
+        def mmlu_metrics_with_field(variation: Dict[str, Any], model_response: str) -> tuple:
+            return calculate_mmlu_correctness_and_metrics(variation, model_response, gold_field)
+        return mmlu_metrics_with_field
+
     def create_result_dict(self, identifier: str, status: str, duration: float,
                            variations_processed: int = None, output_file: str = None,
                            error: str = None) -> Dict[str, Any]:
@@ -133,7 +139,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run language model on all MMLU subject variations")
 
     # Setup common arguments
-    default_data_dir = str(Path(__file__).parent.parent.parent / "project_data" / "generated_data" / "data" / "mmlu")
+    default_data_dir = str(Path(__file__).parent.parent / "task_data" / "generated_data" / "mmlu")
     runner.setup_common_args(parser, default_data_dir)
 
     # Add MMLU-specific arguments
@@ -205,10 +211,6 @@ def main():
     # Print header and process files
     runner.print_header(args, full_model_name, mmlu_files)
 
-    if args.dry_run:
-        print("🏃‍♂️ DRY RUN - No actual processing will be performed")
-        return
-
     # Process files
     results = []
     total_start_time = time.time()
@@ -234,7 +236,7 @@ def main():
     # Save summary and print final results
     total_duration = time.time() - total_start_time
     model_short = MODEL_SHORT_NAMES.get(full_model_name, full_model_name.replace(" ", "_"))
-    results_dir = Path(__file__).parent.parent.parent / "project_data" / "results" / "mmlu"
+    results_dir = Path(__file__).parent.parent / "task_data" / "results" / "mmlu"
 
     runner.save_batch_summary(results, results_dir, model_short)
 
