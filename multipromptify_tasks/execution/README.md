@@ -1,52 +1,125 @@
-# Execution Module
+# Execution Scripts
 
-This module contains simplified batch runners for processing language model tasks.
+This directory contains scripts for running language models on generated prompt variations.
 
-## Structure
-
-### Base Class
-- `batch_runner_base.py` - Common functionality for all batch runners
-  - Handles file loading, processing, and result saving
-  - Provides common CLI arguments
-  - Manages progress reporting and error handling
+## Scripts
 
 ### Batch Runners
-- `run_mmlu_batch.py` - MMLU subject batch processing
-- `run_translation_batch.py` - Translation language pair batch processing  
-- `run_language_model.py` - General language model runner
+- `run_sentiment_batch.py` - Run sentiment analysis tasks
+- `run_mmlu_batch.py` - Run MMLU multiple choice tasks  
+- `run_translation_batch.py` - Run translation tasks
+- `run_language_model.py` - Generic runner for any task type
 
-### Support Files
+### Utilities
+- `batch_runner_base.py` - Base class for all batch runners
 - `shared_metrics.py` - Metrics calculation functions
-- `add_metrics_to_csv.py` - Utility for adding metrics to CSV files
+- `add_metrics_to_csv.py` - Add metrics to existing CSV files
 
-## Key Simplifications
+## Usage
 
-1. **Removed `accuracy_only` option** - Simplified command line interface
-2. **Created base class** - Eliminated code duplication between batch runners
-3. **Consolidated imports** - Cleaner dependency management
-4. **Unified argument handling** - Common CLI arguments across runners
-
-## Usage Examples
-
+### Basic Usage
 ```bash
-# Run MMLU batch processing
-python run_mmlu_batch.py --batch_size 5 --max_retries 5
+# Run sentiment analysis with default settings
+python run_sentiment_batch.py
 
-# Run translation batch processing  
-python run_translation_batch.py --model llama_3_3_70b --max_tokens 512
+# Run MMLU with specific model
+python run_mmlu_batch.py --model llama_3_3_70b --platform TogetherAI
 
-# List available subjects/pairs
-python run_mmlu_batch.py --list_subjects
-python run_translation_batch.py --list_pairs
-
-# Process specific items only
-python run_mmlu_batch.py --subjects anatomy chemistry
-python run_translation_batch.py --language_pairs cs-en de-en
+# Run translation with limited data
+python run_translation_batch.py --rows 5 --variations 3
 ```
 
-## Benefits
+### Gold Field Configuration
 
-- **Reduced complexity**: Removed ~300 lines of duplicated code
-- **Better maintainability**: Changes to common functionality only need to be made once
-- **Cleaner interface**: Simplified command line options
-- **Consistent behavior**: All batch runners work the same way 
+**Great News**: Each batch runner now has smart defaults for the `--gold_field` parameter! You usually don't need to specify it manually.
+
+**Default Values by Task:**
+- **Sentiment Analysis**: `--gold_field label` (default)
+- **MMLU**: `--gold_field answer` (default)
+- **Translation**: Auto-detect language codes (default)
+- **QA**: Auto-detect as `answer` in generic runner
+- **Summarization**: Auto-detect as `highlights` in generic runner
+
+```bash
+# These all use the correct defaults automatically:
+python run_sentiment_batch.py
+python run_mmlu_batch.py  
+python run_translation_batch.py
+
+# Only specify --gold_field if your data uses different field names:
+python run_sentiment_batch.py --gold_field sentiment_score
+python run_mmlu_batch.py --gold_field correct_answer
+python run_translation_batch.py --gold_field target_text
+```
+
+### Common Gold Field Examples
+
+| Task Type | Typical gold_updates Structure | Default --gold_field | Override Example |
+|-----------|-------------------------------|---------------------|------------------|
+| Sentiment | `{"label": "0.7"}` | `label` ✅ | `--gold_field sentiment_score` |
+| MMLU | `{"answer": "2"}` | `answer` ✅ | `--gold_field correct_answer` |
+| Translation (EN→CS) | `{"cs": "Translated text"}` | auto-detect ✅ | `--gold_field cs` |
+| Translation (CS→EN) | `{"en": "Translated text"}` | auto-detect ✅ | `--gold_field en` |
+| QA | `{"answer": "The answer"}` | `answer` ✅ | `--gold_field response` |
+| Summarization | `{"highlights": "Summary text"}` | `highlights` ✅ | `--gold_field summary` |
+
+✅ = Works automatically without specifying --gold_field
+
+**Auto-Detection in Generic Runner:**
+The `run_language_model.py` script automatically detects the appropriate `gold_field` based on the input filename:
+- Files with "mmlu" → `--gold_field answer`
+- Files with "sentiment" → `--gold_field label`  
+- Files with "summarization" or "summary" → `--gold_field highlights`
+- Files with "qa" or "question" → `--gold_field answer`
+- Files with "translation" → Auto-detect language codes
+
+### Resume Functionality
+
+All scripts support resume functionality by default:
+
+```bash
+# Resume from existing results (default)
+python run_sentiment_batch.py
+
+# Start fresh (ignore existing results)
+python run_sentiment_batch.py --no_resume
+```
+
+### Parallel Processing
+
+```bash
+# Use 4 parallel workers
+python run_sentiment_batch.py --parallel_workers 4
+
+# Sequential processing
+python run_sentiment_batch.py --parallel_workers 1
+```
+
+## Configuration
+
+All scripts share common parameters:
+
+- `--model`: Model to use (gpt_4o_mini, llama_3_3_70b, etc.)
+- `--platform`: Platform (OpenAI, TogetherAI)
+- `--max_tokens`: Maximum response tokens
+- `--temperature`: Response temperature
+- `--batch_size`: Results per save batch
+- `--max_retries`: Retry attempts for failed requests
+- `--gold_field`: Field name for correct answer in gold_updates
+- `--rows`: Limit number of rows to process
+- `--variations`: Limit variations per row
+- `--no_resume`: Start fresh instead of resuming
+
+## Output
+
+Results are saved to `project_data/results/{task}/{model}/` in both JSON and CSV formats.
+
+## Metrics
+
+Each task type calculates appropriate metrics:
+
+- **Sentiment**: MSE, MAE, accuracy (±0.2 tolerance)
+- **MMLU**: Exact match accuracy
+- **Translation**: BLEU, ROUGE, SacreBLEU
+- **QA**: BLEU, ROUGE, SacreBLEU
+- **Summarization**: BLEU, ROUGE, SacreBLEU 
