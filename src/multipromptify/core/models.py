@@ -72,7 +72,7 @@ class VariationContext:
 class FieldAugmentationData:
     """Data needed for generating variations on a specific field."""
     field_name: str
-    field_value: str
+    field_value: Any  # Keep original value (could be list, string, etc.)
     variation_types: List[str]
     variation_config: VariationConfig
     row_data: Optional[pd.Series] = None

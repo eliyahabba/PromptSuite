@@ -27,12 +27,12 @@ class ShuffleAugmenter(BaseAxisAugmenter):
     def get_name(self):
         return "Shuffle Variations"
 
-    def augment(self, input_data: str, identification_data: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def augment(self, input_data: Any, identification_data: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """
         Generate shuffled variations of the input list.
         
         Args:
-            input_data: Must be a comma-separated string that represents a list
+            input_data: Can be a list or a comma-separated string that represents a list
             identification_data: Must contain 'gold_field' and 'gold_value' keys
             
         Returns:
@@ -41,12 +41,14 @@ class ShuffleAugmenter(BaseAxisAugmenter):
         if not identification_data or 'gold_field' not in identification_data or 'gold_value' not in identification_data:
             raise AugmentationConfigurationError("ShuffleAugmenter", ['gold_field', 'gold_value'])
 
-        # Convert comma-separated string to list
-        if not isinstance(input_data, str):
-            raise InvalidAugmentationInputError("ShuffleAugmenter", "string", type(input_data).__name__)
-
-        # Simple split by comma - input should already be formatted as "item1, item2, item3"
-        data_list = [item.strip() for item in input_data.split(ListFormattingConstants.DEFAULT_LIST_SEPARATOR)]
+        # Convert input to list
+        if isinstance(input_data, (list, tuple)):
+            data_list = [str(item).strip() for item in input_data]
+        elif isinstance(input_data, str):
+            # Simple split by comma - input should already be formatted as "item1, item2, item3"
+            data_list = [item.strip() for item in input_data.split(ListFormattingConstants.DEFAULT_LIST_SEPARATOR)]
+        else:
+            raise InvalidAugmentationInputError("ShuffleAugmenter", "string, list, or tuple", type(input_data).__name__)
 
         if len(data_list) <= 1:
             # Can't shuffle a list with 0 or 1 items
@@ -82,8 +84,8 @@ class ShuffleAugmenter(BaseAxisAugmenter):
             original_correct_item = data_list[current_gold_index]
             new_gold_index = shuffled_list.index(original_correct_item)
 
-            # Convert back to comma-separated string
-            shuffled_data = ', '.join(shuffled_list)
+            # Convert back to list separator format
+            shuffled_data = ListFormattingConstants.DEFAULT_LIST_SEPARATOR.join(shuffled_list)
 
             variations.append({
                 'shuffled_data': shuffled_data,
