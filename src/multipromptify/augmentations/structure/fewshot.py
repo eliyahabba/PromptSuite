@@ -180,24 +180,33 @@ This augmenter handles few-shot examples for NLP tasks.
                                     if gold_index < len(letters):
                                         output_value = f"{letters[gold_index]}. {options_list[gold_index].strip()}"
                                 elif enum_type == 'roman':
-                                    romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+                                    romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII', 'XXIX', 'XXX', 'XXXI', 'XXXII', 'XXXIII', 'XXXIV', 'XXXV', 'XXXVI', 'XXXVII', 'XXXVIII', 'XXXIX', 'XL']
                                     if gold_index < len(romans):
                                         output_value = f"{romans[gold_index]}. {options_list[gold_index].strip()}"
                                 # Add more enum types as needed
                         except (ValueError, IndexError) as e:
                             print(f"⚠️ Error formatting enumerated gold value: {e}")
                 else:
-                    field_value = format_field_value(example_row[col])
-                    # Apply enumeration if configured
+                    # Keep original field value for enumeration processing
+                    original_field_value = example_row[col]
+                    
+                    # Apply enumeration if configured (before formatting)
                     if enumerate_configs and col in enumerate_configs:
                         enum_config = enumerate_configs[col]
                         enum_type = enum_config.get('type', '1234')
                         try:
                             from multipromptify.augmentations.structure.enumerate import EnumeratorAugmenter
                             enumerator = EnumeratorAugmenter()
-                            field_value = enumerator.enumerate_field(field_value, enum_type)
+                            # Pass the original value (could be list or string) directly to enumerate
+                            field_value = enumerator.enumerate_field(original_field_value, enum_type)
                         except Exception as e:
                             print(f"⚠️ Error enumerating field '{col}' in few-shot example: {e}")
+                            # Fallback to formatted original value
+                            field_value = format_field_value(original_field_value)
+                    else:
+                        # No enumeration needed, just format the value
+                        field_value = format_field_value(original_field_value)
+                    
                     input_values[col] = field_value
             input_template = prompt_format_variant
             if gold_field:
