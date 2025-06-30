@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 
 from multipromptify import MultiPromptify
 from multipromptify.core.template_keys import (
-    PROMPT_FORMAT, PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, INSTRUCTION
+    PROMPT_FORMAT, INSTRUCTION
 )
-from multipromptify.shared.constants import GenerationInterfaceConstants, GenerationDefaults
+from multipromptify.shared.constants import GenerationDefaults
 from .results_display import display_full_results
 
 # Load environment variables
@@ -91,11 +91,11 @@ def display_current_setup(df, template, template_name):
             if PROMPT_FORMAT in template:
                 st.markdown("**Prompt Format:**")
                 st.code(template[PROMPT_FORMAT], language="text")
-            
+
             # Display the rest of the template (excluding INSTRUCTION and PROMPT_FORMAT)
-            template_parts = {k: v for k, v in template.items() 
-                            if k not in [INSTRUCTION, PROMPT_FORMAT]}
-            
+            template_parts = {k: v for k, v in template.items()
+                              if k not in [INSTRUCTION, PROMPT_FORMAT]}
+
             if template_parts:
                 st.markdown("**Template Variables:**")
                 # Format the dictionary nicely
@@ -130,10 +130,10 @@ def configure_generation():
         # Get basic data
         df = st.session_state.uploaded_data
         max_rows = st.session_state.get('max_rows', None)
-        
+
         # Use only the selected number of rows for estimation
         effective_rows = len(df) if max_rows is None else min(max_rows, len(df))
-        
+
         # Variations per field setting (first position)
         variations_per_field = st.number_input(
             "🔄 Variations per field",
@@ -143,7 +143,7 @@ def configure_generation():
             help="Number of variations to generate for each field that has variations enabled"
         )
         st.session_state.variations_per_field = variations_per_field
-        
+
         # Calculate estimated_per_row after variations_per_field is set
         mp = MultiPromptify()
         try:
@@ -151,9 +151,9 @@ def configure_generation():
             num_variation_fields = len([f for f, v in variation_fields.items() if v is not None])
 
             if num_variation_fields > 0:
-                # The system generates variations_per_field variations per field, not combinatorial product
-                # Each field gets variations_per_field variations, and they are combined
-                estimated_per_row = variations_per_field * num_variation_fields
+                # The system generates combinatorial product of all field variations
+                # Each field gets variations_per_field variations, and all combinations are created
+                estimated_per_row = variations_per_field ** num_variation_fields
                 estimated_total = estimated_per_row * effective_rows
             else:
                 estimated_per_row = 1  # No variations, just one prompt per row
@@ -287,19 +287,42 @@ def generate_variations_interface():
 
         if num_variation_fields > 0:
             if max_variations_per_row is None:
-                # No limit on variations
-                estimated_per_row = variations_per_field * num_variation_fields
+                # No limit on variations - combinatorial product (power)
+                estimated_per_row = variations_per_field ** num_variation_fields
                 estimated_total = estimated_per_row * effective_rows
             else:
                 # Limited variations per row - use the actual max_variations_per_row value
-                estimated_per_row = min(variations_per_field * num_variation_fields, max_variations_per_row)
+                # But still calculate the theoretical maximum as a power
+                theoretical_per_row = variations_per_field ** num_variation_fields
+                estimated_per_row = min(theoretical_per_row, max_variations_per_row)
                 estimated_total = estimated_per_row * effective_rows
         else:
             estimated_total = effective_rows  # No variations, just one prompt per row
 
-        # Compact estimation display
-        st.info(
-            f"📊 **Generation Estimate:** ~{estimated_total:,} variations from {effective_rows:,} rows • ~{estimated_total // effective_rows if effective_rows > 0 else 0} variations per row")
+        # Compact estimation display with warning for large numbers
+        avg_per_row = estimated_total // effective_rows if effective_rows > 0 else 0
+
+        if num_variation_fields > 0:
+            theoretical_per_row = variations_per_field ** num_variation_fields
+            if theoretical_per_row > 10000:  # Warn if theoretical calculation is very large
+                st.warning(
+                    f"⚠️ **High Variation Count:** Theoretical maximum is {theoretical_per_row:,} variations per row "
+                    f"({variations_per_field}^{num_variation_fields}). "
+                    f"Limited to {max_variations_per_row:,} per row to keep generation manageable."
+                )
+            elif theoretical_per_row > 1000:  # Info for moderately large numbers
+                st.info(
+                    f"📊 **Generation Estimate:** ~{estimated_total:,} variations from {effective_rows:,} rows • "
+                    f"~{avg_per_row} variations per row (theoretical max: {theoretical_per_row:,})"
+                )
+            else:
+                st.info(
+                    f"📊 **Generation Estimate:** ~{estimated_total:,} variations from {effective_rows:,} rows • ~{avg_per_row} variations per row"
+                )
+        else:
+            st.info(
+                f"📊 **Generation Estimate:** ~{estimated_total:,} variations from {effective_rows:,} rows • ~{avg_per_row} variations per row"
+            )
 
     except Exception as e:
         error_message = str(e)
@@ -372,7 +395,8 @@ def generate_all_variations():
                 progress_bar.progress(0.3)
 
                 template = st.session_state.selected_template
-                variations_per_field = st.session_state.get('variations_per_field', GenerationDefaults.VARIATIONS_PER_FIELD)
+                variations_per_field = st.session_state.get('variations_per_field',
+                                                            GenerationDefaults.VARIATIONS_PER_FIELD)
                 api_key = st.session_state.get('api_key')
 
                 # Show configuration details
