@@ -229,7 +229,7 @@ class VariationGenerator:
 
             # Assume clean data - process all fields that exist in the row
             if field_name in row.index:
-                field_value = format_field_value(row[field_name])
+                field_value = row[field_name]  # Keep original value (don't format yet)
                 field_data = FieldAugmentationData(
                     field_name=field_name,
                     field_value=field_value,
@@ -255,7 +255,7 @@ class VariationGenerator:
         apply them in a fixed order: shuffle first, then enumerate, regardless of their order in the template.
         Use deterministic sampling to select a subset of variations for consistency across rows.
         """
-        # If no variation types, return the original value
+        # If no variation types, return the original value (formatted)
         if not field_data.variation_types:
             original_formatted = format_field_value(field_data.field_value)
             if field_data.gold_config and field_data.gold_config.field == field_data.field_name:
@@ -276,8 +276,13 @@ class VariationGenerator:
             if vtype not in ordered_types:
                 ordered_types.append(vtype)
 
-        # Start with the original value
-        current_variations = [format_field_value(field_data.field_value)]
+        # Start with the original value - format it only if it's not a list for enumerate
+        if ENUMERATE_VARIATION in ordered_types and isinstance(field_data.field_value, (list, tuple)):
+            # Keep as list for enumerate processing
+            current_variations = [field_data.field_value]
+        else:
+            # Format for other augmenters
+            current_variations = [format_field_value(field_data.field_value)]
         current_gold_updates = [None] * len(current_variations)
 
         for variation_type in ordered_types:
@@ -337,7 +342,7 @@ class VariationGenerator:
                 elif variation_type == ENUMERATE_VARIATION:
                     variations = AugmenterFactory.augment_with_special_handling(
                         augmenter=augmenter,
-                        text=var,
+                        text=var,  # This could be a list or formatted string
                         variation_type=variation_type
                     )
                     if variations and isinstance(variations, list):
@@ -360,13 +365,15 @@ class VariationGenerator:
             current_variations = next_variations
             current_gold_updates = next_gold_updates
 
-        # Remove duplicates while preserving order
+        # Remove duplicates while preserving order and ensure all values are formatted
         unique = []
         seen = set()
         for i, v in enumerate(current_variations):
-            key = (v, str(current_gold_updates[i]))
+            # Format the value if it's not already a string (in case it's still a list)
+            formatted_v = format_field_value(v) if not isinstance(v, str) else v
+            key = (formatted_v, str(current_gold_updates[i]))
             if key not in seen:
-                unique.append(FieldVariation(data=v, gold_update=current_gold_updates[i]))
+                unique.append(FieldVariation(data=formatted_v, gold_update=current_gold_updates[i]))
                 seen.add(key)
         # Deterministically sample the required number of variations using the configured random seed
         sample_seed = getattr(field_data.variation_config, 'random_seed', 42)

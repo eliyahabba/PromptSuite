@@ -223,8 +223,9 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
-                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse'],
-                            'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
+                            'options': [['Mars', 'Earth', 'Jupiter', 'Venus'], ['Oxygen', 'Gold', 'Silver'], ['Lion', 'Cheetah', 'Horse']],
+                            'answer': [2, 0, 1],  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
+                            'subject': ['astronomy', 'chemistry', 'biology']
                         }
                     },
                     {
@@ -233,7 +234,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
                             INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            #PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
                             QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
                             OPTIONS_KEY: [SHUFFLE_VARIATION],
                             GOLD_KEY: {
@@ -246,8 +247,9 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
-                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse'],
-                            'answer': [2, 0, 1]
+                            'options': [['Mars', 'Earth', 'Jupiter', 'Venus'], ['Oxygen', 'Gold', 'Silver'], ['Lion', 'Cheetah', 'Horse']],
+                            'answer': [2, 0, 1],
+                            'subject': ['astronomy', 'chemistry', 'biology']
                         }
                     },
                     {
@@ -274,8 +276,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?', 'What is the smallest prime number?'],
-                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse',
-                                        '1, 2, 3'],
+                            'options': [['Mars', 'Earth', 'Jupiter', 'Venus'], ['Oxygen', 'Gold', 'Silver'], ['Lion', 'Cheetah', 'Horse'],
+                                        ['1', '2', '3']],
                             'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
                         }
                     },
@@ -299,8 +301,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
-                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver, Hydrogen',
-                                        'Lion, Cheetah, Horse, Tiger'],
+                            'options': [['Mars', 'Earth', 'Jupiter', 'Venus'], ['Oxygen', 'Gold', 'Silver', 'Hydrogen'],
+                                        ['Lion', 'Cheetah', 'Horse', 'Tiger']],
                             'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
                         }
                     },
@@ -325,8 +327,8 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
-                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver, Hydrogen',
-                                        'Lion, Cheetah, Horse, Tiger'],
+                            'options': [['Mars', 'Earth', 'Jupiter', 'Venus'], ['Oxygen', 'Gold', 'Silver', 'Hydrogen'],
+                                        ['Lion', 'Cheetah', 'Horse', 'Tiger']],
                             'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
                         }
                     },
@@ -346,7 +348,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
-                            'options': ['Mars, Earth, Jupiter, Venus', 'Oxygen, Gold, Silver', 'Lion, Cheetah, Horse'],
+                            'options': [['Mars', 'Earth', 'Jupiter', 'Venus'], ['Oxygen', 'Gold', 'Silver'], ['Lion', 'Cheetah', 'Horse']],
                             'answer': [2, 0, 1]
                         }
                     }
@@ -463,7 +465,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'description': 'Semantic-preserving format structure variations with automatic enumeration',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'What is 2+2?'],
-                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],
                             'answer': [2, 1]  # 0-based indices
                         }
                     },
@@ -483,7 +485,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'description': 'Robustness testing with noise injection (typos, case changes, etc.)',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'What is 2+2?'],
-                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],
                             'answer': [2, 1]  # 0-based indices
                         }
                     },
@@ -504,7 +506,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'description': 'Both format structure and noise injection augmenters combined',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'What is 2+2?'],
-                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],
                             'answer': [2, 1]  # 0-based indices
                         }
                     },
@@ -525,7 +527,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'description': 'Noise injection for robustness testing with automatic enumeration',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'What is 2+2?'],
-                            'options': ['London, Berlin, Paris, Madrid', '3, 4, 5, 6'],
+                            'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],
                             'answer': [2, 1]  # 0-based indices
                         }
                     }

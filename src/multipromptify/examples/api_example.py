@@ -1434,10 +1434,10 @@ def example_shuffle_template():
             'What is the smallest prime number?'
         ],
         'options': [
-            'Mars, Earth, Jupiter, Venus',
-            'Oxygen, Gold, Silver',
-            'Lion, Cheetah, Horse',
-            '1, 2, 3'
+            ['Mars', 'Earth', 'Jupiter', 'Venus'],
+            ['Oxygen', 'Gold', 'Silver'],
+            ['Lion', 'Cheetah', 'Horse'],
+            ['1', '2', '3']
         ],
         'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
     })
@@ -1470,9 +1470,9 @@ def example_shuffle_template():
 
     # Configure with 3 variations per field
     mp.configure(
-        max_rows=2,
+        max_rows=1,
         variations_per_field=3,
-        max_variations_per_row=10,  # High limit to see all variations
+        max_variations_per_row=22,  # High limit to see all variations
         random_seed=42
     )
     variations = mp.generate(verbose=True)
@@ -1515,10 +1515,10 @@ def example_complex_template_debug():
             'What is the smallest prime number?'
         ],
         'options': [
-            'Mars, Earth, Jupiter, Venus',
-            'Oxygen, Gold, Silver',
-            'Lion, Cheetah, Horse',
-            '1, 2, 3'
+            ['Mars', 'Earth', 'Jupiter', 'Venus'],
+            ['Oxygen', 'Gold', 'Silver'],
+            ['Lion', 'Cheetah', 'Horse'],
+            ['1', '2', '3']
         ],
         'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
     })
@@ -1934,7 +1934,7 @@ def test_enumerated_gold_in_few_shot():
     # Simple test data
     data = pd.DataFrame({
         'question': ['What is 2+2?', 'What is 3+3?', 'What is 4+4?'],
-        'options': ['3, 4, 5, 6', '5, 6, 7, 8', '7, 8, 9, 10'],
+        'options': [['3', '4', '5', '6'], ['5', '6', '7', '8'], ['7', '8', '9', '10']],
         'answer': [1, 1, 1],  # All answers are index 1 (second option)
         'split': ['train', 'train', 'test']
     })
@@ -2032,7 +2032,7 @@ def example_list_data_support():
     template = {
         INSTRUCTION: "The following are multiple choice questions (with answers) about {subject}.",
         PROMPT_FORMAT: "Question: {question}\nChoices: {choices}\nAnswer:\n{answer}",
-        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
+        PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
         'choices': [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
@@ -2111,15 +2111,15 @@ def example_few_shot_unordered_random():
         ],
         'options': [
             # Training options
-            '3, 4, 5, 6',
-            '5, 6, 7, 8', 
-            '7, 8, 9, 10',
-            '9, 10, 11, 12',
-            '11, 12, 13, 14',
+            ['3', '4', '5', '6'],
+            ['5', '6', '7', '8'], 
+            ['7', '8', '9', '10'],
+            ['9', '10', '11', '12'],
+            ['11', '12', '13', '14'],
             # Test options
-            '13, 14, 15, 16',
-            '15, 16, 17, 18',
-            '17, 18, 19, 20'
+            ['13', '14', '15', '16'],
+            ['15', '16', '17', '18'],
+            ['17', '18', '19', '20']
         ],
         'answer': [1, 1, 1, 1, 1, 1, 1, 1],  # All answers are option B
         'split': ['train', 'train', 'train', 'train', 'train', 'test', 'test', 'test']
@@ -2225,14 +2225,14 @@ def example_few_shot_random_per_row_vs_ordered_2():
             'What is the capital of Russia?'
         ],
         'options': [
-            'London, Paris, Berlin, Madrid',
-            'Paris, Berlin, Rome, Madrid', 
-            'Berlin, Rome, Paris, London',
-            'Madrid, Paris, Berlin, Rome',
-            'London, Berlin, Paris, Madrid',
-            'Tokyo, Beijing, Seoul, Bangkok',
-            'Beijing, Tokyo, Seoul, Bangkok',
-            'Moscow, Kiev, Warsaw, Prague'
+            ['London', 'Paris', 'Berlin', 'Madrid'],
+            ['Paris', 'Berlin', 'Rome', 'Madrid'], 
+            ['Berlin', 'Rome', 'Paris', 'London'],
+            ['Madrid', 'Paris', 'Berlin', 'Rome'],
+            ['London', 'Berlin', 'Paris', 'Madrid'],
+            ['Tokyo', 'Beijing', 'Seoul', 'Bangkok'],
+            ['Beijing', 'Tokyo', 'Seoul', 'Bangkok'],
+            ['Moscow', 'Kiev', 'Warsaw', 'Prague']
         ],
         'answer': [1, 1, 1, 0, 0, 0, 0, 0],  # Correct answers
         'split': ['train', 'train', 'train', 'train', 'test', 'test', 'test', 'test']
@@ -2331,7 +2331,7 @@ def example_few_shot_random_per_row_vs_ordered_2():
 
 if __name__ == "__main__":
     # Run the new unordered random few-shot example
-    example_few_shot_unordered_random()
+    # example_few_shot_unordered_random()
     
     # Run the new list data support example first
     # example_list_data_support()
@@ -2346,7 +2346,7 @@ if __name__ == "__main__":
     # # example_complex_template_debug()
     # example_many_augmenters_on_small_dataset()
     # # Uncomment other examples as needed:
-    # example_shuffle_template()
+    example_shuffle_template()
     # example_with_sample_data_few_shot()
     # example_with_enumerate()
     # example_enumerate_types()

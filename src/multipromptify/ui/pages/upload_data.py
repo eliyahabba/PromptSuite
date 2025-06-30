@@ -172,11 +172,11 @@ def get_sample_datasets():
                     'Which continent is known as the "Dark Continent"?'
                 ],
                 'options': [
-                    'Earth, Jupiter, Mars, Venus',
-                    'Oxygen, Gold, Silver, Iron', 
-                    'Lion, Cheetah, Horse, Leopard',
-                    '1, 2, 3, 0',
-                    'Asia, Africa, Europe, Australia'
+                    ['Earth', 'Jupiter', 'Mars', 'Venus'],
+                    ['Oxygen', 'Gold', 'Silver', 'Iron'],
+                    ['Lion', 'Cheetah', 'Horse', 'Leopard'],
+                    ['1', '2', '3', '0'],
+                    ['Asia', 'Africa', 'Europe', 'Australia']
                 ],
                 'answer': [1, 0, 1, 1, 1],  # Indices: Jupiter=1, Oxygen=0, Cheetah=1, 2=1, Africa=1
                 'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
