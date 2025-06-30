@@ -276,13 +276,9 @@ class VariationGenerator:
             if vtype not in ordered_types:
                 ordered_types.append(vtype)
 
-        # Start with the original value - format it only if it's not a list for enumerate
-        if ENUMERATE_VARIATION in ordered_types and isinstance(field_data.field_value, (list, tuple)):
-            # Keep as list for enumerate processing
-            current_variations = [field_data.field_value]
-        else:
-            # Format for other augmenters
-            current_variations = [format_field_value(field_data.field_value)]
+        # Start with the original value - keep it as is for processing
+        # Don't format until the very end to preserve list structure for enumerate/shuffle
+        current_variations = [field_data.field_value]
         current_gold_updates = [None] * len(current_variations)
 
         for variation_type in ordered_types:
@@ -320,7 +316,7 @@ class VariationGenerator:
                         }
                     variations = AugmenterFactory.augment_with_special_handling(
                         augmenter=augmenter,
-                        text=var,
+                        text=var,  # Pass original value (could be list)
                         variation_type=variation_type,
                         identification_data=identification_data
                     )
@@ -342,7 +338,7 @@ class VariationGenerator:
                 elif variation_type == ENUMERATE_VARIATION:
                     variations = AugmenterFactory.augment_with_special_handling(
                         augmenter=augmenter,
-                        text=var,  # This could be a list or formatted string
+                        text=var,  # Pass original value (could be list)
                         variation_type=variation_type
                     )
                     if variations and isinstance(variations, list):
@@ -352,9 +348,11 @@ class VariationGenerator:
                             next_gold_updates.append(current_gold_updates[idx])
                 # Other augmenters (if any)
                 else:
+                    # For other augmenters, format the value first
+                    formatted_var = format_field_value(var) if not isinstance(var, str) else var
                     variations = AugmenterFactory.augment_with_special_handling(
                         augmenter=augmenter,
-                        text=var,
+                        text=formatted_var,
                         variation_type=variation_type
                     )
                     if variations and isinstance(variations, list):
@@ -369,7 +367,7 @@ class VariationGenerator:
         unique = []
         seen = set()
         for i, v in enumerate(current_variations):
-            # Format the value if it's not already a string (in case it's still a list)
+            # Always format to string at the very end (for display)
             formatted_v = format_field_value(v) if not isinstance(v, str) else v
             key = (formatted_v, str(current_gold_updates[i]))
             if key not in seen:

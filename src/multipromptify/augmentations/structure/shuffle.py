@@ -100,7 +100,7 @@ def main():
     augmenter = ShuffleAugmenter(n_augments=3, seed=42)
 
     # Example: Comma-separated format (the expected input format)
-    options = "Paris, London, Berlin, Madrid"
+    options = ["Paris", "London", "Berlin", "Madrid"]
     identification_data = {
         'gold_field': 'answer',
         'gold_value': '0'  # Paris is the correct answer (index 0)
