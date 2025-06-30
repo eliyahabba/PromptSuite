@@ -23,7 +23,7 @@ class PromptBuilder:
         for field_name, field_value in values.items():
             placeholder = f'{{{field_name}}}'
             if placeholder in result:
-                result = result.replace(placeholder, format_field_value(field_value))
+                result = result.replace(placeholder, str(field_value))
 
         return result
 
