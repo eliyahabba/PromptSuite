@@ -1448,7 +1448,7 @@ def example_shuffle_template():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers).',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-        OPTIONS_KEY: [SHUFFLE_VARIATION],
+        OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',

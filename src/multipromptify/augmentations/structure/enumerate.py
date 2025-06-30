@@ -22,6 +22,9 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     1. Takes the specified field's data (comma-separated string or list)
     2. Applies enumeration with the specified type
     3. Returns enumerated list with format: "1. Item1 2. Item2 3. Item3"
+    
+    Note: When input is already a list, it preserves the list structure without
+    attempting to parse commas, which prevents issues with values containing commas.
     """
 
     # Predefined enumeration types
@@ -31,7 +34,9 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         'abcd': 'abcdefghijklmnopqrstuvwxyz',
         'hebrew': 'אבגדהוזחטיכסעפצקרשת',
         'greek': 'αβγδεζηθικλμνξοπρστυφχψω',
-        'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII', 'XXIX', 'XXX']
+        'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI',
+                  'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII',
+                  'XXIX', 'XXX']
     }
 
     def __init__(self, n_augments=1, seed=None):
@@ -89,20 +94,17 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         Returns:
             Enumerated string
         """
-        # Convert input to list
-        if isinstance(field_data, str):
-            # Try different separators: comma first, then newline
-            if ',' in field_data:
-                data_list = [item.strip() for item in field_data.split(',')]
-            elif '\n' in field_data:
+        # Convert input to list - prioritize preserving lists as-is
+        if isinstance(field_data, (list, tuple)):
+            # Keep list items as they are, just convert to strings for enumeration
+            data_list = [str(item) for item in field_data]
+        elif isinstance(field_data, str):
+            # If the string contains multiple lines, treat each line as an option
+            if '\n' in field_data:
                 data_list = [item.strip() for item in field_data.split('\n') if item.strip()]
             else:
-                # Single item
                 data_list = [field_data.strip()]
-        elif isinstance(field_data, (list, tuple)):
-            data_list = [str(item) for item in field_data]
         else:
-            # Convert single value to string
             data_list = [str(field_data)]
 
         if len(data_list) == 0:
@@ -117,30 +119,30 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     def augment(self, input_data: Any, identification_data: Dict[str, Any] = None) -> List[str]:
         """
         Generate multiple variations with different enumeration types.
-        
+
         Args:
             input_data: The input data to enumerate
             identification_data: Optional data containing enumeration configuration
-            
+
         Returns:
             List of variations with different enumeration types
         """
         variations = []
-        
+
         # Get enumeration type from identification_data if available
         enum_type = '1234'  # default
         if identification_data and 'enum_type' in identification_data:
             enum_type = identification_data['enum_type']
-        
+
         # If we have n_augments > 1, generate multiple variations with different types
         if self.n_augments > 1:
             # Define different enumeration types to try
             enum_types = ['1234', 'ABCD', 'abcd', 'roman']
-            
+
             # Use deterministic selection to ensure consistency between few-shot and main variations
             # Take the first n_augments types in order for consistency
             selected_types = enum_types[:min(self.n_augments, len(enum_types))]
-            
+
             # Generate variations with different types
             for enum_type in selected_types:
                 try:
@@ -159,7 +161,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
                 print(f"⚠️ Error in enumerate augmentation: {e}")
                 # Don't return original input_data for enumerate - it should always enumerate
                 return []
-        
+
         # For enumerate, we should always return enumerated versions, not the original
         return variations
 
@@ -186,6 +188,14 @@ def main():
     options_list = ["Venus", "Mercury", "Earth", "Mars"]
     result = augmenter.enumerate_field(options_list, 'ABCD')
     print(f"List input: {result}")
+
+    # Test with complex list containing commas (like SMILES)
+    complex_list = [
+        'name: compound1, formula: C2H4\nSMILES: C=C',
+        'name: compound2, formula: C3H6\nSMILES: C=CC'
+    ]
+    result = augmenter.enumerate_field(complex_list, '1234')
+    print(f"Complex list with commas: {result}")
 
     # Test error case
     try:
