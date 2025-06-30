@@ -26,12 +26,12 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
 
     # Predefined enumeration types
     ENUMERATION_TYPES = {
-        '1234': '1234567890',
+        '1234': '123456789012345678901234567890',  # Extended to support more items
         'ABCD': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         'abcd': 'abcdefghijklmnopqrstuvwxyz',
         'hebrew': 'אבגדהוזחטיכסעפצקרשת',
         'greek': 'αβγδεζηθικλμνξοπρστυφχψω',
-        'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+        'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII', 'XXIX', 'XXX']
     }
 
     def __init__(self, n_augments=1, seed=None):
@@ -99,7 +99,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
             else:
                 # Single item
                 data_list = [field_data.strip()]
-        elif isinstance(field_data, list):
+        elif isinstance(field_data, (list, tuple)):
             data_list = [str(item) for item in field_data]
         else:
             # Convert single value to string
@@ -114,7 +114,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         # Apply enumeration
         return self._enumerate_list(data_list, enumeration_sequence)
 
-    def augment(self, input_data: str, identification_data: Dict[str, Any] = None) -> List[str]:
+    def augment(self, input_data: Any, identification_data: Dict[str, Any] = None) -> List[str]:
         """
         Generate multiple variations with different enumeration types.
         

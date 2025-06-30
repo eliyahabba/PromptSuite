@@ -11,9 +11,9 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from multipromptify import MultiPromptify
-from src.multipromptify.template_keys import (
-    INSTRUCTION_TEMPLATE_KEY, INSTRUCTION_KEY, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY, PROBLEM_KEY,
-    PARAPHRASE_WITH_LLM, REWORDING, SHUFFLE_VARIATION, GOLD_FIELD, INSTRUCTION_TEMPLATE_FIELD
+from multipromptify.core.template_keys import (
+    INSTRUCTION, PROMPT_FORMAT, GOLD_KEY, FEW_SHOT_KEY,
+    PARAPHRASE_WITH_LLM, SHUFFLE_VARIATION
 )
 
 
@@ -29,8 +29,13 @@ def test_basic_functionality():
             'context': ['Math problem', 'General knowledge']
         })
         
-        # Template with variations
-        template = "{instruction:semantic}: {context:paraphrase_with_llm}\nQuestion: {question:paraphrase_with_llm}\nAnswer: {answer}"
+        # Template with variations (new format)
+        template = {
+            INSTRUCTION: "Please answer the following question",
+            PROMPT_FORMAT: "Context: {context}\nQuestion: {question}\nAnswer: {answer}",
+            'context': [PARAPHRASE_WITH_LLM],
+            'question': [PARAPHRASE_WITH_LLM]
+        }
         
         # Initialize MultiPromptify
         mp = MultiPromptify(max_variations_per_row=20)
@@ -38,8 +43,7 @@ def test_basic_functionality():
         # Generate variations
         variations = mp.generate_variations(
             template=template,
-            data=data,
-            instruction="Please answer the following question"
+            data=data
         )
         
         print(f"Generated {len(variations)} variations")
@@ -72,11 +76,18 @@ def test_template_parsing():
     try:
         mp = MultiPromptify()
         
-        # Test valid templates
+        # Test valid templates (new format)
         valid_templates = [
-            "{instruction:semantic}: {question:paraphrase_with_llm}",
-            "{instruction}: {context:non-semantic} {question}",
-            "{few_shot}\n{question:lexical} -> {answer:rewording}"
+            {
+                INSTRUCTION: "Answer the question",
+                PROMPT_FORMAT: "Question: {question}\nAnswer: {answer}",
+                'question': [PARAPHRASE_WITH_LLM]
+            },
+            {
+                INSTRUCTION: "Process the input",
+                PROMPT_FORMAT: "Context: {context}\nQuestion: {question}",
+                'context': [PARAPHRASE_WITH_LLM]
+            }
         ]
         
         for template in valid_templates:
@@ -88,7 +99,11 @@ def test_template_parsing():
             print()
         
         # Test invalid template
-        invalid_template = "{instruction:invalid_type}: {question"
+        invalid_template = {
+            INSTRUCTION: "Test",
+            PROMPT_FORMAT: "Question: {question}",
+            'question': ["invalid_variation_type"]
+        }
         is_valid, errors = mp.template_parser.validate_template(invalid_template)
         print(f"Invalid template: {invalid_template}")
         print(f"Valid: {is_valid}")
@@ -114,18 +129,27 @@ def test_few_shot_examples():
             'answer': ['5']
         })
         
-        template = "{instruction:paraphrase_with_llm}: {few_shot}\n\nQuestion: {question}\nAnswer: {answer}"
+        template = {
+            INSTRUCTION: "Solve the math problem",
+            PROMPT_FORMAT: "Question: {question}\nAnswer: {answer}",
+            FEW_SHOT_KEY: {
+                'count': 2,
+                'format': 'shared_ordered_first_n',
+                'split': 'all'
+            }
+        }
         
         mp = MultiPromptify(max_variations_per_row=10)
         
-        # Test with few-shot examples
-        few_shot = ["Q: What is 1+1? A: 2", "Q: What is 3*3? A: 9"]
+        # Add few-shot data to the dataframe
+        few_shot_data = pd.DataFrame({
+            'question': ['What is 10-5?', 'What is 1+1?', 'What is 3*3?'],
+            'answer': ['5', '2', '9']
+        })
         
         variations = mp.generate_variations(
             template=template,
-            data=data,
-            instruction="Solve the math problem",
-            few_shot=few_shot
+            data=few_shot_data
         )
         
         print(f"Generated {len(variations)} variations with few-shot examples")
@@ -156,13 +180,16 @@ def test_file_io():
         test_data.to_csv(test_file, index=False)
         
         mp = MultiPromptify(max_variations_per_row=5)
-        template = "{instruction:semantic}: '{text:paraphrase_with_llm}'\nSentiment: {sentiment}"
+        template = {
+            INSTRUCTION: "Classify the sentiment",
+            PROMPT_FORMAT: "Text: '{text}'\nSentiment: {sentiment}",
+            'text': [PARAPHRASE_WITH_LLM]
+        }
         
         # Load from file
         variations = mp.generate_variations(
             template=template,
-            data=test_file,
-            instruction="Classify the sentiment"
+            data=test_file
         )
         
         print(f"Loaded data from CSV and generated {len(variations)} variations")
