@@ -109,7 +109,7 @@ class GPQATask(BaseTask):
         """Get template configuration for GPQA task."""
         return {
             INSTRUCTION: "Here are some example questions from experts. An explanation is given before the final answer. Answer the final question yourself, giving your reasoning beforehand.",
-            INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
+            # INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
             PROMPT_FORMAT: "Question: {Question}\nChoices: {choices}\nAnswer: {answer}",
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
             # 'Question': [TYPOS_AND_NOISE_VARIATION],

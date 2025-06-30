@@ -147,7 +147,7 @@ def main():
                         help="List available datasets and exit")
     
     # Add gold_field with GPQA-specific default
-    runner.add_gold_field_with_default(parser, "Correct Answer", "Field name in gold_updates containing the correct answer (default: 'Correct Answer')")
+    runner.add_gold_field_with_default(parser, "answer", "Field name in gold_updates containing the correct answer index (default: 'answer')")
 
     args = parser.parse_args()
 

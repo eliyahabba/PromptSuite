@@ -365,6 +365,145 @@ def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_resp
         return f"Error calculating math correctness: {str(e)}", False, {}
 
 
+def extract_final_answer_from_response(response: str) -> str:
+    import re
+    response = response.strip()
+    # Try to extract from the last non-empty line
+    lines = [line.strip() for line in response.split('\n') if line.strip()]
+    if lines:
+        last_line = lines[-1]
+        # Try to match answer formats in the last line (case-insensitive)
+        if re.match(r'^([a-dA-D])\.?\s*\d*$', last_line):
+            return last_line
+        if re.match(r'^(\d+\.?\s*\d*)$', last_line):
+            return last_line
+        if re.match(r'^([ivxIVX]+)\.?\s*\d*$', last_line):
+            return last_line
+    # Fallback: search all lines for answer patterns (case-insensitive)
+    answer_patterns = [
+        r"(?:therefore|thus|so),?\s*the answer is:?\s*([a-dA-D]\.?\s*\d*)",
+        r"the answer is:?\s*([a-dA-D]\.?\s*\d*)",
+        r"answer:?\s*([a-dA-D]\.?\s*\d*)",
+        r"(?:therefore|thus|so),?\s*the answer is:?\s*(\d+\.?\s*\d*)",
+        r"the answer is:?\s*(\d+\.?\s*\d*)",
+        r"answer:?\s*(\d+\.?\s*\d*)",
+        r"(?:therefore|thus|so),?\s*the answer is:?\s*([ivxIVX]+\.?\s*\d*)",
+        r"the answer is:?\s*([ivxIVX]+\.?\s*\d*)",
+        r"answer:?\s*([ivxIVX]+\.?\s*\d*)",
+        r"^([a-dA-D]\.?\s*\d*)$",
+        r"^(\d+\.?\s*\d*)$",
+        r"^([ivxIVX]+\.?\s*\d*)$"
+    ]
+    for pattern in answer_patterns:
+        matches = re.findall(pattern, response, flags=re.IGNORECASE)
+        if matches:
+            return matches[-1].strip()
+    return None
+
+
+def calculate_gpqa_correctness_and_metrics(variation: Dict[str, Any], model_response: str, gold_field: str = "answer") -> tuple:
+    """
+    Calculate correctness for GPQA tasks.
+
+    Args:
+        variation: The variation dictionary containing gold_updates
+        model_response: The model's response string
+        gold_field: Field name in gold_updates containing the correct answer index (default: "answer")
+
+    Returns:
+        tuple: (gold_answer_text, is_correct, metrics_dict_with_parsed_answer)
+    """
+    try:
+        gold_updates = variation.get('gold_updates', {})
+        gold_index = gold_updates.get(gold_field)
+        if gold_index is None:
+            return f"No gold answer in gold_updates['{gold_field}']", False, {}
+        field_values = variation.get('configuration', {}).get('field_values', {})
+        choices_str = field_values.get('choices', '')
+        if not choices_str:
+            return "No choices found", False, {}
+        choices = [choice.strip() for choice in choices_str.split('\n') if choice.strip()]
+        try:
+            gold_index_int = int(gold_index)
+            if 0 <= gold_index_int < len(choices):
+                gold_answer_text = choices[gold_index_int]
+            else:
+                return f"Invalid index {gold_index}", False, {}
+        except (ValueError, TypeError):
+            return f"Invalid gold index: {gold_index}", False, {}
+        # Use the shared extraction function
+        predicted_answer = extract_final_answer_from_response(model_response)
+        # Clean gold answer for comparison
+        gold_answer_clean = gold_answer_text.strip().lower()
+        # Normalize answers for comparison (remove dots, spaces, etc.)
+        def roman_to_int(roman: str) -> int:
+            roman = roman.upper()
+            roman_numerals = {'I': 1, 'V': 5, 'X': 10}
+            result = 0
+            prev_value = 0
+            for char in reversed(roman):
+                value = roman_numerals.get(char, 0)
+                if value < prev_value:
+                    result -= value
+                else:
+                    result += value
+                prev_value = value
+            return result
+
+        def normalize_answer(answer: str) -> str:
+            import re
+            if not answer:
+                return ""
+            # Remove dots, spaces, and lowercase
+            answer = answer.strip()
+            normalized = re.sub(r'[.\s]+', '', answer.lower())
+            # Convert roman numerals at start to number
+            match = re.match(r'^([ivx]+)(\d*)$', normalized)
+            if match:
+                roman = match.group(1)
+                rest = match.group(2)
+                try:
+                    number = str(roman_to_int(roman))
+                    return number + rest
+                except Exception:
+                    pass
+            # Convert letter to number (a=1, b=2, ...)
+            match = re.match(r'^([a-d])([0-9]*)$', normalized)
+            if match:
+                letter = match.group(1)
+                rest = match.group(2)
+                letter_map = {'a': '1', 'b': '2', 'c': '3', 'd': '4'}
+                if letter in letter_map:
+                    return letter_map[letter] + rest
+            # If already number at start
+            match = re.match(r'^(\d+)(\d*)$', normalized)
+            if match:
+                return match.group(1) + match.group(2)
+            return normalized
+        
+        gold_normalized = normalize_answer(gold_answer_clean)
+        
+        is_correct = False
+        if predicted_answer:
+            # Normalize both answers (handles roman, letter, number)
+            predicted_normalized = normalize_answer(predicted_answer)
+            # Check for exact match after normalization
+            is_correct = predicted_normalized == gold_normalized
+        
+        # If no structured answer found, fall back to checking if gold answer appears anywhere
+        if not is_correct and not predicted_answer:
+            model_response_clean = model_response.strip().lower()
+            is_correct = (gold_answer_clean in model_response_clean or
+                         model_response_clean in gold_answer_clean)
+
+        return gold_answer_text, is_correct, {
+            'parsed_answer': predicted_answer
+        }
+
+    except Exception as e:
+        return f"Error calculating GPQA correctness: {str(e)}", False, {}
+
+
 def calculate_bertscore_metrics(predictions: list, references: list, lang: str = "en") -> list:
     """
     Calculate BERTScore for a list of predictions and references.
