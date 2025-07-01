@@ -61,10 +61,10 @@ DATASET_METRICS = {
     'code_generation': 'pass@1',  # Use pass@1 from evaluation JSON files
     'sentiment': 'mae',  # Mean Absolute Error
     'translation': 'bleu',
-          'summarization': 'rouge1',
-      'musique': 'word_f1',
-      'question_answering': 'is_correct',
-      'gpqa': 'extracted_is_correct'
+    'summarization': 'rouge1',
+    'musique': 'word_f1',
+    'qa': 'word_f1',  # Use word_f1 from F1 metrics files
+    'gpqa': 'extracted_is_correct'
 }
 
 # Models to analyze
@@ -88,7 +88,7 @@ DATASET_DISPLAY_NAMES = {
     'code_generation': ('HumanEval', 'Code\nGeneration'),
     'musique': ('MuSiQue', 'Multihop\nQuestions'),
     'summarization': ('CNN-\nDaily-Mail', 'Summarization'),
-    'question_answering': ('SQuAD', 'Question\nAnswering')
+    'qa': ('SQuAD', 'Reading\nComprehension')
 }
 
 # Metrics that need to be scaled to 0-100 (multiply by 100)
@@ -209,6 +209,45 @@ def analyze_dataset_variations(model_dir: Path, dataset_name: str, metric_name: 
 
         files_with_metrics = list(model_dir.glob("*_evaluation.json"))
         files_without_metrics = []
+
+    # Special handling for qa with F1 metrics files
+    elif dataset_name == 'qa' and metric_name == 'word_f1':
+        # Look for QA CSV files
+        csv_files = list(model_dir.glob("*.csv"))
+        
+        if not csv_files:
+            return None
+        
+        all_data = []
+        files_with_metrics = []
+        files_without_metrics = []
+
+        for csv_file in csv_files:
+            try:
+                df = pd.read_csv(csv_file)
+
+                # Check if the required metric exists
+                has_metric = metric_name in df.columns
+
+                if not has_metric:
+                    files_without_metrics.append(csv_file.name)
+                    continue
+                else:
+                    files_with_metrics.append(csv_file.name)
+
+                # Add task identifier
+                df['task_identifier'] = csv_file.stem
+                all_data.append(df)
+
+            except Exception as e:
+                print(f"Error reading {csv_file.name}: {e}")
+                continue
+
+        if not all_data:
+            return None
+
+        # Combine all data
+        combined_df = pd.concat(all_data, ignore_index=True)
 
     else:
         # Regular CSV file processing
@@ -410,10 +449,10 @@ def create_unified_boxplot(model_name: str, dataset_results: Dict, output_dir: P
         patch.set_facecolor(colors[i])
         patch.set_alpha(BOX_ALPHA)
     
-    # Make median lines black and thicker
-    for median in bp['medians']:
-        median.set_color('black')
-        median.set_linewidth(MEDIAN_LINE_WIDTH)
+    # # Make median lines black and thicker
+    # for median in bp['medians']:
+    #     median.set_color('black')
+    #     median.set_linewidth(MEDIAN_LINE_WIDTH)
 
         # Customize plot with configurable font sizes
     ax.set_ylabel('Metric (%)', fontsize=AXIS_LABEL_FONT_SIZE)
@@ -488,10 +527,16 @@ def create_unified_boxplot(model_name: str, dataset_results: Dict, output_dir: P
     else:
         plt.subplots_adjust(bottom=0.1)
 
-    # Save the plot
-    output_filename = f'{model_name}_unified_performance_boxplot.png'
-    plt.savefig(output_dir / output_filename, dpi=300, bbox_inches='tight')
-    print(f"  💾 Plot saved to: {output_dir / output_filename}")
+    # Save the plot in both PNG and PDF formats
+    output_filename_png = f'{model_name}_unified_performance_boxplot.png'
+    output_filename_pdf = f'{model_name}_unified_performance_boxplot.pdf'
+    
+    plt.savefig(output_dir / output_filename_png, dpi=300, bbox_inches='tight')
+    plt.savefig(output_dir / output_filename_pdf, dpi=300, bbox_inches='tight')
+    
+    print(f"  💾 Plot saved to: {output_dir / output_filename_png}")
+    print(f"  💾 Plot saved to: {output_dir / output_filename_pdf}")
+    
     # show the plot
     plt.show()
     plt.close()
@@ -557,9 +602,11 @@ def main():
             should_scale, metric_type = get_metric_scaling_info(metric_name)
             scale_info = "→ 0-100%" if should_scale else "→ original scale"
 
-            # Special info for code generation
+            # Special info for different datasets
             if dataset_name == 'code_generation':
                 print(f"  🔍 Processing {dataset_name} ({metric_name} from evaluation JSON {scale_info})...")
+            elif dataset_name == 'qa':
+                print(f"  🔍 Processing {dataset_name} ({metric_name} from F1 metrics CSV {scale_info})...")
             else:
                 print(f"  🔍 Processing {dataset_name} ({metric_name} {scale_info})...")
 
