@@ -317,13 +317,14 @@ def main():
     parser.add_argument("--results_file", type=str,
                         help="Path to specific results JSON file")
     parser.add_argument("--results_dir", type=str,
-                        help="Directory containing results JSON files")
+                        help="Directory containing results JSON files", 
+                        default=str(Path(__file__).parent.parent / "tasks_data" / "results" / "code_generation" / "gpt_4o_mini"))
     parser.add_argument("--data_file", type=str,
                         default="multipromptify_tasks/tasks_data/raw_data/code_generation_humaneval.csv",
                         help="Path to original data file for task_id mapping")
     parser.add_argument("--output_suffix", type=str, default="_evaluation",
                         help="Suffix for output evaluation files")
-    parser.add_argument("--max_workers", type=int, default=4,
+    parser.add_argument("--max_workers", type=int, default=2,
                         help="Number of parallel workers for evaluation (default: 10)")
     
     args = parser.parse_args()
