@@ -119,6 +119,8 @@ def create_result_entry(variation: Dict[str, Any], response: str, model_name: st
     result = {
         'variation_index': variation.get('variation_count', 0),
         'original_row_index': variation.get('original_row_index', 'Unknown'),
+        'run_number': variation.get('run_number', 1),
+        'unique_run_id': variation.get('unique_run_id', f"{variation.get('original_row_index', 0)}_{variation.get('variation_count', 0)}_1"),
         'model_response': response,
         'model_name': model_name,
         'gold_answer': gold_answer_text,
@@ -186,13 +188,14 @@ def process_single_variation(variation: Dict[str, Any],
 
 
 def get_processed_variation_indices(results: List[Dict[str, Any]]) -> set:
-    """Get set of (original_row_index, variation_index) tuples that have already been processed."""
+    """Get set of (original_row_index, variation_index, run_number) tuples that have already been processed."""
     processed = set()
     for result in results:
         if 'variation_index' in result:
             row_idx = result.get('original_row_index', 0)
             var_idx = result['variation_index']
-            processed.add((row_idx, var_idx))
+            run_num = result.get('run_number', 1)  # Default to 1 for backward compatibility
+            processed.add((row_idx, var_idx, run_num))
     return processed
 
 
@@ -208,6 +211,7 @@ def run_model_on_variations(variations: List[Dict[str, Any]],
                             resume: bool = True,
                             parallel_workers: int = LM_DEFAULT_PARALLEL_WORKERS,
                             metrics_function=None,
+                            runs_per_sample: int = 1,
                             ) -> None:
     """Run the language model on variations and save results."""
     print(f"🤖 Using model: {model_name}")
@@ -223,20 +227,31 @@ def run_model_on_variations(variations: List[Dict[str, Any]],
             if processed_indices:
                 print(f"📋 Found {len(processed_indices)} already processed variations")
 
-    # Filter out already processed variations
+    # Create multiple copies of each variation for multiple runs
     variations_to_process = []
     for variation in variations:
         row_idx = variation.get('original_row_index', 0)
         variation_index = variation.get('variation_count')
-        variation_key = (row_idx, variation_index)
-        if variation_key not in processed_indices:
-            variations_to_process.append(variation)
+        
+        for run_number in range(1, runs_per_sample + 1):
+            # Create unique key for each run
+            variation_key = (row_idx, variation_index, run_number)
+            
+            # Check if this specific run has already been processed
+            if variation_key not in processed_indices:
+                # Create a copy of variation with run number
+                variation_copy = variation.copy()
+                variation_copy['run_number'] = run_number
+                variation_copy['unique_run_id'] = f"{row_idx}_{variation_index}_{run_number}"
+                variations_to_process.append(variation_copy)
 
     if not variations_to_process:
-        print("✅ All variations already processed!")
+        print("✅ All variations and runs already processed!")
         return
 
-    print(f"🔄 Processing {len(variations_to_process)} remaining variations")
+    total_original_variations = len(variations)
+    total_runs = total_original_variations * runs_per_sample
+    print(f"🔄 Processing {len(variations_to_process)} remaining runs ({total_original_variations} variations × {runs_per_sample} runs = {total_runs} total runs)")
 
     # Thread-safe results list and counter
     results_lock = Lock()
@@ -341,7 +356,7 @@ def save_results_as_csv(results: List[Dict[str, Any]], csv_file: str) -> None:
         return
     
     # Define base columns
-    base_columns = ['variation_index', 'original_row_index', 'model_name', 'model_response', 'gold_answer', 'is_correct']
+    base_columns = ['variation_index', 'original_row_index', 'run_number', 'unique_run_id', 'model_name', 'model_response', 'gold_answer', 'is_correct']
     
     # Add metric columns if they exist in any result
     metric_columns = ['bleu', 'rouge1', 'rouge2', 'rougeL', 'sacrebleu', 'predicted_score', 'mse', 'mae', 'absolute_error', 'parsed_answer', 'gold_numeric_answer']
@@ -462,6 +477,9 @@ class BatchRunnerBase:
             else:
                 metrics_function = self.get_metrics_function()
             
+            # Get runs_per_sample if available (only for code generation)
+            runs_per_sample = getattr(args, 'runs_per_sample', 1)
+            
             # Run model on variations
             run_model_on_variations(
                 filtered_variations,
@@ -475,7 +493,8 @@ class BatchRunnerBase:
                 batch_size=args.batch_size,
                 resume=not args.no_resume,
                 parallel_workers=args.parallel_workers,
-                metrics_function=metrics_function
+                metrics_function=metrics_function,
+                runs_per_sample=runs_per_sample
             )
             
             return self.create_result_dict(
@@ -517,7 +536,7 @@ class BatchRunnerBase:
                            help="Platform to use (TogetherAI or OpenAI)")
         parser.add_argument("--max_tokens", type=int, default=LM_DEFAULT_MAX_TOKENS,
                           help=f"Maximum tokens for response (default: {LM_DEFAULT_MAX_TOKENS})")
-        parser.add_argument("--temperature", type=float, default=LM_DEFAULT_TEMPERATURE,
+        parser.add_argument("--temperature", type=float, default=0.8,
                           help=f"Temperature for response generation (default: {LM_DEFAULT_TEMPERATURE})")
         
         # Processing options
@@ -571,6 +590,12 @@ class BatchRunnerBase:
         resume_mode = not args.no_resume
         print(f"Resume mode: {resume_mode}")
         print(f"Parallel workers: {args.parallel_workers} {'(sequential)' if args.parallel_workers == 1 else '(parallel)'}")
+        
+        # Show runs per sample if available (only for code generation)
+        runs_per_sample = getattr(args, 'runs_per_sample', 1)
+        if runs_per_sample > 1:
+            print(f"Runs per sample: {runs_per_sample}")
+            
         print(f"Found {len(files)} {self.task_name.lower()} items to process:")
         
         for i, file in enumerate(files, 1):
