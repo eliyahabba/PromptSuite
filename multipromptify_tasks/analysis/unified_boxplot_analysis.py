@@ -40,6 +40,7 @@ FIGURE_HEIGHT = 8        # Figure height
 
 # Colors and transparency
 BOX_ALPHA = 0.7         # Box transparency (0.0-1.0)
+MEDIAN_LINE_WIDTH = 2.5 # Thickness of median line in box plots (1.0 = thin, 3.0 = thick)
 
 # Display options
 SHOW_INFO_BOX = False    # Whether to show the gray box with question count details
@@ -408,6 +409,11 @@ def create_unified_boxplot(model_name: str, dataset_results: Dict, output_dir: P
     for i, patch in enumerate(bp['boxes']):
         patch.set_facecolor(colors[i])
         patch.set_alpha(BOX_ALPHA)
+    
+    # Make median lines black and thicker
+    for median in bp['medians']:
+        median.set_color('black')
+        median.set_linewidth(MEDIAN_LINE_WIDTH)
 
         # Customize plot with configurable font sizes
     ax.set_ylabel('Metric (%)', fontsize=AXIS_LABEL_FONT_SIZE)
