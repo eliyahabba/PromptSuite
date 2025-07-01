@@ -242,7 +242,8 @@ def calculate_sentiment_correctness_and_metrics(variation: dict, model_response:
 
 def calculate_qa_correctness_and_metrics(variation: dict, model_response: str, gold_field: str = "answer") -> tuple:
     """
-    Calculate correctness for Question Answering tasks.
+    Calculate correctness and metrics for Question Answering tasks.
+    Includes exact match, word-level F1 score, precision, recall, and text generation metrics.
     
     Args:
         variation: The variation dictionary containing gold_updates
@@ -253,6 +254,8 @@ def calculate_qa_correctness_and_metrics(variation: dict, model_response: str, g
         tuple: (gold_answer_text, is_correct, qa_metrics)
     """
     try:
+        import re
+        
         gold_updates = variation.get('gold_updates', {})
 
         # Get the gold answer
@@ -260,14 +263,68 @@ def calculate_qa_correctness_and_metrics(variation: dict, model_response: str, g
         if gold_answer is None:
             return f"No gold answer in gold_updates['{gold_field}']", False, {}
 
-        # Calculate text generation metrics
-        qa_metrics = calculate_text_generation_metrics(model_response, gold_answer)
+        # Clean and normalize both answers for comparison
+        def normalize_text(text: str) -> str:
+            """Normalize text for comparison."""
+            if not text:
+                return ""
+            # Convert to lowercase and strip whitespace
+            text = text.strip().lower()
+            # Remove extra whitespace
+            text = re.sub(r'\s+', ' ', text)
+            # Remove common punctuation at the end
+            text = re.sub(r'[.!?]+$', '', text)
+            return text
 
-        # For QA, we can consider it "correct" based on ROUGE-L or BLEU score
-        rouge_l_threshold = 0.3  # 30% ROUGE-L threshold
-        is_correct = qa_metrics.get("rougeL", 0.0) > rouge_l_threshold
+        def extract_words(text: str) -> set:
+            """Extract words from text for F1 calculation."""
+            # Simple word extraction - split on whitespace and punctuation
+            words = re.findall(r'\b\w+\b', text.lower())
+            return set(words)
 
-        return gold_answer, is_correct, qa_metrics
+        # Normalize answers
+        gold_normalized = normalize_text(str(gold_answer))
+        predicted_normalized = normalize_text(model_response)
+
+        # Exact match accuracy (case-insensitive, normalized)
+        exact_match = gold_normalized == predicted_normalized
+
+        # Calculate word-level F1 score for overlap between predicted and gold answers
+        gold_words = extract_words(str(gold_answer))
+        predicted_words = extract_words(model_response)
+
+        # Calculate precision, recall, and F1 at word level
+        if not predicted_words:
+            word_precision = 0.0
+            word_recall = 0.0
+            word_f1 = 0.0
+        elif not gold_words:
+            word_precision = 0.0
+            word_recall = 0.0
+            word_f1 = 0.0
+        else:
+            # Calculate overlap
+            overlap = gold_words.intersection(predicted_words)
+            word_precision = len(overlap) / len(predicted_words) if predicted_words else 0.0
+            word_recall = len(overlap) / len(gold_words) if gold_words else 0.0
+            word_f1 = (2 * word_precision * word_recall) / (word_precision + word_recall) if (word_precision + word_recall) > 0 else 0.0
+
+        # Calculate text generation metrics for additional evaluation
+        text_metrics = calculate_text_generation_metrics(model_response, str(gold_answer))
+
+        # Combine all metrics
+        qa_metrics = {
+            'exact_match': exact_match,
+            'word_precision': word_precision,
+            'word_recall': word_recall,
+            'word_f1': word_f1,
+            **text_metrics  # Include BLEU, ROUGE, etc.
+        }
+
+        # For QA, we consider it "correct" based on exact match or high word F1 score
+        is_correct = exact_match or word_f1 > 0.5  # 50% word F1 threshold
+
+        return str(gold_answer), is_correct, qa_metrics
 
     except Exception as e:
         return f"Error calculating QA metrics: {str(e)}", False, {}

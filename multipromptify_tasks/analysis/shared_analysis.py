@@ -501,6 +501,57 @@ def analyze_musique_word_f1(model_dir: Path) -> None:
     )
 
 
+def analyze_qa_variations(model_dir: Path) -> None:
+    """
+    Analyze Question Answering variations for exact match accuracy.
+    
+    Args:
+        model_dir: Directory containing the model results for Question Answering
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="question_answering",
+        metric_name="is_correct",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_qa_multiple_metrics(model_dir: Path) -> None:
+    """
+    Analyze Question Answering variations with multiple metrics including exact match, F1, precision, recall, and text generation metrics.
+    
+    Args:
+        model_dir: Directory containing the model results for Question Answering
+    """
+    analyze_multiple_metrics(
+        model_dir=model_dir,
+        task_type="question_answering",
+        metrics=["is_correct", "exact_match", "word_f1", "word_precision", "word_recall", "bleu", "rouge1", "rouge2", "rougeL"],
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_qa_word_f1(model_dir: Path) -> None:
+    """
+    Analyze Question Answering variations for word-level F1 scores.
+    
+    Args:
+        model_dir: Directory containing the model results for Question Answering
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="question_answering",
+        metric_name="word_f1",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
 def create_box_plots(variation_scores_dict: Dict[str, pd.DataFrame], task_type: str, model_name: str, figures_dir: Path, total_variations: int = 0, total_questions: int = 0) -> None:
     """
     Create box plots for variation performance metrics - all metrics on the same plot.
