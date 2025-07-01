@@ -139,7 +139,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run language model on all translation language pair variations")
     
     # Setup common arguments
-    default_data_dir = str(Path(__file__).parent.parent.parent / "project_data" / "generated_data" / "translation")
+    default_data_dir = str(Path(__file__).parent.parent / "tasks_data" / "generated_data" / "translation")
     runner.setup_common_args(parser, default_data_dir)
     
     # Add translation-specific arguments

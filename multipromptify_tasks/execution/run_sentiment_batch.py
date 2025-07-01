@@ -154,7 +154,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run language model on sentiment analysis variations")
 
     # Setup common arguments
-    default_data_dir = str(Path(__file__).parent.parent / "tasks_data" / "generated_data" / "data")
+    default_data_dir = str(Path(__file__).parent.parent / "tasks_data" / "generated_data" / "sentiment")
     runner.setup_common_args(parser, default_data_dir)
 
     # Add sentiment-specific arguments
