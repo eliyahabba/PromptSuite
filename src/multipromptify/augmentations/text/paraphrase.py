@@ -56,6 +56,7 @@ Provide {n_augments} creative versions while:
 1. Preserving the original meaning and intent
 2. Keeping ALL placeholders {{}} unchanged in their exact positions
 3. Varying the instructional language around the placeholders
+4. NEVER introduce new placeholders - if the original has no placeholders, the variations must have none
 
 Output only a Python list of strings with the alternatives. Do not include any explanation or additional text.
 
