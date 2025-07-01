@@ -6,7 +6,7 @@ import sys
 
 # Add the current directory to the path to import shared_analysis
 sys.path.append(str(Path(__file__).parent))
-from .shared_analysis import analyze_task_variations, analyze_multiple_metrics
+from shared_analysis import analyze_task_variations, analyze_multiple_metrics
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
                        help='Analyze all available translation metrics in subplots')
     args = parser.parse_args()
     
-    base_dir = Path(__file__).parent.parent / "results" / "translation"
+    base_dir = Path(__file__).parent.parent / "tasks_data" / "results" / "translation"
     model_dir = base_dir / args.model
     
     if not model_dir.exists():
