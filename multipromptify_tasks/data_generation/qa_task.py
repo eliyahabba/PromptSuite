@@ -25,8 +25,9 @@ from multipromptify.core.template_keys import (
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, INSTRUCTION_VARIATIONS,
     PROMPT_FORMAT_VARIATIONS, CONTEXT_VARIATION
 )
-from .base_task import BaseTask
-from constants import (
+from base_task import BaseTask
+
+from multipromptify_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -85,7 +86,7 @@ class QATask(BaseTask):
     def get_template(self) -> Dict[str, Any]:
         """Get template configuration for question answering task."""
         return {
-            INSTRUCTION: "You are a helpful assistant. Answer the question based on the given context.",
+            INSTRUCTION: "Given the following context, answer the question as accurately and concisely as possible.",
             INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],  # AI-powered rephrasing of instructions
             PROMPT_FORMAT: "Context: {context}\nQuestion: {question}\nAnswer: {answer}",
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],  # Semantic-preserving format changes
@@ -94,7 +95,7 @@ class QATask(BaseTask):
                 TYPOS_AND_NOISE_VARIATION,  # Robustness testing with noise
             ],
             FEW_SHOT_KEY: {
-                'count': 2,  # Reduced from 5 to work with smaller datasets
+                'count': 3,  # Reduced from 5 to work with smaller datasets
                 'format': 'random_per_row',
                 'split': 'train'
             },
@@ -110,9 +111,8 @@ def process(variations_per_field=DEFAULT_VARIATIONS_PER_FIELD,
             random_seed=DEFAULT_RANDOM_SEED):
     """Process QA task with train/test split functionality."""
     # Create output directory
-    output_dir = Path(__file__).parent.parent / "data"
+    output_dir = Path(__file__).parent.parent / "tasks_data" / "generated_data" / "qa"
     output_dir.mkdir(parents=True, exist_ok=True)
-
     print("🎯 Processing Question Answering Task: SQuAD")
     print("=" * 50)
 

@@ -117,7 +117,7 @@ class MuSiQueTask(BaseTask):
     def get_template(self) -> Dict[str, Any]:
         """Get template configuration for MuSiQue multi-hop question answering task."""
         return {
-            INSTRUCTION: "Answer the following multi-hop question based on the given paragraphs. Provide a concise and accurate answer.",
+            INSTRUCTION: "In this task, you are presented with question, and 20 documents that covers the answer to that question. Deduce your answer solely from the provided documents, avoiding any external data sources. Keep the answer short and concise, leave behind any irrelevant details",
             INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
             PROMPT_FORMAT: "Context:\n{paragraphs_formatted}\n\nQuestion: {question}\nAnswer: {answer}",
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
