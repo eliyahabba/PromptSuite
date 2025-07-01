@@ -120,7 +120,7 @@ class GPQATask(BaseTask):
                 'options_field': 'choices'
             },
             FEW_SHOT_KEY: {
-                'count': 2,  # Number of few-shot examples
+                'count': 5,  # Number of few-shot examples
                 'format': 'random_per_row',  # Random examples per row
                 'split': 'train'  # Use training split for few-shot examples
             }
