@@ -24,16 +24,16 @@ def calculate_text_generation_metrics(prediction: str, reference: str) -> Dict[s
         bleu = evaluate.load("bleu")
         rouge = evaluate.load("rouge")
         sacrebleu = evaluate.load("sacrebleu")
-        
+
         # Calculate BLEU
         bleu_score = bleu.compute(predictions=[prediction], references=[[reference]])
-        
+
         # Calculate ROUGE
         rouge_score = rouge.compute(predictions=[prediction], references=[reference])
-        
+
         # Calculate SacreBLEU
         sacrebleu_score = sacrebleu.compute(predictions=[prediction], references=[[reference]])
-        
+
         return {
             "bleu": bleu_score.get("bleu", 0.0),
             "rouge1": rouge_score.get("rouge1", 0.0),
@@ -119,7 +119,7 @@ def calculate_mmlu_correctness_and_metrics(variation: Dict[str, Any], model_resp
     """
     try:
         gold_updates = variation.get('gold_updates', {})
-        
+
         # Handle multiple choice (MMLU style)
         gold_index = gold_updates.get(gold_field)
         if gold_index is None:
@@ -174,17 +174,17 @@ def calculate_sentiment_correctness_and_metrics(variation: dict, model_response:
     """
     try:
         gold_updates = variation.get('gold_updates', {})
-        
+
         # Get the gold sentiment score
         gold_score = gold_updates.get(gold_field)
         if gold_score is None:
             return f"No gold sentiment score in gold_updates['{gold_field}']", False, {}
-        
+
         gold_score = float(gold_score)
-        
+
         # Extract predicted score from model response
         predicted_score = float(model_response.strip())
-        
+
         # Try to extract a number between 0.0 and 1.0 from the response
         # Look for patterns like "0.7", "0.85", "1.0", etc.
         # score_patterns = [
@@ -221,11 +221,11 @@ def calculate_sentiment_correctness_and_metrics(variation: dict, model_response:
         #         predicted_score = 0.1
         #     else:
         #         predicted_score = 0.5  # Default to neutral if unclear
-        
+
         # Calculate metrics
         mse = mean_squared_error([gold_score], [predicted_score])
         mae = abs(gold_score - predicted_score)  # Mean Absolute Error
-        
+
         # Consider "correct" if within 0.2 of the gold score (20% tolerance)
         sentiment_metrics = {
             'predicted_score': predicted_score,
@@ -233,9 +233,9 @@ def calculate_sentiment_correctness_and_metrics(variation: dict, model_response:
             'mae': mae,
             'absolute_error': mae
         }
-        
+
         return f"{gold_score:.2f}", None, sentiment_metrics
-        
+
     except Exception as e:
         return f"Error calculating sentiment metrics: {str(e)}", False, {}
 
@@ -254,21 +254,21 @@ def calculate_qa_correctness_and_metrics(variation: dict, model_response: str, g
     """
     try:
         gold_updates = variation.get('gold_updates', {})
-        
+
         # Get the gold answer
         gold_answer = gold_updates.get(gold_field)
         if gold_answer is None:
             return f"No gold answer in gold_updates['{gold_field}']", False, {}
-        
+
         # Calculate text generation metrics
         qa_metrics = calculate_text_generation_metrics(model_response, gold_answer)
-        
+
         # For QA, we can consider it "correct" based on ROUGE-L or BLEU score
         rouge_l_threshold = 0.3  # 30% ROUGE-L threshold
         is_correct = qa_metrics.get("rougeL", 0.0) > rouge_l_threshold
-        
+
         return gold_answer, is_correct, qa_metrics
-        
+
     except Exception as e:
         return f"Error calculating QA metrics: {str(e)}", False, {}
 
@@ -287,17 +287,17 @@ def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_resp
     """
     try:
         gold_updates = variation.get('gold_updates', {})
-        
+
         # Get the gold answer (full GSM8K format answer)
         gold_answer = gold_updates.get(gold_field)
         if gold_answer is None:
             return f"No gold answer in gold_updates['{gold_field}']", False, {}
-        
+
         # Extract numeric value from model response
         def extract_numeric_from_response(response: str) -> float:
             """Extract numeric answer from model response."""
             import re
-            
+
             # First try to find #### pattern (if model follows GSM8K format)
             gsm8k_pattern = r"#### (\-?[0-9\.\,]+)"
             gsm8k_matches = re.findall(gsm8k_pattern, response)
@@ -306,7 +306,7 @@ def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_resp
                     return float(gsm8k_matches[0].replace(',', ''))
                 except ValueError:
                     pass
-            
+
             # Fallback: look for any numbers in the response, prioritizing the last one
             numbers = re.findall(r'-?\d+(?:\.\d+)?', response.strip())
             if numbers:
@@ -314,18 +314,18 @@ def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_resp
                     return float(numbers[-1].replace(',', ''))
                 except ValueError:
                     pass
-            
+
             return None
-        
+
         # Extract numeric value from gold answer (GSM8K format)
         def extract_numeric_from_gold_answer(answer_text: str) -> float:
             """Extract the final numeric answer from GSM8K answer format."""
             import re
-            
+
             # GSM8K answers end with "#### [number]" format
             regex_pattern = r"#### (\-?[0-9\.\,]+)"
             matches = re.findall(regex_pattern, answer_text)
-            
+
             if matches:
                 # Take the first (and should be only) match
                 numeric_part = matches[0]
@@ -334,33 +334,33 @@ def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_resp
                     return float(numeric_part.replace(',', ''))
                 except ValueError:
                     pass
-            
+
             # If no #### pattern found, this is an error in the dataset
             raise ValueError(f"No numeric answer found in expected format '#### [number]' in: {answer_text}")
-        
+
         # Extract numeric answers from both gold and model response
         try:
             gold_numeric = extract_numeric_from_gold_answer(str(gold_answer))
         except (ValueError, TypeError) as e:
             return f"Invalid gold answer format: {gold_answer} - {str(e)}", False, {}
-        
+
         # Extract predicted numeric answer
         predicted_numeric = extract_numeric_from_response(model_response)
-        
+
         if predicted_numeric is None:
             return str(gold_answer), False, {
                 'gold_numeric_answer': gold_numeric,
                 'parsed_answer': None
             }
-        
+
         # Check if answers match (allowing for small floating point differences)
         is_correct = abs(gold_numeric - predicted_numeric) < 1e-6
-        
+
         return str(gold_answer), is_correct, {
             'gold_numeric_answer': gold_numeric,
             'parsed_answer': predicted_numeric
         }
-        
+
     except Exception as e:
         return f"Error calculating math correctness: {str(e)}", False, {}
 
@@ -368,36 +368,52 @@ def calculate_math_correctness_and_metrics(variation: Dict[str, Any], model_resp
 def extract_final_answer_from_response(response: str) -> str:
     import re
     response = response.strip()
-    # Try to extract from the last non-empty line
     lines = [line.strip() for line in response.split('\n') if line.strip()]
-    if lines:
-        last_line = lines[-1]
-        # Try to match answer formats in the last line (case-insensitive)
-        if re.match(r'^([a-dA-D])\.?\s*\d*$', last_line):
-            return last_line
-        if re.match(r'^(\d+\.?\s*\d*)$', last_line):
-            return last_line
-        if re.match(r'^([ivxIVX]+)\.?\s*\d*$', last_line):
-            return last_line
-    # Fallback: search all lines for answer patterns (case-insensitive)
-    answer_patterns = [
-        r"(?:therefore|thus|so),?\s*the answer is:?\s*([a-dA-D]\.?\s*\d*)",
-        r"the answer is:?\s*([a-dA-D]\.?\s*\d*)",
-        r"answer:?\s*([a-dA-D]\.?\s*\d*)",
-        r"(?:therefore|thus|so),?\s*the answer is:?\s*(\d+\.?\s*\d*)",
-        r"the answer is:?\s*(\d+\.?\s*\d*)",
-        r"answer:?\s*(\d+\.?\s*\d*)",
-        r"(?:therefore|thus|so),?\s*the answer is:?\s*([ivxIVX]+\.?\s*\d*)",
-        r"the answer is:?\s*([ivxIVX]+\.?\s*\d*)",
-        r"answer:?\s*([ivxIVX]+\.?\s*\d*)",
-        r"^([a-dA-D]\.?\s*\d*)$",
-        r"^(\d+\.?\s*\d*)$",
-        r"^([ivxIVX]+\.?\s*\d*)$"
-    ]
-    for pattern in answer_patterns:
-        matches = re.findall(pattern, response, flags=re.IGNORECASE)
-        if matches:
-            return matches[-1].strip()
+
+    # 1. חפש שורה שמתחילה ב-Final answer: או Answer: או Choice:
+    for line in reversed(lines):
+        m = re.match(r'^(Final answer|Answer|Choice)[:.\s-]+(.+)$', line, flags=re.IGNORECASE)
+        if m:
+            answer = m.group(2).strip()
+            return answer
+
+    # 1b. חפש שורה שמכילה רק Answer: או Choice: ואז בשורה הבאה את התשובה
+    for i, line in enumerate(lines):
+        if re.match(r'^(Final answer|Answer|Choice)[:.\s-]*$', line, flags=re.IGNORECASE):
+            if i + 1 < len(lines):
+                return lines[i + 1].strip()
+
+    # 2. חפש תשובה מודגשת (bold) או underline או inline code (כמו קודם)
+    all_bold = re.findall(r'\*\*([^*]+)\*\*', response)
+    if not all_bold:
+        all_bold = re.findall(r'__([^_]+)__', response)
+    if not all_bold:
+        all_bold = re.findall(r'`([^`]+)`', response)
+    if all_bold:
+        for candidate in reversed(all_bold):
+            candidate = candidate.strip()
+            # אם candidate מתחיל ב-Answer/Choice וכו', נסה להוציא את החלק שאחריהם
+            m = re.match(r'^(Answer|Choice)[:.\s-]*([a-dA-D1-4IVXivx]+[.:]?\s*.+)', candidate, flags=re.IGNORECASE)
+            if m:
+                return m.group(2).strip()
+            m2 = re.match(r'^(Answer|Choice)[:.\s-]*$', candidate, flags=re.IGNORECASE)
+            if m2:
+                continue  # זה רק prefix, לא תשובה
+            if len(candidate) > 100 or any(word in candidate.lower() for word in ['dimethyl', 'sulfane', 'methane', 'reagent', 'chlorochromate']):
+                continue
+            return candidate
+
+    # 3. חפש תבניות של אות/מספר/רומאי בתחילת שורה (ללא נרמול)
+    for line in reversed(lines):
+        m = re.match(r'^([a-dA-D1-4IVXivx]+)[.:]\s*(.+)', line)
+        if m:
+            return f'{m.group(1)}. {m.group(2).strip()}'
+        # גם מקרים של רק אות/מספר/רומאי
+        m2 = re.match(r'^([a-dA-D1-4IVXivx]+)[.]?\s*$', line)
+        if m2 and len(line) <= 5:
+            return f'{m2.group(1)}.'
+
+    # 4. fallback: תחזיר None
     return None
 
 
@@ -480,16 +496,16 @@ def calculate_gpqa_correctness_and_metrics(variation: Dict[str, Any], model_resp
             if match:
                 return match.group(1) + match.group(2)
             return normalized
-        
+
         gold_normalized = normalize_answer(gold_answer_clean)
-        
+
         is_correct = False
         if predicted_answer:
             # Normalize both answers (handles roman, letter, number)
             predicted_normalized = normalize_answer(predicted_answer)
             # Check for exact match after normalization
             is_correct = predicted_normalized == gold_normalized
-        
+
         # If no structured answer found, fall back to checking if gold answer appears anywhere
         if not is_correct and not predicted_answer:
             model_response_clean = model_response.strip().lower()
@@ -502,6 +518,132 @@ def calculate_gpqa_correctness_and_metrics(variation: Dict[str, Any], model_resp
 
     except Exception as e:
         return f"Error calculating GPQA correctness: {str(e)}", False, {}
+
+
+def calculate_code_generation_correctness_and_metrics(variation: Dict[str, Any], model_response: str, gold_field: str = "canonical_solution") -> tuple:
+    """
+    Simple code generation metrics - just saves the code without evaluation.
+    Evaluation will be done separately after all runs are complete.
+    
+    Args:
+        variation: The variation dictionary containing gold_updates and task information
+        model_response: The model's response string (generated code)
+        gold_field: Field name in gold_updates containing the canonical solution (default: "canonical_solution")
+        
+    Returns:
+        tuple: (gold_answer_text, is_correct, code_metrics)
+    """
+    try:
+        gold_updates = variation.get('gold_updates', {})
+
+        # Get the gold canonical solution
+        canonical_solution = gold_updates.get(gold_field)
+        if canonical_solution is None:
+            return f"No canonical solution in gold_updates['{gold_field}']", False, {}
+
+        # Get task_id from the variation data
+        original_row_index = variation.get('original_row_index', 0)
+        task_id = f"HumanEval/{original_row_index}"  # Simple task_id format
+        
+        # Just store basic information without evaluation
+        code_metrics = {
+            'task_id': task_id,
+            'code_length': len(model_response),
+            'canonical_length': len(canonical_solution)
+        }
+
+        # Return None for is_correct since we'll evaluate later
+        return canonical_solution, None, code_metrics
+
+    except Exception as e:
+        return f"Error storing code generation data: {str(e)}", False, {}
+
+
+def calculate_musique_correctness_and_metrics(variation: Dict[str, Any], model_response: str, gold_field: str = "answer") -> tuple:
+    """
+    Calculate correctness and metrics for MuSiQue multi-hop question answering tasks.
+
+    Args:
+        variation: The variation dictionary containing gold_updates
+        model_response: The model's response string
+        gold_field: Field name in gold_updates containing the answer (default: "answer")
+
+    Returns:
+        tuple: (gold_answer_text, is_correct, musique_metrics)
+    """
+    try:
+        from sklearn.metrics import f1_score
+        import re
+
+        gold_updates = variation.get('gold_updates', {})
+
+        # Get the gold answer
+        gold_answer = gold_updates.get(gold_field)
+        if gold_answer is None:
+            return f"No gold answer in gold_updates['{gold_field}']", False, {}
+
+        # Clean and normalize both answers for comparison
+        def normalize_text(text: str) -> str:
+            """Normalize text for comparison."""
+            if not text:
+                return ""
+            # Convert to lowercase and strip whitespace
+            text = text.strip().lower()
+            # Remove extra whitespace
+            text = re.sub(r'\s+', ' ', text)
+            # Remove common punctuation at the end
+            text = re.sub(r'[.!?]+$', '', text)
+            return text
+
+        def extract_words(text: str) -> set:
+            """Extract words from text for F1 calculation."""
+            # Simple word extraction - split on whitespace and punctuation
+            words = re.findall(r'\b\w+\b', text.lower())
+            return set(words)
+
+        # Normalize answers
+        gold_normalized = normalize_text(str(gold_answer))
+        predicted_normalized = normalize_text(model_response)
+
+        # Exact match accuracy (case-insensitive)
+        is_correct = gold_normalized == predicted_normalized
+
+        # Calculate word-level F1 score for overlap between predicted and gold answers
+        gold_words = extract_words(str(gold_answer))
+        predicted_words = extract_words(model_response)
+
+        # Calculate precision, recall, and F1 at word level
+        if not predicted_words:
+            precision = 0.0
+            recall = 0.0
+            f1 = 0.0
+        elif not gold_words:
+            precision = 0.0
+            recall = 0.0
+            f1 = 0.0
+        else:
+            # Calculate overlap
+            overlap = gold_words.intersection(predicted_words)
+            precision = len(overlap) / len(predicted_words) if predicted_words else 0.0
+            recall = len(overlap) / len(gold_words) if gold_words else 0.0
+            f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        # Calculate text generation metrics for additional evaluation
+        text_metrics = calculate_text_generation_metrics(model_response, str(gold_answer))
+
+        # Combine all metrics
+        musique_metrics = {
+            'word_precision': precision,
+            'word_recall': recall,
+            'word_f1': f1,
+            'exact_match': is_correct,
+            **text_metrics  # Include BLEU, ROUGE, etc.
+        }
+
+        return str(gold_answer), is_correct, musique_metrics
+
+    except Exception as e:
+        return f"Error calculating MuSiQue metrics: {str(e)}", False, {}
 
 
 def calculate_bertscore_metrics(predictions: list, references: list, lang: str = "en") -> list:
@@ -518,4 +660,4 @@ def calculate_bertscore_metrics(predictions: list, references: list, lang: str =
     """
     bertscore = evaluate.load("bertscore")
     results = bertscore.compute(predictions=predictions, references=references, lang=lang)
-    return results.get('f1', []) 
+    return results.get('f1', [])

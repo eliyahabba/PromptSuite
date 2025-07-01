@@ -109,7 +109,9 @@ def analyze_task_variations(
     if filtered_df.empty:
         print("No shared questions found across all variations")
         return
-    
+    # before calculating performance, if metric is blue we need to multiply it by 100
+    if metric_name in ['bleu', 'rouge1', 'rouge2', 'rougeL']:
+        filtered_df[metric_name] = filtered_df[metric_name] * 100
     # Calculate variation performance
     variation_scores = filtered_df.groupby('variation_index')[metric_name].agg(['mean', 'count']).reset_index()
     variation_scores.columns = ['variation_index', f'average_{metric_name}', 'question_count']
@@ -144,6 +146,10 @@ def analyze_task_variations(
     output_filename = f'{model_dir.name}_{task_type}_{metric_name}_variation_performance.png'
     plt.savefig(figures_dir / output_filename, dpi=300, bbox_inches='tight')
     plt.show()
+    
+    # Create box plot
+    variation_scores_dict = {metric_name: variation_scores}
+    create_box_plots(variation_scores_dict, task_type, model_dir.name, figures_dir)
     
     # Print statistics
     avg_score = variation_scores[f'average_{metric_name}'].mean()
@@ -271,7 +277,9 @@ def analyze_multiple_metrics(
     
     # Filter data to only shared questions
     filtered_df = pd.merge(combined_df, shared_questions, on=['task_identifier', 'original_row_index'], how='inner')
-    
+    for metric_name in ['bleu', 'rouge1', 'rouge2', 'rougeL']:
+        filtered_df[metric_name] = filtered_df[metric_name] * 100
+
     if filtered_df.empty:
         print("No shared questions found across all variations")
         return
@@ -325,6 +333,15 @@ def analyze_multiple_metrics(
     output_filename = f'{model_dir.name}_{task_type}_multi_metric_variation_performance.png'
     plt.savefig(figures_dir / output_filename, dpi=300, bbox_inches='tight')
     plt.show()
+    
+    # Create box plots for all metrics
+    variation_scores_dict = {}
+    for metric_name in available_metrics:
+        variation_scores = filtered_df.groupby('variation_index')[metric_name].agg(['mean', 'count']).reset_index()
+        variation_scores.columns = ['variation_index', f'average_{metric_name}', 'question_count']
+        variation_scores_dict[metric_name] = variation_scores
+    
+    create_box_plots(variation_scores_dict, task_type, model_dir.name, figures_dir)
     
     # Print statistics for all metrics
     print(f"\n=== {task_type.upper()} Multi-Metric Analysis Results ===")
@@ -481,3 +498,78 @@ def analyze_musique_word_f1(model_dir: Path) -> None:
         subject_column=None,
         combine_all_files=True
     )
+
+
+def create_box_plots(variation_scores_dict: Dict[str, pd.DataFrame], task_type: str, model_name: str, figures_dir: Path) -> None:
+    """
+    Create box plots for variation performance metrics - all metrics on the same plot.
+    
+    Args:
+        variation_scores_dict: Dictionary mapping metric names to variation scores DataFrames
+        task_type: Type of task ('mmlu', 'translation', etc.)
+        model_name: Name of the model
+        figures_dir: Directory to save the figure
+    """
+    metrics = list(variation_scores_dict.keys())
+    n_metrics = len(metrics)
+    
+    if n_metrics == 0:
+        return
+    
+    # Create single figure for all metrics
+    fig, ax = plt.subplots(1, 1, figsize=(max(8, 2 + n_metrics * 1.5), 6))
+    
+    # Prepare data for all metrics
+    box_data = []
+    labels = []
+    colors = ['lightblue', 'lightgreen', 'lightcoral', 'lightyellow', 'lightpink', 'lightgray']
+    
+    for i, metric_name in enumerate(metrics):
+        variation_scores = variation_scores_dict[metric_name]
+        box_data.append(variation_scores[f'average_{metric_name}'].values)
+        labels.append(metric_name.upper())
+    
+    # Create box plot with all metrics
+    bp = ax.boxplot(box_data, patch_artist=True, labels=labels)
+    
+    # Customize box plot appearance with different colors for each metric
+    for i, patch in enumerate(bp['boxes']):
+        patch.set_facecolor(colors[i % len(colors)])
+        patch.set_alpha(0.7)
+    
+    ax.set_ylabel('Performance Score')
+    ax.set_xlabel('Metrics')
+    
+    # Set main title
+    if task_type.lower() == 'translation':
+        title = f'Translation Performance Distribution\nModel: {model_name}'
+    else:
+        title = f'{task_type.title()} Performance Distribution\nModel: {model_name}'
+    
+    ax.set_title(title, fontsize=14)
+    ax.grid(True, alpha=0.3)
+    
+    # Add statistics text for each metric
+    stats_text = []
+    for i, metric_name in enumerate(metrics):
+        variation_scores = variation_scores_dict[metric_name]
+        mean_val = variation_scores[f'average_{metric_name}'].mean()
+        std_val = variation_scores[f'average_{metric_name}'].std()
+        stats_text.append(f'{metric_name.upper()}: μ={mean_val:.4f}, σ={std_val:.4f}')
+    
+    # Place statistics text
+    stats_str = '\n'.join(stats_text)
+    ax.text(0.02, 0.98, stats_str, 
+            transform=ax.transAxes, verticalalignment='top',
+            bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    
+    plt.tight_layout()
+    
+    # Save the plot
+    if n_metrics == 1:
+        output_filename = f'{model_name}_{task_type}_{metrics[0]}_boxplot.png'
+    else:
+        output_filename = f'{model_name}_{task_type}_combined_metrics_boxplot.png'
+    
+    plt.savefig(figures_dir / output_filename, dpi=300, bbox_inches='tight')
+    plt.show()
