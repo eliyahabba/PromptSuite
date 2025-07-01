@@ -118,7 +118,7 @@ class MuSiQueTask(BaseTask):
         """Get template configuration for MuSiQue multi-hop question answering task."""
         return {
             INSTRUCTION: "Answer the following multi-hop question based on the given paragraphs. Provide a concise and accurate answer.",
-            # INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
+            INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
             PROMPT_FORMAT: "Context:\n{paragraphs_formatted}\n\nQuestion: {question}\nAnswer: {answer}",
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
             'question': [FORMAT_STRUCTURE_VARIATION],
