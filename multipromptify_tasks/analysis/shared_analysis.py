@@ -149,7 +149,7 @@ def analyze_task_variations(
     
     # Create box plot
     variation_scores_dict = {metric_name: variation_scores}
-    create_box_plots(variation_scores_dict, task_type, model_dir.name, figures_dir)
+    create_box_plots(variation_scores_dict, task_type, model_dir.name, figures_dir, total_variations, total_questions)
     
     # Print statistics
     avg_score = variation_scores[f'average_{metric_name}'].mean()
@@ -278,7 +278,8 @@ def analyze_multiple_metrics(
     # Filter data to only shared questions
     filtered_df = pd.merge(combined_df, shared_questions, on=['task_identifier', 'original_row_index'], how='inner')
     for metric_name in ['bleu', 'rouge1', 'rouge2', 'rougeL']:
-        filtered_df[metric_name] = filtered_df[metric_name] * 100
+        if metric_name in available_metrics:
+            filtered_df[metric_name] = filtered_df[metric_name] * 100
 
     if filtered_df.empty:
         print("No shared questions found across all variations")
@@ -341,7 +342,7 @@ def analyze_multiple_metrics(
         variation_scores.columns = ['variation_index', f'average_{metric_name}', 'question_count']
         variation_scores_dict[metric_name] = variation_scores
     
-    create_box_plots(variation_scores_dict, task_type, model_dir.name, figures_dir)
+    create_box_plots(variation_scores_dict, task_type, model_dir.name, figures_dir, total_variations, len(shared_questions))
     
     # Print statistics for all metrics
     print(f"\n=== {task_type.upper()} Multi-Metric Analysis Results ===")
@@ -500,7 +501,7 @@ def analyze_musique_word_f1(model_dir: Path) -> None:
     )
 
 
-def create_box_plots(variation_scores_dict: Dict[str, pd.DataFrame], task_type: str, model_name: str, figures_dir: Path) -> None:
+def create_box_plots(variation_scores_dict: Dict[str, pd.DataFrame], task_type: str, model_name: str, figures_dir: Path, total_variations: int = 0, total_questions: int = 0) -> None:
     """
     Create box plots for variation performance metrics - all metrics on the same plot.
     
@@ -509,6 +510,8 @@ def create_box_plots(variation_scores_dict: Dict[str, pd.DataFrame], task_type: 
         task_type: Type of task ('mmlu', 'translation', etc.)
         model_name: Name of the model
         figures_dir: Directory to save the figure
+        total_variations: Total number of variations analyzed
+        total_questions: Total number of questions/samples analyzed
     """
     metrics = list(variation_scores_dict.keys())
     n_metrics = len(metrics)
@@ -540,11 +543,19 @@ def create_box_plots(variation_scores_dict: Dict[str, pd.DataFrame], task_type: 
     ax.set_ylabel('Performance Score')
     ax.set_xlabel('Metrics')
     
-    # Set main title
+    # Set main title with sample information
+    sample_info = ""
+    if total_variations > 0 and total_questions > 0:
+        sample_info = f"\nVariations: {total_variations} | Questions: {total_questions}"
+    elif total_variations > 0:
+        sample_info = f"\nVariations: {total_variations}"
+    elif total_questions > 0:
+        sample_info = f"\nQuestions: {total_questions}"
+    
     if task_type.lower() == 'translation':
-        title = f'Translation Performance Distribution\nModel: {model_name}'
+        title = f'Translation Performance Distribution\nModel: {model_name}{sample_info}'
     else:
-        title = f'{task_type.title()} Performance Distribution\nModel: {model_name}'
+        title = f'{task_type.title()} Performance Distribution\nModel: {model_name}{sample_info}'
     
     ax.set_title(title, fontsize=14)
     ax.grid(True, alpha=0.3)
