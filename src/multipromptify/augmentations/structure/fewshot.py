@@ -215,8 +215,8 @@ This augmenter handles few-shot examples for NLP tasks.
             input_text = self._fill_template_placeholders(input_template, input_values)
             if input_text:
                 examples.append({
-                    "input": input_text.strip(),
-                    "output": output_value.strip() if output_value else ""
+                    "input": input_text,
+                    "output": output_value if output_value else ""
                 })
         return examples
 
