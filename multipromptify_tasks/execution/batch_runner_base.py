@@ -536,7 +536,7 @@ class BatchRunnerBase:
                            help="Platform to use (TogetherAI or OpenAI)")
         parser.add_argument("--max_tokens", type=int, default=LM_DEFAULT_MAX_TOKENS,
                           help=f"Maximum tokens for response (default: {LM_DEFAULT_MAX_TOKENS})")
-        parser.add_argument("--temperature", type=float, default=0.8,
+        parser.add_argument("--temperature", type=float, default=0,
                           help=f"Temperature for response generation (default: {LM_DEFAULT_TEMPERATURE})")
         
         # Processing options
