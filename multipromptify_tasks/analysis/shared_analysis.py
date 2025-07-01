@@ -362,3 +362,122 @@ def analyze_math_variations(model_dir: Path) -> None:
         subject_column=None,
         combine_all_files=True
     )
+
+
+def analyze_code_generation_variations(model_dir: Path) -> None:
+    """
+    Analyze code generation variations for correctness and syntactic accuracy.
+    
+    Args:
+        model_dir: Directory containing the model results for code generation
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="code_generation",
+        metric_name="is_correct",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_code_generation_multiple_metrics(model_dir: Path) -> None:
+    """
+    Analyze code generation variations with multiple metrics.
+    
+    Args:
+        model_dir: Directory containing the model results for code generation
+    """
+    analyze_multiple_metrics(
+        model_dir=model_dir,
+        task_type="code_generation",
+        metrics=["is_correct", "functionally_correct", "syntactically_correct", "pass_at_1", "bleu", "rouge1", "rougeL"],
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_code_generation_functional_correctness(model_dir: Path) -> None:
+    """
+    Analyze code generation variations for functional correctness.
+    
+    Args:
+        model_dir: Directory containing the model results for code generation
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="code_generation",
+        metric_name="functionally_correct",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_code_generation_pass_at_1(model_dir: Path) -> None:
+    """
+    Analyze code generation variations for pass@1 scores.
+    
+    Args:
+        model_dir: Directory containing the model results for code generation
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="code_generation",
+        metric_name="pass_at_1",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_musique_variations(model_dir: Path) -> None:
+    """
+    Analyze MuSiQue multi-hop question answering variations for exact match accuracy.
+    
+    Args:
+        model_dir: Directory containing the model results for MuSiQue
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="musique",
+        metric_name="is_correct",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_musique_multiple_metrics(model_dir: Path) -> None:
+    """
+    Analyze MuSiQue variations with multiple metrics including F1, precision, recall, and text generation metrics.
+    
+    Args:
+        model_dir: Directory containing the model results for MuSiQue
+    """
+    analyze_multiple_metrics(
+        model_dir=model_dir,
+        task_type="musique",
+        metrics=["is_correct", "word_f1", "word_precision", "word_recall", "bleu", "rouge1", "rouge2", "rougeL"],
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
+
+
+def analyze_musique_word_f1(model_dir: Path) -> None:
+    """
+    Analyze MuSiQue variations for word-level F1 scores.
+    
+    Args:
+        model_dir: Directory containing the model results for MuSiQue
+    """
+    analyze_task_variations(
+        model_dir=model_dir,
+        task_type="musique",
+        metric_name="word_f1",
+        file_pattern="*.csv",
+        subject_column=None,
+        combine_all_files=True
+    )
