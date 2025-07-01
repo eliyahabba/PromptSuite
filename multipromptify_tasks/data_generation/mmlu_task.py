@@ -13,8 +13,12 @@ import ast
 from typing import Dict, Any, List
 
 # Add the project root to the path to import multipromptify and multipromptify_tasks
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+# Add current directory to path for local imports
+current_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(current_dir))
 
 from multipromptify.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
@@ -23,8 +27,8 @@ from multipromptify.core.template_keys import (
     FEW_SHOT_KEY
 )
 
-from multipromptify_tasks.tasks.base_task import BaseTask
-from multipromptify_tasks.constants import (
+from .base_task import BaseTask
+from constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -107,7 +111,7 @@ class MMLUTask(BaseTask):
             FEW_SHOT_KEY: {
                 'count': 5,  # Reduced from 5 to work with smaller datasets
                 'format': 'random_per_row',
-                'split': 'all'
+                'split': 'train'
             }
         }
 
@@ -228,14 +232,14 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Generate MMLU prompt variations")
-    parser.add_argument("--subject", help="Specific subject to process (e.g., anatomy, chemistry)")
+    parser.add_argument("--subject", help="Specific subject to process (e.g., anatomy, chemistry)", default='international_law')
     parser.add_argument("--all", action="store_true", help="Process all subjects")
-    parser.add_argument("--rows", type=int, help="Number of rows to process")
-    parser.add_argument("--variations", type=int, help="Number of variations per row")
+    parser.add_argument("--rows", type=int, help="Number of rows to process", default=10)
+    parser.add_argument("--variations", type=int, help="Number of variations per row", default=DEFAULT_MAX_VARIATIONS_PER_ROW)
     parser.add_argument("--variations_per_field", type=int, default=DEFAULT_VARIATIONS_PER_FIELD)
     parser.add_argument("--api_platform", type=str, default=DEFAULT_PLATFORM)
     parser.add_argument("--model_name", type=str, default=DEFAULT_MODEL_NAME)
-    parser.add_argument("--random_seed", type=int, help="Random seed for generation")
+    parser.add_argument("--random_seed", type=int, help="Random seed for generation", default=DEFAULT_RANDOM_SEED)
     args = parser.parse_args()
     
     if args.all:
