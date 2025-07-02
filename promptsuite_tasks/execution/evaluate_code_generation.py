@@ -5,8 +5,8 @@ Evaluates code generation results and calculates pass@k metrics.
 This should be run after generating all code samples with multiple runs.
 
 Example usage:
-python evaluate_code_generation.py --results_dir multipromptify_tasks/tasks_data/results/code_generation/gpt_4o_mini
-python evaluate_code_generation.py --results_file multipromptify_tasks/tasks_data/results/code_generation/gpt_4o_mini/code_generation_humaneval_variations.json
+python evaluate_code_generation.py --results_dir promptsuite_tasks/tasks_data/results/code_generation/gpt_4o_mini
+python evaluate_code_generation.py --results_file promptsuite_tasks/tasks_data/results/code_generation/gpt_4o_mini/code_generation_humaneval_variations.json
 """
 
 import argparse
@@ -320,7 +320,7 @@ def main():
                         help="Directory containing results JSON files", 
                         default=str(Path(__file__).parent.parent / "tasks_data" / "results" / "code_generation" / "gpt_4o_mini"))
     parser.add_argument("--data_file", type=str,
-                        default="multipromptify_tasks/tasks_data/raw_data/code_generation_humaneval.csv",
+                        default="promptsuite_tasks/tasks_data/raw_data/code_generation_humaneval.csv",
                         help="Path to original data file for task_id mapping")
     parser.add_argument("--output_suffix", type=str, default="_evaluation",
                         help="Suffix for output evaluation files")

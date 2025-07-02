@@ -12,14 +12,14 @@ import sys
 import random
 
 from datasets import load_dataset
-from multipromptify.core.template_keys import (
+from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, GOLD_KEY,
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION,
     INSTRUCTION_VARIATIONS, PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY,
     SHUFFLE_VARIATION, ENUMERATE_VARIATION
 )
 from base_task import BaseTask
-from multipromptify_tasks.constants import (
+from promptsuite_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -107,7 +107,7 @@ class MuSiQueTask(BaseTask):
                 sample_paras = df['paragraphs_formatted'].iloc[0][:300] + "..." if len(df['paragraphs_formatted'].iloc[0]) > 300 else df['paragraphs_formatted'].iloc[0]
                 print(f"   {sample_paras}")
             
-            # Load into multipromptify
+            # Load into promptsuite
             self.mp.load_dataframe(df)
             
         except Exception as e:

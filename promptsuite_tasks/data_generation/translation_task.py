@@ -11,7 +11,7 @@ from pathlib import Path
 import os
 import sys
 
-# Add the project root to the path to import multipromptify and multipromptify_tasks
+# Add the project root to the path to import promptsuite and promptsuite_tasks
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -19,8 +19,8 @@ sys.path.insert(0, str(project_root))
 current_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(current_dir))
 
-from multipromptify.core import PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY
-from multipromptify.core.template_keys import (
+from promptsuite.core import PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY
+from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, GOLD_KEY,
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, INSTRUCTION_VARIATIONS
 )

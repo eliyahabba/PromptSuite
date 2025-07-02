@@ -19,20 +19,20 @@ import argparse
 import sys
 from pathlib import Path
 
-# Add the project root to the path to import multipromptify
+# Add the project root to the path to import promptsuite
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from multipromptify_tasks.constants import (
+from promptsuite_tasks.constants import (
     LM_DEFAULT_MAX_TOKENS, LM_DEFAULT_PLATFORM, LM_DEFAULT_TEMPERATURE,
     LM_DEFAULT_PARALLEL_WORKERS,
     PLATFORMS, MODEL_SHORT_NAMES
 )
-from multipromptify_tasks.execution.shared_metrics import (
+from promptsuite_tasks.execution.shared_metrics import (
     calculate_summarization_metrics, calculate_mmlu_correctness_and_metrics,
     calculate_translation_correctness_and_metrics
 )
-from multipromptify_tasks.execution.batch_runner_base import (
+from promptsuite_tasks.execution.batch_runner_base import (
     load_variations_file, filter_variations_by_rows_and_variations,
     run_model_on_variations, get_model_name, load_existing_results
 )
@@ -118,7 +118,7 @@ def main():
             args.gold_field = "answer"
         # For translation, leave as None for auto-detection
 
-    print("🤖 MultiPromptify Language Model Runner")
+    print("🤖 PromptSuiteLanguage Model Runner")
     print("=" * 50)
     print(f"Input file: {input_file}")
     print(f"Platform: {args.platform}")
@@ -169,11 +169,11 @@ def main():
     elif "sentiment" in input_filename:
         if args.gold_field:
             def sentiment_metrics_with_field(variation, response):
-                from multipromptify_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
+                from promptsuite_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
                 return calculate_sentiment_correctness_and_metrics(variation, response, args.gold_field)
             metrics_function = sentiment_metrics_with_field
         else:
-            from multipromptify_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
+            from promptsuite_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
             metrics_function = calculate_sentiment_correctness_and_metrics
         print("📊 Using sentiment analysis metrics")
     elif "summarization" in input_filename or "summary" in input_filename:
@@ -187,11 +187,11 @@ def main():
     elif "qa" in input_filename or "question" in input_filename:
         if args.gold_field:
             def qa_metrics_with_field(variation, response):
-                from multipromptify_tasks.execution.shared_metrics import calculate_qa_correctness_and_metrics
+                from promptsuite_tasks.execution.shared_metrics import calculate_qa_correctness_and_metrics
                 return calculate_qa_correctness_and_metrics(variation, response, args.gold_field)
             metrics_function = qa_metrics_with_field
         else:
-            from multipromptify_tasks.execution.shared_metrics import calculate_qa_correctness_and_metrics
+            from promptsuite_tasks.execution.shared_metrics import calculate_qa_correctness_and_metrics
             metrics_function = calculate_qa_correctness_and_metrics
         print("📊 Using question answering metrics")
     else:

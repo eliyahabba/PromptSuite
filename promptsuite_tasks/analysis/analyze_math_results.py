@@ -12,7 +12,7 @@ import sys
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from multipromptify_tasks.analysis.shared_analysis import analyze_math_variations
+from promptsuite_tasks.analysis.shared_analysis import analyze_math_variations
 
 
 def main():

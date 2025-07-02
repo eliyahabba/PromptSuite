@@ -1,4 +1,4 @@
-# MultiPromptify Tasks
+# PromptSuiteTasks
 
 This directory contains task-specific scripts for running language models on various datasets.
 
@@ -68,7 +68,7 @@ python run_mmlu_batch.py --dry_run
 Results are now organized by model in separate directories:
 
 ```
-multipromptify_tasks/
+promptsuite_tasks/
 ├── results/
 │   └── mmlu/
 │       ├── llama_3_3_70b/

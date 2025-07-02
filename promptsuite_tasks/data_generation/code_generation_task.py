@@ -12,12 +12,12 @@ import pandas as pd
 from datasets import load_dataset
 
 from base_task import BaseTask
-from multipromptify.core.template_keys import (
+from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, GOLD_KEY,
     FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION,
     PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY, INSTRUCTION_VARIATIONS, PARAPHRASE_WITH_LLM
 )
-from multipromptify_tasks.constants import (
+from promptsuite_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -57,7 +57,7 @@ class CodeGenerationTask(BaseTask):
             dataset = load_dataset("openai_humaneval", split="test")
             print(f"✅ Loaded HumanEval dataset: {len(dataset)} problems")
 
-            # Convert to DataFrame format expected by MultiPromptifier
+            # Convert to DataFrame format expected by PromptSuite
             df_data = []
             for i, example in enumerate(dataset):
                 # Extract task_id, prompt, and canonical_solution
@@ -65,7 +65,7 @@ class CodeGenerationTask(BaseTask):
                 prompt = example['prompt']
                 canonical_solution = example['canonical_solution']
 
-                # Create entry for MultiPromptifier
+                # Create entry for PromptSuite
                 df_data.append({
                     'task_id': task_id,
                     'prompt': prompt,
@@ -73,7 +73,7 @@ class CodeGenerationTask(BaseTask):
                     'split': 'test'  # All HumanEval data is test split
                 })
 
-            # Convert to DataFrame and load into MultiPromptifier
+            # Convert to DataFrame and load into PromptSuite
             df = pd.DataFrame(df_data)
 
             total_rows = len(df)
@@ -95,7 +95,7 @@ class CodeGenerationTask(BaseTask):
             self.mp.load_dataframe(df)
             # save as df in
             # save with pandas
-            df.to_csv('/Users/ehabba/PycharmProjects/MultiPromptifyPipeline/multipromptify_tasks/tasks_data/raw_data/code_generation_humaneval.csv', index=False)
+            df.to_csv('/Users/ehabba/PycharmProjects/PromptSuite/promptsuite_tasks/tasks_data/raw_data/code_generation_humaneval.csv', index=False)
             print(f"✅ Loaded {len(df)} code generation problems")
 
         except Exception as e:

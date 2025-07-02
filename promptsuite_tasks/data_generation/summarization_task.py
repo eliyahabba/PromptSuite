@@ -13,7 +13,7 @@ from pathlib import Path
 current_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(current_dir))
 
-from multipromptify.core.template_keys import (
+from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, GOLD_KEY,
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION,
     CONTEXT_VARIATION, INSTRUCTION_VARIATIONS, PROMPT_FORMAT_VARIATIONS, FEW_SHOT_VARIATION, FEW_SHOT_KEY

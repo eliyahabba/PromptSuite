@@ -12,14 +12,14 @@ import sys
 import random
 
 from datasets import load_dataset
-from multipromptify.core.template_keys import (
+from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, GOLD_KEY,
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION,
     INSTRUCTION_VARIATIONS, PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY,
     SHUFFLE_VARIATION, ENUMERATE_VARIATION
 )
 from base_task import BaseTask
-from multipromptify_tasks.constants import (
+from promptsuite_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -85,7 +85,7 @@ class GPQATask(BaseTask):
         """Post-process GPQA data to create choices format like MMLU."""
         print("Post-processing GPQA data...")
         
-        # Get the dataframe from MultiPromptifier
+        # Get the dataframe from PromptSuite
         df = self.mp.data
         
         # Create choices list combining all answer options (like MMLU format)
@@ -99,7 +99,7 @@ class GPQATask(BaseTask):
         # Create answer index field (correct answer is always at index 3)
         df['answer'] = 3  # The correct answer is always the last item (index 3)
         
-        # Update the data in MultiPromptifier
+        # Update the data in PromptSuite
         self.mp.data = df
         
         print(f"✅ Created choices field with 4 options per question")

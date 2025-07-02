@@ -12,7 +12,7 @@ import sys
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from multipromptify_tasks.analysis.shared_analysis import (
+from promptsuite_tasks.analysis.shared_analysis import (
     analyze_code_generation_variations, 
     analyze_code_generation_multiple_metrics,
     analyze_code_generation_functional_correctness,
@@ -62,7 +62,7 @@ def main():
     elif args.metric == "syntactically_correct":
         print("📈 Analyzing syntactic correctness...")
         # Use the general analyze function with syntactically_correct metric
-        from multipromptify_tasks.analysis.shared_analysis import analyze_task_variations
+        from promptsuite_tasks.analysis.shared_analysis import analyze_task_variations
         analyze_task_variations(
             model_dir=model_dir,
             task_type="code_generation",

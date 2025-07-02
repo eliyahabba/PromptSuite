@@ -15,10 +15,10 @@ import time
 from pathlib import Path
 from typing import Dict, Any, Optional, Callable
 
-from multipromptify_tasks.constants import MODEL_SHORT_NAMES
-from multipromptify_tasks.execution.batch_runner_base import BatchRunnerBase
-from multipromptify_tasks.execution.run_language_model import get_model_name
-from multipromptify_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
+from promptsuite_tasks.constants import MODEL_SHORT_NAMES
+from promptsuite_tasks.execution.batch_runner_base import BatchRunnerBase
+from promptsuite_tasks.execution.run_language_model import get_model_name
+from promptsuite_tasks.execution.shared_metrics import calculate_sentiment_correctness_and_metrics
 
 
 class SentimentBatchRunner(BatchRunnerBase):

@@ -15,17 +15,17 @@ from pathlib import Path
 from threading import Lock
 from typing import List, Dict, Any, Optional, Callable
 
-# Add the project root to the path to import multipromptify
+# Add the project root to the path to import promptsuite
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from multipromptify.shared.model_client import get_model_response
-from multipromptify_tasks.constants import (
+from promptsuite.shared.model_client import get_model_response
+from promptsuite_tasks.constants import (
     LM_DEFAULT_MAX_TOKENS, LM_DEFAULT_PLATFORM, LM_DEFAULT_TEMPERATURE,
     LM_DEFAULT_PARALLEL_WORKERS,
     PLATFORMS, MODEL_SHORT_NAMES, MODELS
 )
-from multipromptify_tasks.execution.shared_metrics import calculate_mmlu_correctness_and_metrics
+from promptsuite_tasks.execution.shared_metrics import calculate_mmlu_correctness_and_metrics
 
 
 def load_variations_file(file_path: str) -> List[Dict[str, Any]]:

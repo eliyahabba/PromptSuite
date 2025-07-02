@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Base Task Class
-This module provides a base class for all MultiPromptify tasks.
+This module provides a base class for all PromptSuitetasks.
 """
 
 import sys
@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, Any
 
-# Add the project root to the path to import multipromptify
+# Add the project root to the path to import promptsuite
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -17,8 +17,8 @@ sys.path.insert(0, str(project_root))
 current_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(current_dir))
 
-from multipromptify import MultiPromptifier
-from multipromptify_tasks.constants import (
+from promptsuite import PromptSuite
+from promptsuite_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -26,7 +26,7 @@ from multipromptify_tasks.constants import (
 
 class BaseTask(ABC):
     """
-    Base class for all MultiPromptify tasks.
+    Base class for all PromptSuitetasks.
     Allows configuration of variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed via __init__ arguments.
     """
 
@@ -57,7 +57,7 @@ class BaseTask(ABC):
         self.max_rows = max_rows
         self.max_variations_per_row = max_variations_per_row
         self.random_seed = random_seed
-        self.mp = MultiPromptifier()
+        self.mp = PromptSuite()
 
     @abstractmethod
     def load_data(self) -> None:
