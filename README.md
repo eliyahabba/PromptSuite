@@ -1,4 +1,7 @@
-# PromptSuite
+<div align="center" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+  <img src="logo.png" alt="PromptSuite Logo" width="80"/>
+  <h1 style="margin: 0; font-size: 3.5em;">PromptSuite</h1>
+</div>
 
 A tool that creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
 
