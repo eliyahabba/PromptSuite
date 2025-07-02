@@ -6,6 +6,7 @@ This module provides a class for generating prompt variations for code generatio
 
 import argparse
 import random
+from pathlib import Path
 from typing import Dict, Any
 
 import pandas as pd
@@ -95,7 +96,8 @@ class CodeGenerationTask(BaseTask):
             self.sp.load_dataframe(df)
             # save as df in
             # save with pandas
-            df.to_csv('/Users/ehabba/PycharmProjects/PromptSuite/promptsuite_tasks/tasks_data/raw_data/code_generation_humaneval.csv', index=False)
+            output_path = Path('promptsuite_tasks/tasks_data/raw_data/code_generation_humaneval.csv')
+            df.to_csv(output_path, index=False)
             print(f"✅ Loaded {len(df)} code generation problems")
 
         except Exception as e:

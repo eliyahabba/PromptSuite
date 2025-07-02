@@ -48,7 +48,7 @@ git push origin main
 
 ### Fill in the details:
 - **PyPI Project Name**: `promptsuite`
-- **Owner**: `ehabba`
+- **Owner**: `eliyahabba`
 - **Repository name**: `PromptSuite`
 - **Workflow name**: `publish.yml`
 - **Environment name**: `testpypi`
@@ -63,7 +63,7 @@ git push origin main
 
 ### Fill in the details:
 - **PyPI Project Name**: `promptsuite`
-- **Owner**: `ehabba`
+- **Owner**: `eliyahabba`
 - **Repository name**: `PromptSuite`
 - **Workflow name**: `publish.yml`
 - **Environment name**: `pypi`
@@ -115,7 +115,7 @@ pip install promptsuite
 - Check that repo and owner are correct
 
 ### "Project name already exists"
-- Is the name `promptsuite` taken? Change to `ehabba-promptsuite`
+- Is the name `promptsuite` taken? Change to `eliyahabba-promptsuite`
 - Or choose a different name
 
 ### Workflow doesn't run

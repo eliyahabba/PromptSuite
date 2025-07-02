@@ -24,13 +24,13 @@ pip install promptsuite
 ### From GitHub (Latest)
 
 ```bash
-pip install git+https://github.com/ehabba/PromptSuite.git
+pip install git+https://github.com/eliyahabba/PromptSuite.git
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/ehabba/PromptSuite.git
+git clone https://github.com/eliyahabba/PromptSuite.git
 cd PromptSuite
 pip install -e .
 ```
