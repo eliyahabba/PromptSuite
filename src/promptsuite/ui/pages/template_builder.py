@@ -566,9 +566,9 @@ def template_builder_interface(available_columns):
 
     if configured_fields:
         # Validate template
-        mp = PromptSuiteEngine()
+        sp = PromptSuiteEngine()
         try:
-            parsed_fields = mp.parse_template(configured_fields)
+            parsed_fields = sp.parse_template(configured_fields)
 
             # Show template structure
             st.success(f"✅ Template is valid! Configured {len(parsed_fields)} fields.")

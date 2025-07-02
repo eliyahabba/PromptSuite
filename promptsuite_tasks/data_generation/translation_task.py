@@ -93,8 +93,8 @@ class TranslationTask(BaseTask):
         # Load WMT14 dataset for the specific language pair
         # Use train[:100] to get first 100 examples for faster processing
         try:
-            self.mp.load_dataset("wmt14", wmt14_config, split="train[:100]")
-            print(f"✅ Loaded WMT14 dataset for {display_pair}: {len(self.mp.data)} rows")
+            self.sp.load_dataset("wmt14", wmt14_config, split="train[:100]")
+            print(f"✅ Loaded WMT14 dataset for {display_pair}: {len(self.sp.data)} rows")
         except Exception as e:
             print(f"❌ Error loading WMT14 dataset for {wmt14_config}: {e}")
             raise ValueError(f"Failed to load WMT14 data for language pair: {self.language_pair}")
@@ -102,8 +102,8 @@ class TranslationTask(BaseTask):
         # Post-process the data to create language-specific columns and add split info
         self.post_process()
         
-        train_count = sum(1 for split in self.mp.data['split'] if split == 'train')
-        test_count = sum(1 for split in self.mp.data['split'] if split == 'test')
+        train_count = sum(1 for split in self.sp.data['split'] if split == 'train')
+        test_count = sum(1 for split in self.sp.data['split'] if split == 'test')
         print(f"✅ Data processed for {display_pair} ({train_count} train, {test_count} test)")
 
     def post_process(self) -> None:
@@ -118,16 +118,16 @@ class TranslationTask(BaseTask):
             # The WMT14 data has the reverse mapping, so we swap source/target
             wmt_source = target_code  # 'en' in the WMT14 data
             wmt_target = source_code  # 'de' in the WMT14 data
-            self.mp.data[source_code] = [row[wmt_source] for row in self.mp.data['translation']]  # en text
-            self.mp.data[target_code] = [row[wmt_target] for row in self.mp.data['translation']]  # de text
+            self.sp.data[source_code] = [row[wmt_source] for row in self.sp.data['translation']]  # en text
+            self.sp.data[target_code] = [row[wmt_target] for row in self.sp.data['translation']]  # de text
         else:
             # For X->EN pairs, use directly
-            self.mp.data[source_code] = [row[source_code] for row in self.mp.data['translation']]
-            self.mp.data[target_code] = [row[target_code] for row in self.mp.data['translation']]
+            self.sp.data[source_code] = [row[source_code] for row in self.sp.data['translation']]
+            self.sp.data[target_code] = [row[target_code] for row in self.sp.data['translation']]
         
         # Add train/test split - use 80/20 split with fixed seed for reproducibility
         import random
-        total_rows = len(self.mp.data)
+        total_rows = len(self.sp.data)
         indices = list(range(total_rows))
         random.seed(42)  # Fixed seed for reproducible splits
         random.shuffle(indices)
@@ -135,7 +135,7 @@ class TranslationTask(BaseTask):
         train_size = int(total_rows * 0.8)
         train_indices = set(indices[:train_size])
         
-        self.mp.data['split'] = ['train' if i in train_indices else 'test' for i in range(total_rows)]
+        self.sp.data['split'] = ['train' if i in train_indices else 'test' for i in range(total_rows)]
 
     def get_template(self) -> Dict[str, Any]:
         """Get template configuration for translation task."""
@@ -215,7 +215,7 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
             task.load_data()
             print("\n2. Setting up template...")
             template = task.get_template()
-            task.mp.set_template(template)
+            task.sp.set_template(template)
             print("✅ Template configured")
             print(f"\n3. Configuring generation...")
             print(f"   Variations per field: {task.variations_per_field}")
@@ -224,7 +224,7 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
             print(f"   Max rows: {task.max_rows}")
             print(f"   Max variations per row: {task.max_variations_per_row}")
             print(f"   Random seed: {task.random_seed}")
-            task.mp.configure(
+            task.sp.configure(
                 max_rows=task.max_rows,
                 variations_per_field=task.variations_per_field,
                 max_variations_per_row=task.max_variations_per_row,
@@ -233,7 +233,7 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
                 model_name=task.model_name
             )
             print("\n4. Generating prompt variations...")
-            variations = task.mp.generate(verbose=True)
+            variations = task.sp.generate(verbose=True)
 
             # Display results
             print(f"\n✅ Generated {len(variations)} variations")
@@ -251,12 +251,12 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
 
             # Export results using the correct path
             print(f"\n6. Exporting results to {output_file}...")
-            task.mp.export(str(output_file), format="json")
+            task.sp.export(str(output_file), format="json")
             print("✅ Export completed!")
 
             # Show final statistics
             print("\n7. Final statistics:")
-            task.mp.info()
+            task.sp.info()
 
             generated_files.append(str(output_file))
             print(f"✅ Completed {display_name}: {output_file}")

@@ -108,7 +108,7 @@ class MuSiQueTask(BaseTask):
                 print(f"   {sample_paras}")
             
             # Load into promptsuite
-            self.mp.load_dataframe(df)
+            self.sp.load_dataframe(df)
             
         except Exception as e:
             print(f"❌ Error loading MuSiQue dataset: {e}")

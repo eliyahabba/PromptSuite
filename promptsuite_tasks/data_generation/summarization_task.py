@@ -43,7 +43,7 @@ class SummarizationTask(BaseTask):
 
     def load_data(self) -> None:
         """Load CNN DailyMail dataset from HuggingFace."""
-        self.mp.load_dataset("abisee/cnn_dailymail", "3.0.0")
+        self.sp.load_dataset("abisee/cnn_dailymail", "3.0.0")
         print("✅ Successfully loaded CNN DailyMail dataset")
 
 

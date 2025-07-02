@@ -92,7 +92,7 @@ class CodeGenerationTask(BaseTask):
 
             print(f"✅ Created splits: {train_count} train, {test_count} test")
 
-            self.mp.load_dataframe(df)
+            self.sp.load_dataframe(df)
             # save as df in
             # save with pandas
             df.to_csv('/Users/ehabba/PycharmProjects/PromptSuite/promptsuite_tasks/tasks_data/raw_data/code_generation_humaneval.csv', index=False)
