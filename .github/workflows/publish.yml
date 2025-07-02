@@ -156,7 +156,7 @@ jobs:
           
           ### 🔗 Links
           - [PyPI Package](https://pypi.org/project/promptsuite/${{ github.ref_name }}/)
-          - [Documentation](https://github.com/ehabba/PromptSuite/blob/main/README_API.md)
+          - [Documentation](https://github.com/eliyahabba/PromptSuite/blob/main/README_API.md)
           
         draft: false
         prerelease: false 

@@ -53,10 +53,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ehabba/PromptSuite"
-Repository = "https://github.com/ehabba/PromptSuite"
-Documentation = "https://github.com/ehabba/PromptSuite/blob/main/README.md"
-Issues = "https://github.com/ehabba/PromptSuite/issues"
+Homepage = "https://github.com/eliyahabba/PromptSuite"
+Repository = "https://github.com/eliyahabba/PromptSuite"
+Documentation = "https://github.com/eliyahabba/PromptSuite/blob/main/README.md"
+Issues = "https://github.com/eliyahabba/PromptSuite/issues"
 
 [project.scripts]
 promptsuite = "promptsuite.cli:main"
