@@ -17,16 +17,16 @@ First, generate prompt variations for all MMLU subjects:
 
 ```bash
 # Generate variations for all subjects
-python multipromptify_tasks/tasks/mmlu_task.py --all
+python promptsuite_tasks/tasks/mmlu_task.py --all
 
 # Or generate for a specific subject
-python multipromptify_tasks/tasks/mmlu_task.py --subject anatomy
+python promptsuite_tasks/tasks/mmlu_task.py --subject anatomy
 
 # List available subjects
-python multipromptify_tasks/tasks/mmlu_task.py --list-subjects
+python promptsuite_tasks/tasks/mmlu_task.py --list-subjects
 ```
 
-This will create files in `multipromptify_tasks/data/mmlu/`:
+This will create files in `promptsuite_tasks/data/mmlu/`:
 - `mmlu_anatomy_variations.json`
 - `mmlu_chemistry_variations.json`
 - etc.
@@ -35,16 +35,16 @@ This will create files in `multipromptify_tasks/data/mmlu/`:
 
 ```bash
 # Run on all subjects with default settings
-python multipromptify_tasks/run_mmlu_batch.py
+python promptsuite_tasks/run_mmlu_batch.py
 
 # See what would be run (dry run)
-python multipromptify_tasks/run_mmlu_batch.py --dry_run
+python promptsuite_tasks/run_mmlu_batch.py --dry_run
 
 # Run on specific subjects only
-python multipromptify_tasks/run_mmlu_batch.py --subjects anatomy chemistry
+python promptsuite_tasks/run_mmlu_batch.py --subjects anatomy chemistry
 
 # List available subjects
-python multipromptify_tasks/run_mmlu_batch.py --list_subjects
+python promptsuite_tasks/run_mmlu_batch.py --list_subjects
 ```
 
 ## Available Subjects
@@ -86,34 +86,34 @@ The system currently supports these MMLU subjects:
 ### Testing
 ```bash
 # Quick test on one subject
-python multipromptify_tasks/run_mmlu_batch.py --subjects anatomy --rows 2 --variations 2
+python promptsuite_tasks/run_mmlu_batch.py --subjects anatomy --rows 2 --variations 2
 
 # Test with dry run first
-python multipromptify_tasks/run_mmlu_batch.py --subjects anatomy --dry_run
+python promptsuite_tasks/run_mmlu_batch.py --subjects anatomy --dry_run
 ```
 
 ### Production Runs
 ```bash
 # High reliability settings
-python multipromptify_tasks/run_mmlu_batch.py --max_retries 5 --retry_sleep 120 --batch_size 5
+python promptsuite_tasks/run_mmlu_batch.py --max_retries 5 --retry_sleep 120 --batch_size 5
 
 # Use different model
-python multipromptify_tasks/run_mmlu_batch.py --model llama_3_3_70b --max_tokens 1500
+python promptsuite_tasks/run_mmlu_batch.py --model llama_3_3_70b --max_tokens 1500
 ```
 
 ### Resume and Error Recovery
 ```bash
 # Resume from existing results (default behavior)
-python multipromptify_tasks/run_mmlu_batch.py
+python promptsuite_tasks/run_mmlu_batch.py
 
 # Start fresh, ignore existing results
-python multipromptify_tasks/run_mmlu_batch.py --no_resume
+python promptsuite_tasks/run_mmlu_batch.py --no_resume
 ```
 
 ## File Structure
 
 ```
-multipromptify_tasks/
+promptsuite_tasks/
 ├── data/mmlu/
 │   ├── mmlu_anatomy_variations.json           # Input: Generated variations
 │   ├── mmlu_chemistry_variations.json         # Input: Generated variations
@@ -154,8 +154,8 @@ multipromptify_tasks/
 
 ```bash
 # Show all available options
-python multipromptify_tasks/run_mmlu_batch.py --help
+python promptsuite_tasks/run_mmlu_batch.py --help
 
 # List available subjects
-python multipromptify_tasks/run_mmlu_batch.py --list_subjects
+python promptsuite_tasks/run_mmlu_batch.py --list_subjects
 ``` 
