@@ -1,4 +1,4 @@
-# MultiPromptify Trusted Publishers Setup Guide
+# PromptSuite Trusted Publishers Setup Guide
 
 ## 📋 Task Checklist
 
@@ -21,7 +21,7 @@ git push origin main
 
 ## Step 2: Configure GitHub Environments
 
-1. Go to your GitHub repository: `https://github.com/ehabba/MultiPromptifyPipeline`
+1. Go to your GitHub repository: `https://github.com/eliyahabba/PromptSuite`
 2. Click on **Settings** (tab at the top)
 3. In the left menu, click on **Environments**
 4. Click on **New environment**
@@ -47,9 +47,9 @@ git push origin main
 5. Click on **Add a new pending publisher**
 
 ### Fill in the details:
-- **PyPI Project Name**: `multipromptify`
+- **PyPI Project Name**: `promptsuite`
 - **Owner**: `ehabba`
-- **Repository name**: `MultiPromptifyPipeline`
+- **Repository name**: `PromptSuite`
 - **Workflow name**: `publish.yml`
 - **Environment name**: `testpypi`
 
@@ -62,9 +62,9 @@ git push origin main
 5. Click on **Add a new pending publisher**
 
 ### Fill in the details:
-- **PyPI Project Name**: `multipromptify`
+- **PyPI Project Name**: `promptsuite`
 - **Owner**: `ehabba`
-- **Repository name**: `MultiPromptifyPipeline`
+- **Repository name**: `PromptSuite`
 - **Workflow name**: `publish.yml`
 - **Environment name**: `pypi`
 
@@ -79,7 +79,7 @@ git push origin v2.0.0
 
 ### Option 2: Manual Trigger
 1. Go to GitHub → **Actions**
-2. Click on **Publish MultiPromptify Package**
+2. Click on **Publish PromptSuite Package**
 3. Click on **Run workflow**
 4. Select branch `main`
 5. Click **Run workflow**
@@ -96,12 +96,12 @@ git push origin v2.0.0
 
 ### After publishing to TestPyPI:
 ```bash
-pip install --index-url https://test.pypi.org/simple/ multipromptify
+pip install --index-url https://test.pypi.org/simple/ promptsuite
 ```
 
 ### After publishing to PyPI:
 ```bash
-pip install multipromptify
+pip install promptsuite
 ```
 
 ## 🚨 Common Issues and Solutions:
@@ -115,7 +115,7 @@ pip install multipromptify
 - Check that repo and owner are correct
 
 ### "Project name already exists"
-- Is the name `multipromptify` taken? Change to `ehabba-multipromptify`
+- Is the name `promptsuite` taken? Change to `ehabba-promptsuite`
 - Or choose a different name
 
 ### Workflow doesn't run
@@ -126,7 +126,7 @@ pip install multipromptify
 
 When this works, people will be able to install:
 ```bash
-pip install multipromptify
+pip install promptsuite
 ```
 
 And you'll be able to publish new versions simply with:

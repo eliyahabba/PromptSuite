@@ -1,8 +1,8 @@
-# MultiPromptify 2.0 UI Implementation Summary
+# PromptSuite 2.0 UI Implementation Summary
 
 ## Overview
 
-Successfully implemented a modern, streamlined web interface for MultiPromptify 2.0 that replaces the previous complex workflow with an intuitive 4-step process. The new UI integrates seamlessly with the template-based system while providing default datasets and smart template suggestions.
+Successfully implemented a modern, streamlined web interface for PromptSuite2.0 that replaces the previous complex workflow with an intuitive 4-step process. The new UI integrates seamlessly with the template-based system while providing default datasets and smart template suggestions.
 
 ## ✅ Key Achievements
 
@@ -75,7 +75,7 @@ Successfully implemented a modern, streamlined web interface for MultiPromptify 
 ### Integration Features
 
 - **Template suggestions database** with 5 pre-built templates
-- **Real-time MultiPromptify API integration**
+- **Real-time PromptSuite API integration**
 - **Backward compatibility** with existing debug helpers
 - **Streamlit optimization** for performance and responsiveness
 
@@ -157,10 +157,10 @@ pip install -e ".[ui]"
 ### Launch Options
 ```bash
 # If installed via pip
-multipromptify-ui
+promptsuite-ui
 
 # Direct launch (development)
-python src/multipromptify/ui/main.py
+python src/promptsuite/ui/main.py
 
 # Using the runner script
 python scripts/run_ui.py
@@ -212,7 +212,7 @@ Custom CSS can be updated in `load.py` for branding or appearance changes.
 - ✅ Sample datasets loading correctly
 
 ### Integration Testing
-- ✅ MultiPromptify API integration
+- ✅ PromptSuite API integration
 - ✅ Template parsing and validation
 - ✅ Variation generation working
 - ✅ Export functionality
@@ -308,7 +308,7 @@ Custom CSS can be updated in `load.py` for branding or appearance changes.
 
 ## ✨ Conclusion
 
-The MultiPromptify 2.0 UI successfully transforms a complex, multi-step process into an intuitive, modern web interface. The new system:
+The PromptSuite 2.0 UI successfully transforms a complex, multi-step process into an intuitive, modern web interface. The new system:
 
 - **Eliminates manual work** previously required
 - **Provides smart suggestions** for quick setup
@@ -316,11 +316,11 @@ The MultiPromptify 2.0 UI successfully transforms a complex, multi-step process 
 - **Delivers comprehensive analytics** not available in CLI
 - **Supports advanced workflows** with professional UX
 
-The implementation maintains full compatibility with the MultiPromptify 2.0 core while providing a significantly improved user experience suitable for both technical and non-technical users. 
+The implementation maintains full compatibility with the PromptSuite 2.0 core while providing a significantly improved user experience suitable for both technical and non-technical users. 
 
 ## Augmenters and Variation Types
 
-MultiPromptify supports a variety of augmenters for prompt variation:
+PromptSuite supports a variety of augmenters for prompt variation:
 - `format_structure` (`FORMAT_STRUCTURE_VARIATION`): Semantic-preserving format changes (separators, casing, field order)
 - `typos_and noise` (`TYPOS_AND_NOISE_VARIATION`): Injects typos, random case, whitespace, and punctuation noise
 - `enumerate` (`ENUMERATE_VARIATION`): Adds enumeration to list fields (1. 2. 3. 4., A. B. C. D., roman, etc.)
