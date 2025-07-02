@@ -3,14 +3,14 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "multipromptify"
+name = "promptsuite"
 version = "2.0.9"
 description = "A tool that creates multi-prompt datasets from single-prompt datasets using templates"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
-    {name = "MultiPromptify Team"}
+    {name = "Eliya Habba"}
 ]
 keywords = ["ai", "prompts", "datasets", "nlp", "machine-learning"]
 classifiers = [
@@ -53,14 +53,14 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ehabba/MultiPromptifyPipeline"
-Repository = "https://github.com/ehabba/MultiPromptifyPipeline"
-Documentation = "https://github.com/ehabba/MultiPromptifyPipeline/blob/main/README.md"
-Issues = "https://github.com/ehabba/MultiPromptifyPipeline/issues"
+Homepage = "https://github.com/ehabba/PromptSuite"
+Repository = "https://github.com/ehabba/PromptSuite"
+Documentation = "https://github.com/ehabba/PromptSuite/blob/main/README.md"
+Issues = "https://github.com/ehabba/PromptSuite/issues"
 
 [project.scripts]
-multipromptify = "multipromptify.cli:main"
-multipromptify-ui = "multipromptify.ui.main:main"
+promptsuite = "promptsuite.cli:main"
+promptsuite-ui = "promptsuite.ui.main:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

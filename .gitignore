@@ -1,7 +1,5 @@
 .env
 /.idea/
-**/tmp/*
-/src/ui/old/
 
 # Python build artifacts (the main issue we had)
 *.egg-info/
@@ -18,3 +16,6 @@ __pycache__/
 # IDE files
 .vscode/
 .idea/
+
+# Data files - exclude large datasets but keep structure
+tasks_data/

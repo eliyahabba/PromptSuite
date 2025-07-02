@@ -1,10 +1,10 @@
-# MultiPromptify
+# PromptSuite
 
 A tool that creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
 
 ## Overview
 
-MultiPromptify transforms your single-prompt datasets into rich multi-prompt datasets by applying various types of variations specified in your templates. It supports HuggingFace-compatible datasets and provides both a command-line interface and a modern web UI.
+PromptSuite transforms your single-prompt datasets into rich multi-prompt datasets by applying various types of variations specified in your templates. It supports HuggingFace-compatible datasets and provides both a command-line interface and a modern web UI.
 
 ## 📚 Documentation
 
@@ -16,20 +16,20 @@ MultiPromptify transforms your single-prompt datasets into rich multi-prompt dat
 ### From PyPI (Recommended)
 
 ```bash
-pip install multipromptify
+pip install promptsuite
 ```
 
 ### From GitHub (Latest)
 
 ```bash
-pip install git+https://github.com/ehabba/MultiPromptifyPipeline.git
+pip install git+https://github.com/ehabba/PromptSuite.git
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/ehabba/MultiPromptifyPipeline.git
-cd MultiPromptifyPipeline
+git clone https://github.com/ehabba/PromptSuite.git
+cd PromptSuite
 pip install -e .
 ```
 
@@ -37,7 +37,7 @@ pip install -e .
 ### Command Line Interface
 
 ```bash
-multipromptify --template '{"instruction": "{instruction}: {text}", "text": ["paraphrase_with_llm"], "gold": "label"}' \
+promptsuite --template '{"instruction": "{instruction}: {text}", "text": ["paraphrase_with_llm"], "gold": "label"}' \
                --data data.csv --max-variations-per-row 50
 ```
 ### Streamlit Interface
@@ -46,10 +46,10 @@ Launch the modern Streamlit interface for an intuitive experience:
 
 ```bash
 # If installed via pip
-multipromptify-ui
+promptsuite-ui
 
 # From project root (development)
-python src/multipromptify/ui/main.py
+python src/promptsuite/ui/main.py
 
 # Alternative: using the runner script
 python scripts/run_ui.py
@@ -64,11 +64,11 @@ The web UI provides:
 ### Python API
 
 ```python
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 import pandas as pd
 
 # Initialize
-mp = MultiPromptifier()
+mp = PromptSuite()
 
 # Load data
 data = [{"question": "What is 2+2?", "answer": "4"}]
@@ -114,7 +114,7 @@ Templates control how prompts are structured and varied:
 | `enumerate`           | Adds numbering (1. 2. 3.) | ❌ |
 
 
-This template demonstrates how to use all the main keys for maximum flexibility and clarity. You can import these keys from `multipromptify.core.template_keys` to avoid typos and ensure consistency.
+This template demonstrates how to use all the main keys for maximum flexibility and clarity. You can import these keys from `promptsuite.core.template_keys` to avoid typos and ensure consistency.
 
 ## Template Format
 
@@ -165,12 +165,12 @@ template = {
 
 ## API Reference
 
-### MultiPromptifier Class
+### PromptSuite Class
 
 ```python
-class MultiPromptifier:
+class PromptSuite:
     def __init__(self):
-        """Initialize MultiPromptifier."""
+        """Initialize PromptSuite."""
         
     def load_dataframe(self, df: pd.DataFrame) -> None:
         """Load data from pandas DataFrame."""
@@ -200,7 +200,7 @@ class MultiPromptifier:
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 
 data = pd.DataFrame({
   'text': ['I love this movie!', 'This book is terrible.'],
@@ -214,7 +214,7 @@ template = {
   'text': ['typos and noise'],
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(
@@ -242,7 +242,7 @@ template = {
   }
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(qa_data)
 mp.set_template(template)
 mp.configure(
@@ -257,7 +257,7 @@ variations = mp.generate(verbose=True)
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 
 data = pd.DataFrame({
     'question': [
@@ -294,7 +294,7 @@ template = {
     }
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(max_rows=5, variations_per_field=1)
@@ -396,7 +396,7 @@ mp.export("output.txt", format="txt")
 
 ## Web UI Interface
 
-MultiPromptify 2.0 includes a modern, interactive web interface built with **Streamlit**.
+PromptSuite 2.0 includes a modern, interactive web interface built with **Streamlit**.
 
 The UI guides you through a simple 3-step workflow:
 
@@ -410,7 +410,7 @@ The Streamlit UI is the easiest way to explore, test, and generate prompt variat
 
 ### Performance Optimization
 
-MultiPromptify automatically optimizes performance by pre-generating variations for shared fields:
+PromptSuite automatically optimizes performance by pre-generating variations for shared fields:
 
 - **Instruction variations** (`instruction variations`) are generated once and reused across all data rows
 - **Prompt format variations** (`prompt format variations`) are generated once and reused across all data rows

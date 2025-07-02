@@ -2,7 +2,7 @@ include README.md
 include LICENSE
 include requirements.txt
 include pyproject.toml
-recursive-include src/multipromptify *.py
+recursive-include src/promptsuite *.py
 recursive-include examples *.py
 recursive-include docs *.md
 recursive-exclude * __pycache__
