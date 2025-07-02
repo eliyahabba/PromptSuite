@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Test script for MultiPromptify to demonstrate functionality.
+Test script for PromptSuiteEngine to demonstrate functionality.
 """
 
 import sys
 import os
 import pandas as pd
 
-# Add the src directory to the path so we can import multipromptify
+# Add the src directory to the path so we can import promptsuite
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
-from multipromptify import MultiPromptify
-from multipromptify.core.template_keys import (
+from promptsuite import PromptSuiteEngine
+from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, GOLD_KEY, FEW_SHOT_KEY,
     PARAPHRASE_WITH_LLM, SHUFFLE_VARIATION
 )
 
 
 def test_basic_functionality():
-    """Test basic MultiPromptify functionality."""
+    """Test basic PromptSuiteEngine functionality."""
     print("=== Testing Basic Functionality ===")
     
     try:
@@ -37,8 +37,8 @@ def test_basic_functionality():
             'question': [PARAPHRASE_WITH_LLM]
         }
         
-        # Initialize MultiPromptify
-        mp = MultiPromptify(max_variations_per_row=20)
+        # Initialize PromptSuiteEngine
+        mp = PromptSuiteEngine(max_variations_per_row=20)
         
         # Generate variations
         variations = mp.generate_variations(
@@ -74,7 +74,7 @@ def test_template_parsing():
     print("\n=== Testing Template Parsing ===")
     
     try:
-        mp = MultiPromptify()
+        mp = PromptSuiteEngine()
         
         # Test valid templates (new format)
         valid_templates = [
@@ -139,7 +139,7 @@ def test_few_shot_examples():
             }
         }
         
-        mp = MultiPromptify(max_variations_per_row=10)
+        mp = PromptSuiteEngine(max_variations_per_row=10)
         
         # Add few-shot data to the dataframe
         few_shot_data = pd.DataFrame({
@@ -179,7 +179,7 @@ def test_file_io():
         test_file = 'test_data.csv'
         test_data.to_csv(test_file, index=False)
         
-        mp = MultiPromptify(max_variations_per_row=5)
+        mp = PromptSuiteEngine(max_variations_per_row=5)
         template = {
             INSTRUCTION: "Classify the sentiment",
             PROMPT_FORMAT: "Text: '{text}'\nSentiment: {sentiment}",
@@ -217,7 +217,7 @@ def test_file_io():
 
 def main():
     """Run all tests."""
-    print("MultiPromptify Test Suite")
+    print("PromptSuiteEngine Test Suite")
     print("=" * 50)
     
     # Run all tests
