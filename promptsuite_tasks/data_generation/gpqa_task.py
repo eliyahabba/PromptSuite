@@ -77,7 +77,7 @@ class GPQATask(BaseTask):
         
         print(f"✅ Created splits: {train_count} train, {test_count} test")
         
-        self.mp.load_dataframe(df)
+        self.sp.load_dataframe(df)
         self.post_process()
         print("✅ Data loaded and post-processed")
 
@@ -86,7 +86,7 @@ class GPQATask(BaseTask):
         print("Post-processing GPQA data...")
         
         # Get the dataframe from PromptSuite
-        df = self.mp.data
+        df = self.sp.data
         
         # Create choices list combining all answer options (like MMLU format)
         df['choices'] = df.apply(lambda row: [
@@ -100,7 +100,7 @@ class GPQATask(BaseTask):
         df['answer'] = 3  # The correct answer is always the last item (index 3)
         
         # Update the data in PromptSuite
-        self.mp.data = df
+        self.sp.data = df
         
         print(f"✅ Created choices field with 4 options per question")
         print(f"✅ Created answer index field (correct answer at index 3)")
@@ -156,7 +156,7 @@ class GPQATask(BaseTask):
 #         task.load_data()
 #         print("\n2. Setting up template...")
 #         template = task.get_template()
-#         task.mp.set_template(template)
+#         task.sp.set_template(template)
 #         print("✅ Template configured")
 #         print(f"\n3. Configuring generation...")
 #         print(f"   Variations per field: {task.variations_per_field}")
@@ -165,7 +165,7 @@ class GPQATask(BaseTask):
 #         print(f"   Max rows: {task.max_rows}")
 #         print(f"   Max variations per row: {task.max_variations_per_row}")
 #         print(f"   Random seed: {task.random_seed}")
-#         task.mp.configure(
+#         task.sp.configure(
 #             max_rows=task.max_rows,
 #             variations_per_field=task.variations_per_field,
 #             max_variations_per_row=task.max_variations_per_row,
@@ -174,7 +174,7 @@ class GPQATask(BaseTask):
 #             model_name=task.model_name
 #         )
 #         print("\n4. Generating prompt variations...")
-#         variations = task.mp.generate(verbose=True)
+#         variations = task.sp.generate(verbose=True)
 #
 #         # Display results
 #         print(f"\n✅ Generated {len(variations)} variations")
@@ -192,12 +192,12 @@ class GPQATask(BaseTask):
 #
 #         # Export results using the correct path
 #         print(f"\n6. Exporting results to {output_file}...")
-#         task.mp.export(str(output_file), format="json")
+#         task.sp.export(str(output_file), format="json")
 #         print("✅ Export completed!")
 #
 #         # Show final statistics
 #         print("\n7. Final statistics:")
-#         task.mp.info()
+#         task.sp.info()
 #
 #         print(f"✅ Completed GPQA Task: {output_file}")
 #         return str(output_file)

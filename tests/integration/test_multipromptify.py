@@ -38,10 +38,10 @@ def test_basic_functionality():
         }
         
         # Initialize PromptSuiteEngine
-        mp = PromptSuiteEngine(max_variations_per_row=20)
+        sp = PromptSuiteEngine(max_variations_per_row=20)
         
         # Generate variations
-        variations = mp.generate_variations(
+        variations = sp.generate_variations(
             template=template,
             data=data
         )
@@ -54,7 +54,7 @@ def test_basic_functionality():
             print(var['prompt'])
         
         # Show statistics
-        stats = mp.get_stats(variations)
+        stats = sp.get_stats(variations)
         print(f"\n=== Statistics ===")
         for key, value in stats.items():
             print(f"{key}: {value}")
@@ -74,7 +74,7 @@ def test_template_parsing():
     print("\n=== Testing Template Parsing ===")
     
     try:
-        mp = PromptSuiteEngine()
+        sp = PromptSuiteEngine()
         
         # Test valid templates (new format)
         valid_templates = [
@@ -91,8 +91,8 @@ def test_template_parsing():
         ]
         
         for template in valid_templates:
-            is_valid, errors = mp.template_parser.validate_template(template)
-            fields = mp.parse_template(template)
+            is_valid, errors = sp.template_parser.validate_template(template)
+            fields = sp.parse_template(template)
             print(f"Template: {template}")
             print(f"Valid: {is_valid}")
             print(f"Fields: {fields}")
@@ -104,7 +104,7 @@ def test_template_parsing():
             PROMPT_FORMAT: "Question: {question}",
             'question': ["invalid_variation_type"]
         }
-        is_valid, errors = mp.template_parser.validate_template(invalid_template)
+        is_valid, errors = sp.template_parser.validate_template(invalid_template)
         print(f"Invalid template: {invalid_template}")
         print(f"Valid: {is_valid}")
         print(f"Errors: {errors}")
@@ -139,7 +139,7 @@ def test_few_shot_examples():
             }
         }
         
-        mp = PromptSuiteEngine(max_variations_per_row=10)
+        sp = PromptSuiteEngine(max_variations_per_row=10)
         
         # Add few-shot data to the dataframe
         few_shot_data = pd.DataFrame({
@@ -147,7 +147,7 @@ def test_few_shot_examples():
             'answer': ['5', '2', '9']
         })
         
-        variations = mp.generate_variations(
+        variations = sp.generate_variations(
             template=template,
             data=few_shot_data
         )
@@ -179,7 +179,7 @@ def test_file_io():
         test_file = 'test_data.csv'
         test_data.to_csv(test_file, index=False)
         
-        mp = PromptSuiteEngine(max_variations_per_row=5)
+        sp = PromptSuiteEngine(max_variations_per_row=5)
         template = {
             INSTRUCTION: "Classify the sentiment",
             PROMPT_FORMAT: "Text: '{text}'\nSentiment: {sentiment}",
@@ -187,7 +187,7 @@ def test_file_io():
         }
         
         # Load from file
-        variations = mp.generate_variations(
+        variations = sp.generate_variations(
             template=template,
             data=test_file
         )
@@ -196,7 +196,7 @@ def test_file_io():
         
         # Save variations
         output_file = 'test_variations.json'
-        mp.save_variations(variations, output_file, format='json')
+        sp.save_variations(variations, output_file, format='json')
         print(f"Saved variations to {output_file}")
         
         # Clean up

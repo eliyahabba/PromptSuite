@@ -1,4 +1,7 @@
-# PromptSuite
+<div align="center" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+  <img src="logo.png" alt="PromptSuite Logo" width="80"/>
+  <h1 style="margin: 0; font-size: 3.5em;">PromptSuite</h1>
+</div>
 
 A tool that creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
 
@@ -68,11 +71,11 @@ from promptsuite import PromptSuite
 import pandas as pd
 
 # Initialize
-mp = PromptSuite()
+sp = PromptSuite()
 
 # Load data
 data = [{"question": "What is 2+2?", "answer": "4"}]
-mp.load_dataframe(pd.DataFrame(data))
+sp.load_dataframe(pd.DataFrame(data))
 
 # Configure template
 template = {
@@ -80,14 +83,14 @@ template = {
   'prompt format': 'Q: {question}\nA: {answer}',
   'question': ['typos and noise'],
 }
-mp.set_template(template)
+sp.set_template(template)
 
 # Generate variations
-mp.configure(max_rows=2, variations_per_field=3)
-variations = mp.generate(verbose=True)
+sp.configure(max_rows=2, variations_per_field=3)
+variations = sp.generate(verbose=True)
 
 # Export results
-mp.export("output.json", format="json")
+sp.export("output.json", format="json")
 ```
 
 ## 📚 Core Concepts
@@ -214,17 +217,17 @@ template = {
   'text': ['typos and noise'],
 }
 
-mp = PromptSuite()
-mp.load_dataframe(data)
-mp.set_template(template)
-mp.configure(
+sp = PromptSuite()
+sp.load_dataframe(data)
+sp.set_template(template)
+sp.configure(
   variations_per_field=3,
   max_variations_per_row=2,
   random_seed=42,
   api_platform="TogetherAI",
   model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 )
-variations = mp.generate(verbose=True)
+variations = sp.generate(verbose=True)
 ```
 
 ### Question Answering with Few-shot
@@ -242,15 +245,15 @@ template = {
   }
 }
 
-mp = PromptSuite()
-mp.load_dataframe(qa_data)
-mp.set_template(template)
-mp.configure(
+sp = PromptSuite()
+sp.load_dataframe(qa_data)
+sp.set_template(template)
+sp.configure(
   variations_per_field=2,
   api_platform="TogetherAI",
   model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 )
-variations = mp.generate(verbose=True)
+variations = sp.generate(verbose=True)
 ```
 
 ### Multiple Choice with Few-shot
@@ -294,11 +297,11 @@ template = {
     }
 }
 
-mp = PromptSuite()
-mp.load_dataframe(data)
-mp.set_template(template)
-mp.configure(max_rows=5, variations_per_field=1)
-variations = mp.generate(verbose=True)
+sp = PromptSuite()
+sp.load_dataframe(data)
+sp.set_template(template)
+sp.configure(max_rows=5, variations_per_field=1)
+variations = sp.generate(verbose=True)
 for v in variations:
     print(v['prompt'])
 ```
@@ -307,7 +310,7 @@ for v in variations:
 
 ### Example Output Format
 
-A typical output from `mp.generate()` or the exported JSON file looks like this (for a multiple choice template):
+A typical output from `sp.generate()` or the exported JSON file looks like this (for a multiple choice template):
 
 ```json
 [
@@ -358,21 +361,21 @@ A typical output from `mp.generate()` or the exported JSON file looks like this 
 ### Data Loading
 ```python
 # CSV
-mp.load_csv('data.csv')
+sp.load_csv('data.csv')
 
 # JSON
-mp.load_json('data.json')
+sp.load_json('data.json')
 
 # HuggingFace
-mp.load_dataset('squad', split='train[:100]')
+sp.load_dataset('squad', split='train[:100]')
 
 # DataFrame
-mp.load_dataframe(df)
+sp.load_dataframe(df)
 ```
 
 ### Generation Options
 ```python
-mp.configure(
+sp.configure(
     max_rows=10,                    # How many data rows to use
     variations_per_field=3,         # Variations per field (default: 3)
     max_variations_per_row=50,      # Cap on total variations per row
@@ -385,13 +388,13 @@ mp.configure(
 ### Export Formats
 ```python
 # JSON - Full data with metadata
-mp.export("output.json", format="json")
+sp.export("output.json", format="json")
 
 # CSV - Flattened for spreadsheets
-mp.export("output.csv", format="csv")
+sp.export("output.csv", format="csv")
 
 # TXT - Plain prompts only
-mp.export("output.txt", format="txt")
+sp.export("output.txt", format="txt")
 ```
 
 ## Web UI Interface

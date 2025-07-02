@@ -57,11 +57,11 @@ def main(template, data, output, format, max_variations_per_row, variations_per_
         effective_max_variations_per_row = None if max_variations_per_row == 0 else max_variations_per_row
 
         # Initialize PromptSuiteEngine
-        mp = PromptSuiteEngine(max_variations_per_row=effective_max_variations_per_row)
+        sp = PromptSuiteEngine(max_variations_per_row=effective_max_variations_per_row)
 
         # Generate variations
         click.echo("Generating variations...")
-        variations = mp.generate_variations(
+        variations = sp.generate_variations(
             template=template_dict,
             data=df,
             variations_per_field=variations_per_field,
@@ -71,11 +71,11 @@ def main(template, data, output, format, max_variations_per_row, variations_per_
         click.echo(f"Generated {len(variations)} variations")
 
         # Save output
-        mp.save_variations(variations, output, format=format)
+        sp.save_variations(variations, output, format=format)
         click.echo(f"Saved to {output}")
 
         # Show statistics
-        stats = mp.get_stats(variations)
+        stats = sp.get_stats(variations)
         click.echo("\nStatistics:")
         for key, value in stats.items():
             click.echo(f"  {key}: {value}")

@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import base64
 
 import streamlit as st
 
@@ -20,6 +21,15 @@ from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, INSTRUCTION_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY,
     QUESTION_KEY, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION
 )
+
+
+def get_logo_base64(logo_path):
+    """Convert logo image to base64 string for HTML embedding"""
+    try:
+        with open(logo_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except Exception:
+        return ""
 
 
 def main():
@@ -57,10 +67,22 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
-    # App header
+    # App header with logo replacing rocket emoji
+    logo_path = Path(__file__).parent.parent.parent.parent.parent / "logo.png"
+    
+    # Create inline header with logo instead of rocket emoji
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <img src="data:image/png;base64,{get_logo_base64(logo_path) if logo_path.exists() else ''}" 
+                 alt="PromptSuite Logo" style="width: 50px; height: 50px;">
+            <h1 style="margin: 0; font-size: 2.5rem; color: #1f77b4;">PromptSuite 2.0</h1>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown("""
     <div style="text-align: center; margin-bottom: 2rem;">
-        <h1>🚀 PromptSuite 2.0</h1>
         <h3>Generate Multi-Prompt Datasets from Single-Prompt Datasets</h3>
         <p style="color: #666;">Create variations of your prompts using template-based transformations</p>
     </div>

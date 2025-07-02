@@ -145,9 +145,9 @@ def configure_generation():
         st.session_state.variations_per_field = variations_per_field
 
         # Calculate estimated_per_row after variations_per_field is set
-        mp = PromptSuiteEngine()
+        sp = PromptSuiteEngine()
         try:
-            variation_fields = mp.parse_template(st.session_state.selected_template)
+            variation_fields = sp.parse_template(st.session_state.selected_template)
             num_variation_fields = len([f for f, v in variation_fields.items() if v is not None])
 
             if num_variation_fields > 0:
@@ -217,7 +217,7 @@ def configure_generation():
         # API Configuration (only show if paraphrase is enabled)
         has_paraphrase = False
         try:
-            variation_fields = mp.parse_template(st.session_state.selected_template)
+            variation_fields = sp.parse_template(st.session_state.selected_template)
             has_paraphrase = any('paraphrase' in str(v).lower() for v in variation_fields.values() if v is not None)
         except Exception:
             pass
@@ -280,9 +280,9 @@ def generate_variations_interface():
     effective_rows = len(df) if max_rows is None else min(max_rows, len(df))
 
     # Estimate total variations
-    mp = PromptSuiteEngine()
+    sp = PromptSuiteEngine()
     try:
-        variation_fields = mp.parse_template(st.session_state.selected_template)
+        variation_fields = sp.parse_template(st.session_state.selected_template)
         num_variation_fields = len([f for f, v in variation_fields.items() if v is not None])
 
         if num_variation_fields > 0:
@@ -367,7 +367,7 @@ def generate_all_variations():
                 details_text.info("Setting up the generation engine with your configuration")
                 progress_bar.progress(0.1)
 
-                mp = PromptSuiteEngine(max_variations_per_row=st.session_state.get('max_variations_per_row', None))
+                sp = PromptSuiteEngine(max_variations_per_row=st.session_state.get('max_variations_per_row', None))
 
                 # Set random seed if specified
                 if st.session_state.get('random_seed') is not None:
@@ -432,7 +432,7 @@ def generate_all_variations():
                     )
                     row_progress.info(f"🔄 Processing row {row_idx + 1} of {total_rows}...")
 
-                variations = mp.generate_variations(
+                variations = sp.generate_variations(
                     template=template,
                     data=df,
                     variations_per_field=variations_per_field,
@@ -451,7 +451,7 @@ def generate_all_variations():
                 progress_bar.progress(0.8)
                 details_text.info(f"✨ Generated {len(variations)} variations successfully!")
 
-                stats = mp.get_stats(variations)
+                stats = sp.get_stats(variations)
 
                 # Complete
                 progress_bar.progress(1.0)

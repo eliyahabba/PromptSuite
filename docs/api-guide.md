@@ -19,14 +19,14 @@ from promptsuite import PromptSuite
 import pandas as pd
 
 # Initialize
-mp = PromptSuite()
+sp = PromptSuite()
 
 # Load data
 data = [
     {"question": "What is 2+2?", "answer": "4"},
     {"question": "What is the capital of France?", "answer": "Paris"}
 ]
-mp.load_dataframe(pd.DataFrame(data))
+sp.load_dataframe(pd.DataFrame(data))
 
 # Configure template
 template = {
@@ -34,16 +34,16 @@ template = {
     'question': ['format structure'],
     'gold': 'answer'
 }
-mp.set_template(template)
+sp.set_template(template)
 
 # Configure generation
-mp.configure(max_rows=2, variations_per_field=3, max_variations_per_row=10)
+sp.configure(max_rows=2, variations_per_field=3, max_variations_per_row=10)
 
 # Generate variations
-variations = mp.generate(verbose=True)
+variations = sp.generate(verbose=True)
 
 # Export results
-mp.export("output.json", format="json")
+sp.export("output.json", format="json")
 ```
 
 ## Minimal Example (No gold, no few_shot)
@@ -63,11 +63,11 @@ template = {
     'question': ['format structure']
 }
 
-mp = PromptSuite()
-mp.load_dataframe(data)
-mp.set_template(template)
-mp.configure(max_rows=2, variations_per_field=2)
-variations = mp.generate(verbose=True)
+sp = PromptSuite()
+sp.load_dataframe(data)
+sp.set_template(template)
+sp.configure(max_rows=2, variations_per_field=2)
+variations = sp.generate(verbose=True)
 print(variations)
 ```
 
@@ -113,11 +113,11 @@ template = {
     }
 }
 
-mp = PromptSuite()
-mp.load_dataframe(data)
-mp.set_template(template)
-mp.configure(max_rows=5, variations_per_field=1)
-variations = mp.generate(verbose=True)
+sp = PromptSuite()
+sp.load_dataframe(data)
+sp.set_template(template)
+sp.configure(max_rows=5, variations_per_field=1)
+variations = sp.generate(verbose=True)
 for v in variations:
     print(v['prompt'])
 ```
@@ -127,7 +127,7 @@ for v in variations:
 ### Initialization
 
 ```python
-mp = PromptSuite()
+sp = PromptSuite()
 ```
 
 ### Data Loading Methods
@@ -136,23 +136,23 @@ mp = PromptSuite()
 Load data from HuggingFace datasets library.
 
 ```python
-mp.load_dataset("squad", split="train")
-mp.load_dataset("glue", "mrpc", split="validation")
+sp.load_dataset("squad", split="train")
+sp.load_dataset("glue", "mrpc", split="validation")
 ```
 
 #### `load_csv(filepath, **kwargs)`
 Load data from CSV file.
 
 ```python
-mp.load_csv("data.csv")
-mp.load_csv("data.csv", encoding="utf-8")
+sp.load_csv("data.csv")
+sp.load_csv("data.csv", encoding="utf-8")
 ```
 
 #### `load_json(filepath, **kwargs)`
 Load data from JSON file.
 
 ```python
-mp.load_json("data.json")
+sp.load_json("data.json")
 ```
 
 #### `load_dataframe(df)`
@@ -160,7 +160,7 @@ Load data from pandas DataFrame.
 
 ```python
 df = pd.read_csv("data.csv")
-mp.load_dataframe(df)
+sp.load_dataframe(df)
 ```
 
 ### Template Configuration
@@ -185,7 +185,7 @@ template = {
         'split': 'all'                       # 'all', 'train', or 'test'
     }
 }
-mp.set_template(template)
+sp.set_template(template)
 ```
 
 ### Generation Configuration
@@ -194,7 +194,7 @@ mp.set_template(template)
 Configure generation parameters.
 
 ```python
-mp.configure(
+sp.configure(
     max_rows=10,                    # Maximum rows from data to use
     variations_per_field=3,         # Variations per field
     max_variations_per_row=50,      # Maximum variations per row (not global)
@@ -210,7 +210,7 @@ mp.configure(
 Generate prompt variations.
 
 ```python
-variations = mp.generate(verbose=True)
+variations = sp.generate(verbose=True)
 ```
 
 ### Export
@@ -219,9 +219,9 @@ variations = mp.generate(verbose=True)
 Export variations to file.
 
 ```python
-mp.export("output.json", format="json")
-mp.export("output.csv", format="csv")
-mp.export("output.txt", format="txt")
+sp.export("output.json", format="json")
+sp.export("output.csv", format="csv")
+sp.export("output.txt", format="txt")
 ```
 
 ## Template Format
@@ -313,10 +313,10 @@ template = {
     'gold': 'label'
 }
 
-mp = PromptSuite()
-mp.load_dataframe(data)
-mp.set_template(template)
-mp.configure(
+sp = PromptSuite()
+sp.load_dataframe(data)
+sp.set_template(template)
+sp.configure(
     max_rows=GenerationDefaults.MAX_ROWS,
     variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
     max_variations_per_row=GenerationDefaults.MAX_VARIATIONS_PER_ROW,
@@ -324,7 +324,7 @@ mp.configure(
     api_platform=GenerationDefaults.API_PLATFORM,
     model_name=GenerationDefaults.MODEL_NAME
 )
-variations = mp.generate(verbose=True)
+variations = sp.generate(verbose=True)
 ```
 
 ### Question Answering with Few-shot
@@ -342,10 +342,10 @@ template = {
     }
 }
 
-mp = PromptSuite()
-mp.load_dataframe(qa_data)
-mp.set_template(template)
-mp.configure(
+sp = PromptSuite()
+sp.load_dataframe(qa_data)
+sp.set_template(template)
+sp.configure(
     max_rows=GenerationDefaults.MAX_ROWS,
     variations_per_field=GenerationDefaults.VARIATIONS_PER_FIELD,
     max_variations_per_row=GenerationDefaults.MAX_VARIATIONS_PER_ROW,
@@ -353,7 +353,7 @@ mp.configure(
     api_platform=GenerationDefaults.API_PLATFORM,
     model_name=GenerationDefaults.MODEL_NAME
 )
-variations = mp.generate(verbose=True)
+variations = sp.generate(verbose=True)
 ```
 
 ### Multiple Choice with Dynamic System Prompt and Few-shot
@@ -397,11 +397,11 @@ template = {
     }
 }
 
-mp = PromptSuite()
-mp.load_dataframe(data)
-mp.set_template(template)
-mp.configure(max_rows=5, variations_per_field=1)
-variations = mp.generate(verbose=True)
+sp = PromptSuite()
+sp.load_dataframe(data)
+sp.set_template(template)
+sp.configure(max_rows=5, variations_per_field=1)
+variations = sp.generate(verbose=True)
 for v in variations:
     print(v['prompt'])
 ```
@@ -444,10 +444,10 @@ export OPENAI_API_KEY="your_openai_key"
 
 ```python
 # Use TogetherAI
-mp.configure(api_platform="TogetherAI", model_name="meta-llama/Llama-3.1-8B-Instruct-Turbo")
+sp.configure(api_platform="TogetherAI", model_name="meta-llama/Llama-3.1-8B-Instruct-Turbo")
 
 # Use OpenAI
-mp.configure(api_platform="OpenAI", model_name="gpt-3.5-turbo")
+sp.configure(api_platform="OpenAI", model_name="gpt-3.5-turbo")
 ```
 
 ## Troubleshooting
@@ -464,7 +464,7 @@ mp.configure(api_platform="OpenAI", model_name="gpt-3.5-turbo")
 Enable verbose output to see detailed information:
 
 ```python
-variations = mp.generate(verbose=True)
+variations = sp.generate(verbose=True)
 ```
 
 ### Export for Analysis
@@ -472,7 +472,7 @@ variations = mp.generate(verbose=True)
 Export results to analyze the generated variations:
 
 ```python
-mp.export("debug_output.json", format="json")
+sp.export("debug_output.json", format="json")
 ```
 
 ## Best Practices
