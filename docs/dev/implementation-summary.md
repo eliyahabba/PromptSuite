@@ -1,8 +1,8 @@
-# MultiPromptify 2.0 Implementation Summary
+# PromptSuite 2.0 Implementation Summary
 
 ## Overview
 
-Successfully implemented a complete redesign of MultiPromptify according to the new requirements. The tool now creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
+Successfully implemented a complete redesign of PromptSuite according to the new requirements. The tool now creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
 
 ## ✅ Core Requirements Implemented
 
@@ -43,15 +43,15 @@ Successfully implemented a complete redesign of MultiPromptify according to the 
 - ✅ Clean Python package structure for pip installation
 - ✅ Minimal dependencies (pandas, datasets, click, pyyaml)
 - ✅ Clear error messages for missing columns or invalid templates
-- ✅ Pip-installable with entry point: `multipromptify`
+- ✅ Pip-installable with entry point: `promptsuite`
 
 ## 📁 Package Structure
 
 ```
-src/multipromptify/
+src/promptsuite/
 ├── core/               # Core logic and main classes
-│   ├── api.py               # High-level Python API (MultiPromptifier)
-│   ├── engine.py            # Main MultiPromptify engine class
+│   ├── api.py               # High-level Python API (PromptSuite)
+│   ├── engine.py            # Main PromptSuiteEngine engine class
 │   ├── template_parser.py   # Template parsing with variation annotations
 │   ├── template_keys.py     # Template keys and constants
 │   ├── models.py            # Data models and configurations
@@ -102,18 +102,18 @@ requirements.txt         # Dependencies
 ### Command Line
 ```bash
 # Basic usage
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
+promptsuite --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer"}' \
                --data data.csv
 
 # With few-shot examples and output
-multipromptify --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
+promptsuite --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
                --data data.csv \
                --output variations.json
 ```
 
 ### Python API
 ```python
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 import pandas as pd
 
 data = pd.DataFrame({
@@ -129,7 +129,7 @@ template = {
     'gold': 'answer'
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(max_rows=2, variations_per_field=3)
@@ -140,7 +140,7 @@ variations = mp.generate(verbose=True)
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 
 data = pd.DataFrame({
     'question': ['What is 2+2?', 'What is the capital of France?'],
@@ -152,7 +152,7 @@ template = {
     'question': ['rewording']
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(max_rows=2, variations_per_field=2)
@@ -194,15 +194,15 @@ print(variations)
 ## 📦 Installation & Distribution
 
 - ✅ Pip-installable package with `pip install -e .`
-- ✅ Entry point for CLI: `multipromptify`
+- ✅ Entry point for CLI: `promptsuite`
 - ✅ Proper dependency management
 - ✅ Development dependencies for testing and linting
 
 ## 🔧 Implementation Details
 
 ### Core Architecture
-- **MultiPromptifier**: High-level interface for easy programmatic usage
-- **MultiPromptify**: Main engine class (in core/engine.py)
+- **PromptSuite**: High-level interface for easy programmatic usage
+- **PromptSuiteEngine**: Main engine class (in core/engine.py)
 - **TemplateParser**: Handles f-string parsing and validation
 - **VariationGenerator**: Generates variations based on type specifications (in generation/)
 - **CLI**: Click-based command-line interface
@@ -218,7 +218,7 @@ print(variations)
 
 ## Augmenters and Variation Types
 
-MultiPromptify supports a variety of augmenters for prompt variation:
+PromptSuiteEngine supports a variety of augmenters for prompt variation:
 - `format_structure` (`FORMAT_STRUCTURE_VARIATION`): Semantic-preserving format changes (separators, casing, field order)
 - `typos and noise` (`TYPOS_AND_NOISE_VARIATION`): Injects typos, random case, whitespace, and punctuation noise
 - `enumerate` (`ENUMERATE_VARIATION`): Adds enumeration to list fields (1. 2. 3. 4., A. B. C. D., roman, etc.)
@@ -230,7 +230,7 @@ See the main README and API guide for template examples using these augmenters.
 ## 🎉 Deliverables Summary
 
 1. ✅ **Updated codebase** with new architecture
-2. ✅ **CLI tool** with template parsing (`multipromptify` command)
+2. ✅ **CLI tool** with template parsing (`promptsuite` command)
 3. ✅ **Documentation** with comprehensive usage examples
 4. ✅ **Setup.py** for pip installation
 5. ✅ **Test suite** validating all functionality

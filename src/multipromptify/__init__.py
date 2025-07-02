@@ -1,1 +1,0 @@
-from multipromptify.core import * 

@@ -1,6 +1,6 @@
 # 🏗️ Developer Documentation
 
-This directory contains technical documentation for developers working on MultiPromptify.
+This directory contains technical documentation for developers working on PromptSuiteEngine.
 
 ## 📋 Documentation Files
 
@@ -33,7 +33,7 @@ This directory contains technical documentation for developers working on MultiP
 
 ## Augmenters and Variation Types
 
-MultiPromptify supports a variety of augmenters for prompt variation:
+PromptSuiteEngine supports a variety of augmenters for prompt variation:
 - `format_structure` (`FORMAT_STRUCTURE_VARIATION`): Semantic-preserving format changes (separators, casing, field order)
 - `typos and noise` (`TYPOS_AND_NOISE_VARIATION`): Injects typos, random case, whitespace, and punctuation noise
 - `enumerate` (`ENUMERATE_VARIATION`): Adds enumeration to list fields (1. 2. 3. 4., A. B. C. D., roman, etc.)
@@ -43,4 +43,4 @@ See the main README and API guide for template examples using these augmenters.
 
 ---
 
-*This documentation is maintained by the MultiPromptify development team.* 
+*This documentation is maintained by the PromptSuiteEngine development team.* 

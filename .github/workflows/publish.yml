@@ -1,4 +1,4 @@
-name: Publish MultiPromptify Package
+name: Publish PromptSuite Package
 
 on:
   release:
@@ -30,14 +30,14 @@ jobs:
     
     - name: Test import
       run: |
-        python -c "from multipromptify import MultiPromptifier; print('Import successful')"
+        python -c "from promptsuite import PromptSuite; print('Import successful')"
     
     - name: Run API example (quick test)
       run: |
         python -c "
-        from multipromptify import MultiPromptifier
+        from promptsuite import PromptSuite
         import pandas as pd
-        mp = MultiPromptifier()
+        mp = PromptSuite()
         data = [{'question': 'Test?', 'answer': 'Yes'}]
         mp.load_dataframe(pd.DataFrame(data))
         template = {'prompt format': 'Q: {question}\nA: {answer}', 'gold': 'answer'}
@@ -81,7 +81,7 @@ jobs:
     
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/multipromptify
+      url: https://test.pypi.org/p/promptsuite
     
     permissions:
       id-token: write  # Required for OIDC
@@ -106,7 +106,7 @@ jobs:
     
     environment:
       name: pypi
-      url: https://pypi.org/p/multipromptify
+      url: https://pypi.org/p/promptsuite
     
     permissions:
       id-token: write  # Required for OIDC
@@ -145,18 +145,18 @@ jobs:
         body: |
           ## Changes in this Release
           
-          ### 🎉 MultiPromptify ${{ github.ref_name }}
+          ### 🎉 PromptSuite ${{ github.ref_name }}
           
-          New version of MultiPromptify has been published!
+          New version of PromptSuite has been published!
           
           ### 📦 Installation
           ```bash
-          pip install multipromptify==${{ github.ref_name }}
+          pip install promptsuite==${{ github.ref_name }}
           ```
           
           ### 🔗 Links
-          - [PyPI Package](https://pypi.org/project/multipromptify/${{ github.ref_name }}/)
-          - [Documentation](https://github.com/ehabba/MultiPromptifyPipeline/blob/main/README_API.md)
+          - [PyPI Package](https://pypi.org/project/promptsuite/${{ github.ref_name }}/)
+          - [Documentation](https://github.com/ehabba/PromptSuite/blob/main/README_API.md)
           
         draft: false
         prerelease: false 

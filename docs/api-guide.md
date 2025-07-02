@@ -1,10 +1,10 @@
-# MultiPromptify Python API
+# PromptSuite Python API
 
-The MultiPromptify Python API provides a clean, programmatic interface for generating prompt variations without using the Streamlit web interface. This allows for easy integration into scripts, notebooks, and other Python applications.
+The PromptSuite Python API provides a clean, programmatic interface for generating prompt variations without using the Streamlit web interface. This allows for easy integration into scripts, notebooks, and other Python applications.
 
 ## Installation
 
-The API uses the existing MultiPromptify codebase. Make sure you have all dependencies installed:
+The API uses the existing PromptSuite codebase. Make sure you have all dependencies installed:
 
 ```bash
 pip install pandas
@@ -15,11 +15,11 @@ pip install python-dotenv  # Optional: for environment variable loading
 ## Quick Start
 
 ```python
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 import pandas as pd
 
 # Initialize
-mp = MultiPromptifier()
+mp = PromptSuite()
 
 # Load data
 data = [
@@ -50,7 +50,7 @@ mp.export("output.json", format="json")
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 
 data = pd.DataFrame({
     'question': ['What is 2+2?', 'What is the capital of France?'],
@@ -63,7 +63,7 @@ template = {
     'question': ['format structure']
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(max_rows=2, variations_per_field=2)
@@ -75,7 +75,7 @@ print(variations)
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 
 data = pd.DataFrame({
     'question': [
@@ -113,7 +113,7 @@ template = {
     }
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(max_rows=5, variations_per_field=1)
@@ -127,7 +127,7 @@ for v in variations:
 ### Initialization
 
 ```python
-mp = MultiPromptifier()
+mp = PromptSuite()
 ```
 
 ### Data Loading Methods
@@ -299,7 +299,7 @@ template = {
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 
 data = pd.DataFrame({
     'text': ['I love this movie!', 'This book is terrible.'],
@@ -313,7 +313,7 @@ template = {
     'gold': 'label'
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(
@@ -342,7 +342,7 @@ template = {
     }
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(qa_data)
 mp.set_template(template)
 mp.configure(
@@ -360,7 +360,7 @@ variations = mp.generate(verbose=True)
 
 ```python
 import pandas as pd
-from multipromptify import MultiPromptifier
+from promptsuite import PromptSuite
 
 data = pd.DataFrame({
     'question': [
@@ -397,7 +397,7 @@ template = {
     }
 }
 
-mp = MultiPromptifier()
+mp = PromptSuite()
 mp.load_dataframe(data)
 mp.set_template(template)
 mp.configure(max_rows=5, variations_per_field=1)
@@ -413,7 +413,7 @@ for v in variations:
 You can import constants to avoid typos and ensure consistency:
 
 ```python
-from multipromptify.core.template_keys import (
+from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
     FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, PARAPHRASE_WITH_LLM
 )
