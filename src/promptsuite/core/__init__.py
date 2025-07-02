@@ -2,7 +2,7 @@
 PromptSuiteEngine: A tool that creates multi-prompt datasets from single-prompt datasets using templates.
 """
 
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 
 # Import main classes for easier access
 from .engine import PromptSuiteEngine
