@@ -1,8 +1,7 @@
-<h1 align="center">
-  <img src="logo.png" alt="PromptSuite Logo" width="60" style="vertical-align: middle;">
-  PromptSuite
-</h1>
-
+<div align="center">
+  <img src="logo.png" alt="PromptSuite Logo" width="120">
+  <h1>PromptSuite: A Universal Toolkit for Multi-Prompt Evaluation</h1>
+</div>
 A tool that creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
 
 ## Overview
