@@ -8,7 +8,7 @@ project_root = script_dir.parent
 src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
 
-from multipromptify.core.template_keys import (
+from promptsuite.core.template_keys import (
     PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY,
     PROBLEM_KEY,
     GOLD_FIELD, INSTRUCTION_VARIATIONS, INSTRUCTION,
