@@ -83,7 +83,7 @@ def main():
     
     st.markdown("""
     <div style="text-align: center; margin-bottom: 2rem;">
-        <h3>Generate Multi-Prompt Datasets from Single-Prompt Datasets</h3>
+        <h3>A Universal Toolkit for Multi-Prompt Evaluation</h3>
         <p style="color: #666;">Create variations of your prompts using template-based transformations</p>
     </div>
     """, unsafe_allow_html=True)
