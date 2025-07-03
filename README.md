@@ -70,11 +70,11 @@ from promptsuite import PromptSuite
 import pandas as pd
 
 # Initialize
-sp = PromptSuite()
+ps = PromptSuite()
 
 # Load data
 data = [{"question": "What is 2+2?", "answer": "4"}]
-sp.load_dataframe(pd.DataFrame(data))
+ps.load_dataframe(pd.DataFrame(data))
 
 # Configure template
 template = {
@@ -82,14 +82,14 @@ template = {
   'prompt format': 'Q: {question}\nA: {answer}',
   'question': ['typos and noise'],
 }
-sp.set_template(template)
+ps.set_template(template)
 
 # Generate variations
-sp.configure(max_rows=2, variations_per_field=3)
-variations = sp.generate(verbose=True)
+ps.configure(max_rows=2, variations_per_field=3)
+variations = ps.generate(verbose=True)
 
 # Export results
-sp.export("output.json", format="json")
+ps.export("output.json", format="json")
 ```
 
 ## 📚 Core Concepts
@@ -216,17 +216,17 @@ template = {
   'text': ['typos and noise'],
 }
 
-sp = PromptSuite()
-sp.load_dataframe(data)
-sp.set_template(template)
-sp.configure(
+ps = PromptSuite()
+ps.load_dataframe(data)
+ps.set_template(template)
+ps.configure(
   variations_per_field=3,
   max_variations_per_row=2,
   random_seed=42,
   api_platform="TogetherAI",
   model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 )
-variations = sp.generate(verbose=True)
+variations = ps.generate(verbose=True)
 ```
 
 ### Question Answering with Few-shot
@@ -244,15 +244,15 @@ template = {
   }
 }
 
-sp = PromptSuite()
-sp.load_dataframe(qa_data)
-sp.set_template(template)
-sp.configure(
+ps = PromptSuite()
+ps.load_dataframe(qa_data)
+ps.set_template(template)
+ps.configure(
   variations_per_field=2,
   api_platform="TogetherAI",
   model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 )
-variations = sp.generate(verbose=True)
+variations = ps.generate(verbose=True)
 ```
 
 ### Multiple Choice with Few-shot
@@ -296,11 +296,11 @@ template = {
     }
 }
 
-sp = PromptSuite()
-sp.load_dataframe(data)
-sp.set_template(template)
-sp.configure(max_rows=5, variations_per_field=1)
-variations = sp.generate(verbose=True)
+ps = PromptSuite()
+ps.load_dataframe(data)
+ps.set_template(template)
+ps.configure(max_rows=5, variations_per_field=1)
+variations = ps.generate(verbose=True)
 for v in variations:
     print(v['prompt'])
 ```
@@ -309,7 +309,7 @@ for v in variations:
 
 ### Example Output Format
 
-A typical output from `sp.generate()` or the exported JSON file looks like this (for a multiple choice template):
+A typical output from `ps.generate()` or the exported JSON file looks like this (for a multiple choice template):
 
 ```json
 [
@@ -360,21 +360,21 @@ A typical output from `sp.generate()` or the exported JSON file looks like this 
 ### Data Loading
 ```python
 # CSV
-sp.load_csv('data.csv')
+ps.load_csv('data.csv')
 
 # JSON
-sp.load_json('data.json')
+ps.load_json('data.json')
 
 # HuggingFace
-sp.load_dataset('squad', split='train[:100]')
+ps.load_dataset('squad', split='train[:100]')
 
 # DataFrame
-sp.load_dataframe(df)
+ps.load_dataframe(df)
 ```
 
 ### Generation Options
 ```python
-sp.configure(
+ps.configure(
     max_rows=10,                    # How many data rows to use
     variations_per_field=3,         # Variations per field (default: 3)
     max_variations_per_row=50,      # Cap on total variations per row
@@ -387,13 +387,13 @@ sp.configure(
 ### Export Formats
 ```python
 # JSON - Full data with metadata
-sp.export("output.json", format="json")
+ps.export("output.json", format="json")
 
 # CSV - Flattened for spreadsheets
-sp.export("output.csv", format="csv")
+ps.export("output.csv", format="csv")
 
 # TXT - Plain prompts only
-sp.export("output.txt", format="txt")
+ps.export("output.txt", format="txt")
 ```
 
 ## Web UI Interface

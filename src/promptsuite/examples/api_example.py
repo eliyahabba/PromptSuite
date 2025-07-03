@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-PromptSuite API Example Script
+PromptSuite() API Example Script
 
-This script demonstrates how to use the PromptSuite class for programmatic
+This script demonstrates how to use the PromptSuite() class for programmatic
 generation of prompt variations.
 """
 
@@ -24,7 +24,7 @@ from promptsuite.core.template_keys import (
 
 def example_with_sample_data_few_shot():
     # Create instance
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Load data with at least 4 examples for few-shot
     data = pd.DataFrame({
@@ -37,7 +37,7 @@ def example_with_sample_data_few_shot():
         ],
         'answer': ['4', '8', '6', '9', '5']
     })
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
 
     # Set template with few-shot configuration
     template = {
@@ -51,11 +51,11 @@ def example_with_sample_data_few_shot():
             'split': 'all'  # Use all data for examples
         }
     }
-    sp.set_template(template)
+    ps.set_template(template)
 
     # Configure and generate
-    sp.configure(max_rows=4, variations_per_field=2)
-    variations = sp.generate(verbose=True)
+    ps.configure(max_rows=4, variations_per_field=2)
+    variations = ps.generate(verbose=True)
 
     # Display results with few-shot examples
     print(f"\n✅ Generated {len(variations)} variations")
@@ -69,21 +69,21 @@ def example_with_sample_data_few_shot():
         print("-" * 50)
 
     # Export results
-    sp.export("few_shot_examples.json", format="json")
+    ps.export("few_shot_examples.json", format="json")
     print("\n✅ Exported to few_shot_examples.json")
 
     # Show info
-    sp.info()
+    ps.info()
 
 
 def example_with_enumerate():
     """Example demonstrating the new enumerate functionality."""
 
-    print("🚀 PromptSuite API Example with Enumerate")
+    print("🚀 PromptSuite() API Example with Enumerate")
     print("=" * 50)
 
     # Initialize the API
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Create sample data
     sample_data = [
@@ -108,7 +108,7 @@ def example_with_enumerate():
 
     # Load the data
     print("\n1. Loading data...")
-    sp.load_dataframe(df)
+    ps.load_dataframe(df)
     print("📝 Data format: answers are indices (0-based), not text values")
 
     # Configure template with enumerate
@@ -128,13 +128,13 @@ def example_with_enumerate():
         }
     }
 
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with enumerate field")
     print("   - Will enumerate 'options' field with numbers (1234)")
 
     # Configure generation parameters
     print("\n3. Configuring generation...")
-    sp.configure(
+    ps.configure(
         max_rows=3,
         variations_per_field=2,
         max_variations_per_row=10,
@@ -143,11 +143,11 @@ def example_with_enumerate():
 
     # Show current status
     print("\n4. Current status:")
-    sp.info()
+    ps.info()
 
     # Generate variations
     print("\n5. Generating variations...")
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show results
     print(f"\n6. Results: Generated {len(variations)} variations")
@@ -161,7 +161,7 @@ def example_with_enumerate():
 
     # Export results
     print("\n8. Exporting results...")
-    sp.export("enumerate_example.json", format="json")
+    ps.export("enumerate_example.json", format="json")
 
     print("\n✅ Enumerate example completed successfully!")
 
@@ -173,7 +173,7 @@ def example_enumerate_types():
     print("🔢 Different Enumerate Types Example")
     print("=" * 50)
 
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Simple data
     data = [{
@@ -181,7 +181,7 @@ def example_enumerate_types():
         "options": ["Option A", "Option B", "Option C", "Option D"],
         "answer": 0
     }]
-    sp.load_dataframe(pd.DataFrame(data))
+    ps.load_dataframe(pd.DataFrame(data))
 
     # Test different enumerate types
     enumerate_types = [
@@ -209,11 +209,11 @@ def example_enumerate_types():
             }
         }
 
-        sp.set_template(template)
-        sp.configure(max_rows=1, variations_per_field=1, max_variations_per_row=1)
+        ps.set_template(template)
+        ps.configure(max_rows=1, variations_per_field=1, max_variations_per_row=1)
 
         try:
-            variations = sp.generate(verbose=False)
+            variations = ps.generate(verbose=False)
             if variations:
                 print("Result:")
                 print(variations[0].get('prompt', 'No prompt'))
@@ -223,11 +223,11 @@ def example_enumerate_types():
 
 def example_with_sample_data():
     """Main example demonstrating the new specialized augmenters."""
-    print("🚀 PromptSuite API Example with New Specialized Augmenters")
+    print("🚀 PromptSuite() API Example with New Specialized Augmenters")
     print("=" * 60)
 
     # Create instance
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Load data with multiple examples
     data = pd.DataFrame({
@@ -246,7 +246,7 @@ def example_with_sample_data():
         'answer': [2, 1]  # 0-based indices
         # 'answer': [2, 1, 1, 1]  # 0-based indices
     })
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions with multiple choice options")
 
     # Configure template with new specialized augmenters
@@ -262,15 +262,15 @@ def example_with_sample_data():
             'options_field': 'options'
         }
     }
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with new specialized augmenters:")
     print("   - FormatStructureAugmenter: Semantic-preserving format changes")
     print("   - TextNoiseAugmenter: Robustness testing with noise injection")
     print("   - Enumerate: Automatic option numbering")
 
     # Configure and generate
-    sp.configure(max_rows=4, variations_per_field=3, max_variations_per_row=20, random_seed=42)
-    variations = sp.generate(verbose=True)
+    ps.configure(max_rows=4, variations_per_field=3, max_variations_per_row=20, random_seed=42)
+    variations = ps.generate(verbose=True)
 
     # Display results
     print(f"\n✅ Generated {len(variations)} variations with new augmenters")
@@ -284,11 +284,11 @@ def example_with_sample_data():
         print("-" * 50)
 
     # Export results
-    sp.export("new_augmenters_demo.json", format="json")
+    ps.export("new_augmenters_demo.json", format="json")
     print("\n✅ Exported to new_augmenters_demo.json")
 
     # Show info
-    sp.info()
+    ps.info()
 
 
 def example_platform_switching():
@@ -299,11 +299,11 @@ def example_platform_switching():
     print("=" * 50)
 
     # Initialize API
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Create simple data
     data = [{"question": "What is AI?", "answer": "Artificial Intelligence"}]
-    sp.load_dataframe(pd.DataFrame(data))
+    ps.load_dataframe(pd.DataFrame(data))
 
     # Simple template with paraphrase (requires API key)
     template = {
@@ -312,25 +312,25 @@ def example_platform_switching():
         QUESTION_KEY: [PARAPHRASE_WITH_LLM],
         GOLD_KEY: 'answer'  # Simple format - just the field name
     }
-    sp.set_template(template)
+    ps.set_template(template)
 
     print("\n1. Default platform (TogetherAI):")
-    sp.info()
+    ps.info()
 
     print("\n2. Switching to OpenAI:")
-    sp.configure(api_platform="OpenAI")
-    sp.info()
+    ps.configure(api_platform="OpenAI")
+    ps.info()
 
     print("\n3. Back to TogetherAI with custom model:")
-    sp.configure(
+    ps.configure(
         api_platform="TogetherAI",
         model_name="meta-llama/Llama-3.1-8B-Instruct-Turbo"
     )
-    sp.info()
+    ps.info()
 
     print("\n4. Manual API key override:")
-    sp.configure(api_key="manual_key_override")
-    sp.info()
+    ps.configure(api_key="manual_key_override")
+    ps.info()
 
 
 def example_with_huggingface():
@@ -340,11 +340,11 @@ def example_with_huggingface():
     print("=" * 50)
 
     try:
-        sp = PromptSuite()
+        ps = PromptSuite()
 
         # Load 3 examples from SQuAD directly
         print("\n1. Loading SQuAD dataset (3 samples)...")
-        sp.load_dataset("rajpurkar/squad", split="train[:3]")
+        ps.load_dataset("rajpurkar/squad", split="train[:3]")
 
         # Classic QA template with gold field expression for SQuAD
         template = {
@@ -354,11 +354,11 @@ def example_with_huggingface():
             QUESTION_KEY: [],
             GOLD_KEY: "answers['text'][0]"
         }
-        sp.set_template(template)
-        sp.configure(max_rows=3, variations_per_field=1, max_variations_per_row=1)
+        ps.set_template(template)
+        ps.configure(max_rows=3, variations_per_field=1, max_variations_per_row=1)
 
         print("\n2. Generating variations...")
-        variations = sp.generate(verbose=True)
+        variations = ps.generate(verbose=True)
 
         print(f"\n✅ Generated {len(variations)} variations\n")
         for i, v in enumerate(variations):
@@ -518,16 +518,16 @@ def example_environment_variables():
     print(f"   OPENAI_API_KEY: {'✅ Set' if openai_key else '❌ Not set'}")
 
     # Initialize API and show how keys are automatically selected
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     print(f"\nDefault platform API key detection:")
-    print(f"   Platform: {sp.config['api_platform']}")
-    print(f"   API Key: {'✅ Found' if sp.config['api_key'] else '❌ Not found'}")
+    print(f"   Platform: {ps.config['api_platform']}")
+    print(f"   API Key: {'✅ Found' if ps.config['api_key'] else '❌ Not found'}")
     # Test platform switching
     print(f"\nTesting platform switching:")
     for platform in ["TogetherAI", "OpenAI"]:
-        sp.configure(api_platform=platform)
-        key_found = sp.config['api_key'] is not None
+        ps.configure(api_platform=platform)
+        key_found = ps.config['api_key'] is not None
         print(f"   {platform}: {'✅ API key found' if key_found else '❌ No API key'}")
 
 
@@ -547,8 +547,8 @@ def example_with_simple_qa():
     print(df[['problem', 'answer']])
 
     # Initialize the API
-    sp = PromptSuite()
-    sp.load_dataframe(df)
+    ps = PromptSuite()
+    ps.load_dataframe(df)
 
     # Set a simple QA template
     template = {
@@ -561,11 +561,11 @@ def example_with_simple_qa():
             'split': 'all'
         }
     }
-    sp.set_template(template)
+    ps.set_template(template)
 
     # Configure and generate
-    sp.configure(max_rows=5, variations_per_field=2)
-    variations = sp.generate(verbose=True)
+    ps.configure(max_rows=5, variations_per_field=2)
+    variations = ps.generate(verbose=True)
 
     print(f"\n✅ Generated {len(variations)} variations from simple_qa_test.csv")
     print("\n" + "=" * 50)
@@ -576,9 +576,9 @@ def example_with_simple_qa():
         print("-" * 50)
 
     # Export results
-    sp.export("simple_qa_example.json", format="json")
+    ps.export("simple_qa_example.json", format="json")
     print("\n✅ Exported to simple_qa_example.json")
-    sp.info()
+    ps.info()
 
 
 def example_answer_the_question_prompt_only():
@@ -595,8 +595,8 @@ def example_answer_the_question_prompt_only():
     ]
 
     df = pd.DataFrame(data)
-    sp = PromptSuite()
-    sp.load_dataframe(df)
+    ps = PromptSuite()
+    ps.load_dataframe(df)
 
     # Template: instructs to answer the question, but does not include the answer
     template = {
@@ -604,10 +604,10 @@ def example_answer_the_question_prompt_only():
         PROMPT_FORMAT: 'Please answer the following question:\n{question}',
         QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION]
     }
-    sp.set_template(template)
+    ps.set_template(template)
 
-    sp.configure(max_rows=3, variations_per_field=2)
-    variations = sp.generate(verbose=True)
+    ps.configure(max_rows=3, variations_per_field=2)
+    variations = ps.generate(verbose=True)
 
     print(f"\n✅ Generated {len(variations)} variations (prompt only, no gold, no few-shot)")
     for i, var in enumerate(variations[:3]):
@@ -616,18 +616,18 @@ def example_answer_the_question_prompt_only():
         print(var['prompt'])
         print("-" * 50)
 
-    sp.export("answer_the_question_prompt_only.json", format="json")
+    ps.export("answer_the_question_prompt_only.json", format="json")
     print("\n✅ Exported to answer_the_question_prompt_only.json")
-    sp.info()
+    ps.info()
 
 
 def example_with_system_prompt_few_shot():
-    sp = PromptSuite()
+    ps = PromptSuite()
     data = pd.DataFrame({
         'question': ['What is 2+2?', 'What is 3*3?', 'What is 5+3?'],
         'answer': ['4', '9', '8']
     })
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     template = {
         INSTRUCTION: 'You are a helpful math assistant. Answer clearly.',
         PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
@@ -639,9 +639,9 @@ def example_with_system_prompt_few_shot():
             'split': 'all'
         }
     }
-    sp.set_template(template)
-    sp.configure(max_rows=3, variations_per_field=1)
-    variations = sp.generate(verbose=True)
+    ps.set_template(template)
+    ps.configure(max_rows=3, variations_per_field=1)
+    variations = ps.generate(verbose=True)
     print("\n=== System Prompt Few-shot Example ===")
     for v in variations:
         print(v['prompt'])
@@ -653,7 +653,7 @@ def example_with_system_prompt_few_shot():
 
 def example_system_prompt_with_placeholder():
     print("\n=== System Prompt with Placeholder Example ===")
-    sp = PromptSuite()
+    ps = PromptSuite()
     data = pd.DataFrame({
         'question': [
             'What is the largest planet in our solar system?',
@@ -672,7 +672,7 @@ def example_system_prompt_with_placeholder():
         'answer': [1, 0, 1, 1, 1],
         'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
     })
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -684,9 +684,9 @@ def example_system_prompt_with_placeholder():
             'options_field': 'options'
         }
     }
-    sp.set_template(template)
-    sp.configure(max_rows=5, variations_per_field=1)
-    variations = sp.generate(verbose=True)
+    ps.set_template(template)
+    ps.configure(max_rows=5, variations_per_field=1)
+    variations = ps.generate(verbose=True)
     for i, var in enumerate(variations):
         print(f"\nVariation {i + 1}:")
         print("-" * 50)
@@ -696,7 +696,7 @@ def example_system_prompt_with_placeholder():
 
 def example_system_prompt_with_placeholder_and_few_shot():
     print("\n=== System Prompt with Placeholder + Few-shot Example ===")
-    sp = PromptSuite()
+    ps = PromptSuite()
     data = pd.DataFrame({
         'question': [
             'What is the largest planet in our solar system?',
@@ -715,7 +715,7 @@ def example_system_prompt_with_placeholder_and_few_shot():
         'answer': [1, 0, 1, 1, 1],
         'subject': ['Astronomy', 'Chemistry', 'Biology', 'Mathematics', 'Geography']
     })
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -732,9 +732,9 @@ def example_system_prompt_with_placeholder_and_few_shot():
             'split': 'all'
         }
     }
-    sp.set_template(template)
-    sp.configure(max_rows=5, variations_per_field=2)
-    variations = sp.generate(verbose=True)
+    ps.set_template(template)
+    ps.configure(max_rows=5, variations_per_field=2)
+    variations = ps.generate(verbose=True)
     for i, var in enumerate(variations):
         print(f"\nVariation {i + 1}:")
         print("-" * 50)
@@ -761,7 +761,7 @@ def example_system_prompt_with_context_and_few_shot():
         print("   The example will still run but context variations may not work as expected.\n")
 
     # Initialize the API
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Create sample data with questions about different subjects
     data = pd.DataFrame({
@@ -790,7 +790,7 @@ def example_system_prompt_with_context_and_few_shot():
                     'Mathematics']
     })
 
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions across different subjects")
 
     # Test 1: Zero-shot with context variations
@@ -809,10 +809,10 @@ def example_system_prompt_with_context_and_few_shot():
         }
     }
 
-    sp.set_template(template_zero_shot)
-    sp.configure(max_rows=1, variations_per_field=2, max_variations_per_row=6)
+    ps.set_template(template_zero_shot)
+    ps.configure(max_rows=1, variations_per_field=2, max_variations_per_row=6)
 
-    variations_zero_shot = sp.generate(verbose=True)
+    variations_zero_shot = ps.generate(verbose=True)
 
     print(f"\n✅ Generated {len(variations_zero_shot)} zero-shot variations with context")
 
@@ -843,7 +843,7 @@ def example_system_prompt_with_context_and_few_shot():
 
     # Export zero-shot results
     print("\n4️⃣ Exporting zero-shot results...")
-    sp.export("context_variations_zero_shot.json", format="json")
+    ps.export("context_variations_zero_shot.json", format="json")
     print("   - context_variations_zero_shot.json")
 
     # Test 2: Few-shot with context variations
@@ -867,10 +867,10 @@ def example_system_prompt_with_context_and_few_shot():
         }
     }
 
-    sp.set_template(template_few_shot)
-    sp.configure(max_rows=3, variations_per_field=2, max_variations_per_row=6)
+    ps.set_template(template_few_shot)
+    ps.configure(max_rows=3, variations_per_field=2, max_variations_per_row=6)
 
-    variations_few_shot = sp.generate(verbose=True)
+    variations_few_shot = ps.generate(verbose=True)
 
     print(f"\n✅ Generated {len(variations_few_shot)} few-shot variations with context")
 
@@ -911,7 +911,7 @@ def example_system_prompt_with_context_and_few_shot():
 
     # Export results
     print("\n5️⃣ Exporting results...")
-    sp.export("context_variations_few_shot.json", format="json")
+    ps.export("context_variations_few_shot.json", format="json")
 
     print("✅ Exported to:")
     print("   - context_variations_few_shot.json")
@@ -930,7 +930,7 @@ def example_simple_context_variations():
     print("\n=== Simple Context Variations Example (No API Key Required) ===")
 
     # Initialize the API
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Simple data
     data = pd.DataFrame({
@@ -942,7 +942,7 @@ def example_simple_context_variations():
         'answer': ['4', 'Blue', '7']
     })
 
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} simple questions")
 
     # Template with rewordings (works without API key)
@@ -953,10 +953,10 @@ def example_simple_context_variations():
         GOLD_KEY: 'answer'
     }
 
-    sp.set_template(template)
-    sp.configure(max_rows=3, variations_per_field=2, max_variations_per_row=6)
+    ps.set_template(template)
+    ps.configure(max_rows=3, variations_per_field=2, max_variations_per_row=6)
 
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     print(f"\n✅ Generated {len(variations)} variations with rewordings")
     for i, var in enumerate(variations[:3]):
@@ -969,7 +969,7 @@ def example_simple_context_variations():
     print("   Context variations would add background information but require API access.")
 
     # Export results
-    sp.export("simple_context_example.json", format="json")
+    ps.export("simple_context_example.json", format="json")
     print("✅ Exported to simple_context_example.json")
 
 
@@ -978,7 +978,7 @@ def example_enumerate_as_field_variation():
     print("\n=== Enumerate as Field Variation Example ===")
 
     # Initialize the API
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Create sample data
     data = pd.DataFrame({
@@ -991,7 +991,7 @@ def example_enumerate_as_field_variation():
         'answer': [2]  # 0-based indices
     })
 
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions")
 
     # Configure template with enumerate as field variation
@@ -1008,13 +1008,13 @@ def example_enumerate_as_field_variation():
         }
     }
 
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with enumerate as field variation")
     print("   - Will generate multiple enumeration types for options field")
 
     # Configure generation parameters
     print("\n3. Configuring generation...")
-    sp.configure(
+    ps.configure(
         max_rows=1,
         variations_per_field=2,  # Generate 4 variations with different enumeration types
         max_variations_per_row=8,
@@ -1023,7 +1023,7 @@ def example_enumerate_as_field_variation():
 
     # Generate variations
     print("\n4. Generating variations...")
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show results
     print(f"\n5. Results: Generated {len(variations)} variations")
@@ -1037,7 +1037,7 @@ def example_enumerate_as_field_variation():
 
     # Export results
     print("\n6. Exporting results...")
-    sp.export("enumerate_field_variation.json", format="json")
+    ps.export("enumerate_field_variation.json", format="json")
 
     print("\n✅ Enumerate as field variation example completed!")
 
@@ -1062,8 +1062,8 @@ def example_many_augmenters_on_small_dataset():
         'answer': [2, 1]  # 0-based indices
     })
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions")
 
     # Template: apply all augmenters
@@ -1079,19 +1079,19 @@ def example_many_augmenters_on_small_dataset():
             'options_field': 'options'
         }
     }
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template with context, shuffle, rewording, paraphrase")
 
     # Configure: all variations, but limit for demo
-    sp.configure(
+    ps.configure(
         max_rows=1,
         variations_per_field=2,  # 2 per augmenter per field
         max_variations_per_row=16,
         random_seed=42
     )
     print("\nGenerating variations...")
-    variations = sp.generate(verbose=True)
-    sp.export("many_augmenters_small_dataset.json", format="json")
+    variations = ps.generate(verbose=True)
+    ps.export("many_augmenters_small_dataset.json", format="json")
     print(f"\n✅ Generated {len(variations)} variations\n")
     for i, v in enumerate(variations):
         print(f"\nVariation {i + 1}:")
@@ -1120,8 +1120,8 @@ def example_paraphrase_instruction_only():
         # 0-based indices
     })
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} question")
 
     template = {
@@ -1134,11 +1134,11 @@ def example_paraphrase_instruction_only():
             'options_field': 'options'
         }
     }
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template with only instruction paraphrasing")
 
-    sp.configure(max_rows=3, variations_per_field=3, max_variations_per_row=20)
-    variations = sp.generate(verbose=True)
+    ps.configure(max_rows=3, variations_per_field=3, max_variations_per_row=20)
+    variations = ps.generate(verbose=True)
     print(f"\n✅ Generated {len(variations)} variations\n")
     for i, v in enumerate(variations):
         print(f"\nVariation {i + 1}:")
@@ -1165,8 +1165,8 @@ def example_format_structure():
         'answer': [2, 1]  # 0-based indices
     })
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions")
 
     # Configure template with format structure variations and enumerate
@@ -1182,7 +1182,7 @@ def example_format_structure():
         }
     }
 
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with format structure variations + enumerate")
     print("   - Will generate semantic-preserving format changes")
     print("   - Will enumerate 'options' field with random enumeration types")
@@ -1190,7 +1190,7 @@ def example_format_structure():
     # Pass seed via configure
     seed = 1234
     print(f"Using seed={seed}")
-    sp.configure(
+    ps.configure(
         max_rows=2,
         variations_per_field=5,
         max_variations_per_row=20,  # Increased to get more variations
@@ -1198,7 +1198,7 @@ def example_format_structure():
     )
 
     # Generate variations
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show results
     print(f"\n✅ Generated {len(variations)} format structure variations with enumerate")
@@ -1211,7 +1211,7 @@ def example_format_structure():
         print("-" * 50)
 
     # Export results
-    sp.export("format_structure_example.json", format="json")
+    ps.export("format_structure_example.json", format="json")
     print("\n✅ Format structure example completed!")
 
 
@@ -1232,8 +1232,8 @@ def example_typos_and_noise():
         'answer': [2, 1]  # 0-based indices
     })
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions")
 
     # Configure template with typos and noise variations and enumerate
@@ -1249,13 +1249,13 @@ def example_typos_and_noise():
         }
     }
 
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with typos and noise variations + enumerate")
     print("   - Will generate robustness testing with noise injection")
     print("   - Will enumerate 'options' field with random enumeration types")
 
     # Configure generation parameters
-    sp.configure(
+    ps.configure(
         max_rows=2,
         variations_per_field=2,
         max_variations_per_row=20,  # Increased to get more variations
@@ -1263,7 +1263,7 @@ def example_typos_and_noise():
     )
 
     # Generate variations
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show results
     print(f"\n✅ Generated {len(variations)} typos and noise variations with enumerate")
@@ -1276,7 +1276,7 @@ def example_typos_and_noise():
         print("-" * 50)
 
     # Export results
-    sp.export("typos_and_noise_example.json", format="json")
+    ps.export("typos_and_noise_example.json", format="json")
     print("\n✅ Typos and noise example completed!")
 
 
@@ -1295,8 +1295,8 @@ def example_combined_specialized_augmenters():
         'answer': [2]  # 0-based index
     })
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} question")
 
     # Configure template with both specialized augmenters and enumerate
@@ -1313,14 +1313,14 @@ def example_combined_specialized_augmenters():
         }
     }
 
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with both specialized augmenters + enumerate")
     print("   - FormatStructureAugmenter: Semantic-preserving format changes")
     print("   - TextNoiseAugmenter: Robustness testing with noise injection")
     print("   - Will enumerate 'options' field with random enumeration types")
 
     # Configure generation parameters
-    sp.configure(
+    ps.configure(
         max_rows=1,
         variations_per_field=2,
         max_variations_per_row=8,
@@ -1328,7 +1328,7 @@ def example_combined_specialized_augmenters():
     )
 
     # Generate variations
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show results
     print(f"\n✅ Generated {len(variations)} combined variations with enumerate")
@@ -1341,7 +1341,7 @@ def example_combined_specialized_augmenters():
         print("-" * 50)
 
     # Export results
-    sp.export("combined_specialized_augmenters.json", format="json")
+    ps.export("combined_specialized_augmenters.json", format="json")
     print("\n✅ Combined specialized augmenters example completed!")
 
 
@@ -1360,8 +1360,8 @@ def example_backward_compatibility_rewording():
         'answer': [2]  # 0-based index
     })
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} question")
 
     # Configure template with REWORDING (should map to TextNoiseAugmenter) and enumerate
@@ -1378,13 +1378,13 @@ def example_backward_compatibility_rewording():
         }
     }
 
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with REWORDING (maps to TextNoiseAugmenter) + enumerate")
     print("   - Backward compatibility maintained")
     print("   - Will enumerate 'options' field with random enumeration types")
 
     # Configure generation parameters
-    sp.configure(
+    ps.configure(
         max_rows=1,
         variations_per_field=2,
         max_variations_per_row=4,
@@ -1392,7 +1392,7 @@ def example_backward_compatibility_rewording():
     )
 
     # Generate variations
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show results
     print(f"\n✅ Generated {len(variations)} variations with REWORDING and enumerate")
@@ -1405,7 +1405,7 @@ def example_backward_compatibility_rewording():
         print("-" * 50)
 
     # Export results
-    sp.export("backward_compatibility_rewording.json", format="json")
+    ps.export("backward_compatibility_rewording.json", format="json")
     print("\n✅ Backward compatibility example completed!")
 
 
@@ -1416,7 +1416,7 @@ def example_shuffle_template():
     print("=" * 60)
 
     # Create instance
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Load data with 4 examples
     data = pd.DataFrame({
@@ -1434,7 +1434,7 @@ def example_shuffle_template():
         ],
         'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
     })
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions")
 
     # Complex template with multiple variations
@@ -1453,7 +1453,7 @@ def example_shuffle_template():
             'split': 'all'
         }
     }
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with complex variations:")
     print("   - INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION]")
     print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
@@ -1462,13 +1462,13 @@ def example_shuffle_template():
     print("   - FEW_SHOT_KEY: count=2, format=shared_ordered_first_n, split=all")
 
     # Configure with 3 variations per field
-    sp.configure(
+    ps.configure(
         max_rows=1,
         variations_per_field=3,
         max_variations_per_row=22,  # High limit to see all variations
         random_seed=42
     )
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show field values for first few variations to understand what's being varied
     print(f"\n🔍 Field values analysis (first 3 variations):")
@@ -1482,11 +1482,11 @@ def example_shuffle_template():
             print(f"   - {field}: {value}")
 
     # Export results for further analysis
-    sp.export("shuffle_template_debug.json", format="json")
+    ps.export("shuffle_template_debug.json", format="json")
     print(f"\n✅ Exported to shuffle_template_debug.json for further analysis")
 
     # Show final stats
-    sp.info()
+    ps.info()
 
 
 def example_complex_template_debug():
@@ -1496,7 +1496,7 @@ def example_complex_template_debug():
     print("=" * 60)
 
     # Create instance
-    sp = PromptSuite()
+    ps = PromptSuite()
 
     # Load data with 4 examples
     data = pd.DataFrame({
@@ -1514,7 +1514,7 @@ def example_complex_template_debug():
         ],
         'answer': [2, 0, 1, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1, 2=1
     })
-    sp.load_dataframe(data)
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions")
 
     # Complex template with multiple variations
@@ -1536,7 +1536,7 @@ def example_complex_template_debug():
             'split': 'all'
         }
     }
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with complex variations:")
     print("   - INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION]")
     print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
@@ -1545,7 +1545,7 @@ def example_complex_template_debug():
     print("   - FEW_SHOT_KEY: count=2, format=shared_ordered_first_n, split=all")
 
     # Configure with 3 variations per field
-    sp.configure(
+    ps.configure(
         max_rows=2,
         variations_per_field=3,
         max_variations_per_row=10,  # High limit to see all variations
@@ -1566,7 +1566,7 @@ def example_complex_template_debug():
 
     # Generate variations
     print("\n🚀 Generating variations...")
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Debug analysis
     print(f"\n📊 DEBUG ANALYSIS:")
@@ -1613,11 +1613,11 @@ def example_complex_template_debug():
                     print(f"   - {field}: '{val1[:30]}...' vs '{val2[:30]}...'")
 
     # Export results for further analysis
-    sp.export("complex_template_debug.json", format="json")
+    ps.export("complex_template_debug.json", format="json")
     print(f"\n✅ Exported to complex_template_debug.json for further analysis")
 
     # Show final stats
-    sp.info()
+    ps.info()
 
     print(f"\n💡 EXPLANATION:")
     print(f"   The high number of variations is due to combinatorial explosion:")
@@ -1687,8 +1687,8 @@ def example_few_shot_train_test_split():
     print("🔧 Test 1: ORDERED few-shot using TRAIN split")
     print("=" * 40)
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
 
     template_ordered_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
@@ -1708,13 +1708,13 @@ def example_few_shot_train_test_split():
         }
     }
 
-    sp.set_template(template_ordered_train)
-    sp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=6)  # Process all rows
+    ps.set_template(template_ordered_train)
+    ps.configure(max_rows=8, variations_per_field=2, max_variations_per_row=6)  # Process all rows
 
-    variations_ordered = sp.generate(verbose=False)
+    variations_ordered = ps.generate(verbose=False)
 
     print(f"✅ Generated {len(variations_ordered)} variations with ORDERED few-shot")
-    sp.export("few_shot_train_test_ordered.json", format="json")
+    ps.export("few_shot_train_test_ordered.json", format="json")
 
     # Show few-shot examples for each test question
     test_variations = [v for v in variations_ordered if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
@@ -1762,10 +1762,10 @@ def example_few_shot_train_test_split():
         }
     }
 
-    sp.set_template(template_random_per_row_train)
-    sp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=3)
+    ps.set_template(template_random_per_row_train)
+    ps.configure(max_rows=8, variations_per_field=2, max_variations_per_row=3)
 
-    variations_random_per_row = sp.generate(verbose=False)
+    variations_random_per_row = ps.generate(verbose=False)
 
     print(f"✅ Generated {len(variations_random_per_row)} variations with RANDOM PER ROW few-shot")
 
@@ -1790,7 +1790,7 @@ def example_few_shot_train_test_split():
                                 print(f"   Example {j + 1}: Question: {example.strip()}")
 
     # Export results for analysis
-    sp.export("few_shot_train_test_analysis.json", format="json")
+    ps.export("few_shot_train_test_analysis.json", format="json")
     print(f"\n✅ Exported analysis to few_shot_train_test_analysis.json")
 
 
@@ -1838,8 +1838,8 @@ def example_few_shot_random_per_row_vs_ordered():
         print(f"🔍 Testing {format_type.upper()} format")
         print("=" * 30)
 
-        sp = PromptSuite()
-        sp.load_dataframe(data)
+        ps = PromptSuite()()
+        ps.load_dataframe(data)
 
         template = {
             INSTRUCTION: 'Answer the following geography questions.',
@@ -1856,10 +1856,10 @@ def example_few_shot_random_per_row_vs_ordered():
             }
         }
 
-        sp.set_template(template)
-        sp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
+        ps.set_template(template)
+        ps.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
 
-        variations = sp.generate(verbose=False)
+        variations = ps.generate(verbose=False)
 
         # Analyze test questions only
         test_variations = [v for v in variations if v.get('original_row_index', 0) >= 4]
@@ -1892,7 +1892,7 @@ def example_few_shot_random_per_row_vs_ordered():
                 print(f"     {j + 1}. {fs_q}")
 
         # Export for this format
-        sp.export(f"few_shot_{format_type}_analysis.json", format="json")
+        ps.export(f"few_shot_{format_type}_analysis.json", format="json")
 
     print(f"\n" + "=" * 60)
     print("🔍 ANALYSIS SUMMARY")
@@ -1950,12 +1950,12 @@ def test_enumerated_gold_in_few_shot():
         }
     }
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
-    sp.set_template(template)
-    sp.configure(max_rows=3, variations_per_field=3, max_variations_per_row=3)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
+    ps.set_template(template)
+    ps.configure(max_rows=3, variations_per_field=3, max_variations_per_row=3)
 
-    variations = sp.generate(verbose=False)
+    variations = ps.generate(verbose=False)
 
     print(f"\n✅ Generated {len(variations)} variations")
 
@@ -2017,8 +2017,8 @@ def example_list_data_support():
     print(f"   Question 2 choices: {data.iloc[1]['choices']}")
     print(f"   Data type: {type(data.iloc[0]['choices'])}")
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions with list-format choices")
 
     # Configure template with shuffle and enumerate operations
@@ -2039,13 +2039,13 @@ def example_list_data_support():
         }
     }
 
-    sp.set_template(template)
+    ps.set_template(template)
     print("✅ Template configured with list data support:")
     print("   - choices field: shuffle + enumerate operations")
     print("   - Gold field: index-based with choices as options_field")
 
     # Configure generation parameters
-    sp.configure(
+    ps.configure(
         max_rows=4,
         variations_per_field=2,
         max_variations_per_row=4,
@@ -2054,7 +2054,7 @@ def example_list_data_support():
 
     # Generate variations
     print("\n🚀 Generating variations with list data...")
-    variations = sp.generate(verbose=True)
+    variations = ps.generate(verbose=True)
 
     # Show results
     print(f"\n✅ Generated {len(variations)} variations with list data support")
@@ -2077,7 +2077,7 @@ def example_list_data_support():
             print(f"Gold updates: {gold_updates}")
 
     # Export results
-    sp.export("list_data_support_example.json", format="json")
+    ps.export("list_data_support_example.json", format="json")
     print("\n✅ List data support example completed!")
     print("✅ Exported to list_data_support_example.json")
 
@@ -2128,8 +2128,8 @@ def example_few_shot_unordered_random():
     print("🔧 Testing shared_unordered_random_n format")
     print("=" * 40)
 
-    sp = PromptSuite()
-    sp.load_dataframe(data)
+    ps = PromptSuite()
+    ps.load_dataframe(data)
 
     template_unordered = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
@@ -2147,13 +2147,13 @@ def example_few_shot_unordered_random():
         }
     }
 
-    sp.set_template(template_unordered)
-    sp.configure(max_rows=1, variations_per_field=5, max_variations_per_row=10)
+    ps.set_template(template_unordered)
+    ps.configure(max_rows=1, variations_per_field=5, max_variations_per_row=10)
 
-    variations_unordered = sp.generate(verbose=False)
+    variations_unordered = ps.generate(verbose=False)
 
     print(f"✅ Generated {len(variations_unordered)} variations with shared_unordered_random_n")
-    sp.export("few_shot_unordered_random_example.json", format="json")
+    ps.export("few_shot_unordered_random_example.json", format="json")
 
     # Show few-shot examples for each test question
     test_variations = [v for v in variations_unordered if v.get('original_row_index', 0) >= 5]
@@ -2243,8 +2243,8 @@ def example_few_shot_random_per_row_vs_ordered_2():
         print(f"🔍 Testing {format_type.upper()} format")
         print("=" * 30)
 
-        sp = PromptSuite()
-        sp.load_dataframe(data)
+        ps = PromptSuite()
+        ps.load_dataframe(data)
 
         template = {
             INSTRUCTION: 'Answer the following geography questions.',
@@ -2261,10 +2261,10 @@ def example_few_shot_random_per_row_vs_ordered_2():
             }
         }
 
-        sp.set_template(template)
-        sp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
+        ps.set_template(template)
+        ps.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
 
-        variations = sp.generate(verbose=False)
+        variations = ps.generate(verbose=False)
 
         # Analyze test questions only
         test_variations = [v for v in variations if v.get('original_row_index', 0) >= 4]
@@ -2297,7 +2297,7 @@ def example_few_shot_random_per_row_vs_ordered_2():
                 print(f"     {j + 1}. {fs_q}")
 
         # Export for this format
-        sp.export(f"few_shot_{format_type}_analysis.json", format="json")
+        ps.export(f"few_shot_{format_type}_analysis.json", format="json")
 
     print(f"\n" + "=" * 60)
     print("🔍 ANALYSIS SUMMARY")
@@ -2325,7 +2325,7 @@ def example_few_shot_random_per_row_vs_ordered_2():
 if __name__ == "__main__":
     # Run the new unordered random few-shot example
     # example_few_shot_unordered_random()
-    
+
     # Run the new list data support example first
     # example_list_data_support()
 

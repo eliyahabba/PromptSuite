@@ -57,7 +57,7 @@ class BaseTask(ABC):
         self.max_rows = max_rows
         self.max_variations_per_row = max_variations_per_row
         self.random_seed = random_seed
-        self.sp = PromptSuite()
+        self.ps = PromptSuite()
 
     @abstractmethod
     def load_data(self) -> None:
@@ -99,7 +99,7 @@ class BaseTask(ABC):
         # Configure template
         print("\n2. Setting up template...")
         template = self.get_template()
-        self.sp.set_template(template)
+        self.ps.set_template(template)
         print("✅ Template configured")
 
         # Configure generation parameters
@@ -110,7 +110,7 @@ class BaseTask(ABC):
         print(f"   Model: {self.model_name}")
         print(f"   Random seed: {self.random_seed}")
 
-        self.sp.configure(
+        self.ps.configure(
             max_rows=self.max_rows,
             variations_per_field=self.variations_per_field,
             max_variations_per_row=self.max_variations_per_row,
@@ -121,7 +121,7 @@ class BaseTask(ABC):
 
         # Generate variations
         print("\n4. Generating prompt variations...")
-        variations = self.sp.generate(verbose=True)
+        variations = self.ps.generate(verbose=True)
 
         # Display results
         print(f"\n✅ Generated {len(variations)} variations")
@@ -140,11 +140,11 @@ class BaseTask(ABC):
         # Export results
         output_file = Path(__file__).parent.parent / "tasks_data" / "generated_data" / self.output_filename
         print(f"\n6. Exporting results to {output_file}...")
-        self.sp.export(str(output_file), format="json")
+        self.ps.export(str(output_file), format="json")
         print("✅ Export completed!")
 
         # Show final statistics
         print("\n7. Final statistics:")
-        self.sp.info()
+        self.ps.info()
 
         return output_file

@@ -45,10 +45,10 @@ class PromptSuite:
 #            >>> from promptsuite import PromptSuite
 #        >>>
 #        >>> # Initialize
-#        >>> sp = PromptSuite()
+#        >>> ps = PromptSuite()
 #        >>>
 #        >>> # Load data
-#        >>> sp.load_dataset("squad", split="train")
+#        >>> ps.load_dataset("squad", split="train")
 #        >>>
 #        >>> # Configure template
 #        >>> template = {
@@ -60,14 +60,14 @@ class PromptSuite:
 #        >>>         'type': 'value'
 #        >>>     }
 #        >>> }
-#        >>> sp.set_template(template)
+#        >>> ps.set_template(template)
 #        >>>
 #        >>> # Configure and generate
-#        >>> sp.configure(max_rows=10, variations_per_field=3)
+#        >>> ps.configure(max_rows=10, variations_per_field=3)
 #        >>> variations = sp.generate(verbose=True)
 #        >>>
 #        >>> # Export results
-#        >>> sp.export("output.json", format="json")
+#        >>> ps.export("output.json", format="json")
 #    """
 
     def __init__(self):

@@ -129,11 +129,11 @@ template = {
     'gold': 'answer'
 }
 
-sp = PromptSuite()
-sp.load_dataframe(data)
-sp.set_template(template)
-sp.configure(max_rows=2, variations_per_field=3)
-variations = sp.generate(verbose=True)
+ps = PromptSuite()
+ps.load_dataframe(data)
+ps.set_template(template)
+ps.configure(max_rows=2, variations_per_field=3)
+variations = ps.generate(verbose=True)
 ```
 
 ## Minimal Example (No gold, no few_shot)
@@ -152,11 +152,11 @@ template = {
     'question': ['rewording']
 }
 
-sp = PromptSuite()
-sp.load_dataframe(data)
-sp.set_template(template)
-sp.configure(max_rows=2, variations_per_field=2)
-variations = sp.generate(verbose=True)
+ps = PromptSuite()
+ps.load_dataframe(data)
+ps.set_template(template)
+ps.configure(max_rows=2, variations_per_field=2)
+variations = ps.generate(verbose=True)
 print(variations)
 ```
 
