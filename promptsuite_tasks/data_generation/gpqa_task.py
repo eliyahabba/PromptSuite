@@ -77,7 +77,7 @@ class GPQATask(BaseTask):
         
         print(f"✅ Created splits: {train_count} train, {test_count} test")
         
-        self.sp.load_dataframe(df)
+        self.ps.load_dataframe(df)
         self.post_process()
         print("✅ Data loaded and post-processed")
 
@@ -86,7 +86,7 @@ class GPQATask(BaseTask):
         print("Post-processing GPQA data...")
         
         # Get the dataframe from PromptSuite
-        df = self.sp.data
+        df = self.ps.data
         
         # Create choices list combining all answer options (like MMLU format)
         df['choices'] = df.apply(lambda row: [
@@ -100,7 +100,7 @@ class GPQATask(BaseTask):
         df['answer'] = 3  # The correct answer is always the last item (index 3)
         
         # Update the data in PromptSuite
-        self.sp.data = df
+        self.ps.data = df
         
         print(f"✅ Created choices field with 4 options per question")
         print(f"✅ Created answer index field (correct answer at index 3)")
