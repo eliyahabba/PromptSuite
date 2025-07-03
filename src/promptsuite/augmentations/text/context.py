@@ -10,15 +10,17 @@ class ContextAugmenter(BaseAxisAugmenter):
     This doesn't change the meaning of the task but makes the prompt longer.
     """
 
-    def __init__(self, n_augments=3, seed: Optional[int] = None):
+    def __init__(self, n_augments=3, seed: Optional[int] = None, api_key: str = None):
         """
         Initialize the context augmenter.
 
         Args:
             n_augments: Number of variations to generate
             seed: Random seed for reproducibility
+            api_key: API key for the language model service
         """
         super().__init__(n_augments=n_augments, seed=seed)
+        self.api_key = api_key
         
     def get_name(self):
         return "Context Variations"
@@ -64,7 +66,7 @@ class ContextAugmenter(BaseAxisAugmenter):
         
         # Call language model to generate the variation
         try:
-            result = get_completion(meta_prompt)
+            result = get_completion(meta_prompt, api_key=self.api_key)
             # Check if the result is valid (not empty and not the same as the original prompt and the original prompt is in the result)
             if result and result != prompt and prompt in result:
                 return result

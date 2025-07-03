@@ -88,7 +88,7 @@ class Paraphrase(BaseAxisAugmenter):
             List of paraphrased variations
         """
         rephrasing_prompt = self.build_rephrasing_prompt(instruction_template, self.n_augments, prompt)
-        response = get_completion(rephrasing_prompt)
+        response = get_completion(rephrasing_prompt, api_key=self.api_key)
         return ast.literal_eval(response)
 
     def _generate_simple_paraphrases(self, prompt: str) -> List[str]:
