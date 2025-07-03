@@ -5,15 +5,20 @@ PromptSuite API Example Script
 This script demonstrates how to use the PromptSuite class for programmatic
 generation of prompt variations.
 """
+
 import os
 
 import pandas as pd
 
 from promptsuite import PromptSuite
 from promptsuite.core.template_keys import (
-    PROMPT_FORMAT_VARIATIONS, QUESTION_KEY, GOLD_KEY, FEW_SHOT_KEY, OPTIONS_KEY, CONTEXT_KEY,
-    PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION, ENUMERATE_VARIATION,
-    PROMPT_FORMAT, INSTRUCTION_VARIATIONS, INSTRUCTION, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION
+    INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
+    PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION
+)
+from promptsuite.core.template_keys import (
+    PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY, CONTEXT_KEY,
+    ENUMERATE_VARIATION,
+    INSTRUCTION_VARIATIONS, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION
 )
 
 
@@ -249,7 +254,8 @@ def example_with_sample_data():
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
         QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],  # Use both new augmenters
-        OPTIONS_KEY: [SHUFFLE_VARIATION, FORMAT_STRUCTURE_VARIATION, ENUMERATE_VARIATION],  # Format structure + enumerate
+        OPTIONS_KEY: [SHUFFLE_VARIATION, FORMAT_STRUCTURE_VARIATION, ENUMERATE_VARIATION],
+        # Format structure + enumerate
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -334,7 +340,6 @@ def example_with_huggingface():
     print("=" * 50)
 
     try:
-        from promptsuite import PromptSuite
         sp = PromptSuite()
 
         # Load 3 examples from SQuAD directly
@@ -504,8 +509,6 @@ def example_environment_variables():
     print("🌍 Environment Variables Example")
     print("=" * 50)
 
-    import os
-
     # Show current environment variables
     print("Current API key environment variables:")
     together_key = os.getenv("TOGETHER_API_KEY")
@@ -530,7 +533,6 @@ def example_environment_variables():
 
 def example_with_simple_qa():
     """Example loading 5 examples from simple_qa_test.csv (simple QA format)."""
-    import os
     print("\n" + "=" * 50)
     print("📄 Simple QA CSV Example (simple_qa_test.csv)")
     print("=" * 50)
@@ -591,8 +593,6 @@ def example_answer_the_question_prompt_only():
         {"question": "How many days are in a week?", "answer": "7"},
         {"question": "Who wrote Romeo and Juliet?", "answer": "Shakespeare"}
     ]
-    import pandas as pd
-    from promptsuite import PromptSuite
 
     df = pd.DataFrame(data)
     sp = PromptSuite()
@@ -750,7 +750,6 @@ def example_system_prompt_with_context_and_few_shot():
     print("\n=== System Prompt with Context Variations + Few-shot/Zero-shot Examples ===")
 
     # Check if API key is available
-    import os
     api_key = os.getenv("TOGETHER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
         print("⚠️  Warning: No API key found!")
@@ -863,8 +862,8 @@ def example_system_prompt_with_context_and_few_shot():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',    # Same examples for all questions
-            'split': 'train'      # Use only training data
+            'format': 'shared_ordered_first_n',  # Same examples for all questions
+            'split': 'train'  # Use only training data
         }
     }
 
@@ -1046,14 +1045,6 @@ def example_enumerate_as_field_variation():
 def example_many_augmenters_on_small_dataset():
     """Example: Apply context, shuffle, rewording, and paraphrase on a tiny dataset (2 rows)."""
     print("\n=== Many Augmenters on Small Dataset Example ===")
-    import os
-    from promptsuite import PromptSuite
-    import pandas as pd
-    from promptsuite.core.template_keys import (
-        INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, OPTIONS_KEY, GOLD_KEY,
-        PARAPHRASE_WITH_LLM, CONTEXT_VARIATION, SHUFFLE_VARIATION
-    )
-
     # Check API key for context/paraphrase
     api_key = os.getenv("TOGETHER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -1066,9 +1057,8 @@ def example_many_augmenters_on_small_dataset():
             'What is 2+2?'
         ],
         'options': [
-            'London, Berlin, Paris, Madrid',
-            '3, 4, 5, 6'
-        ],
+            ['London', 'Berlin', 'Paris', 'Madrid'],
+            ['3', '4', '5', '6'],        ],
         'answer': [2, 1]  # 0-based indices
     })
 
@@ -1081,7 +1071,7 @@ def example_many_augmenters_on_small_dataset():
         INSTRUCTION: 'Answer the following multiple choice questions.',
         INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],  # Reword the instruction
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
+        PROMPT_FORMAT_VARIATIONS : [FORMAT_STRUCTURE_VARIATION],
         OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
         GOLD_KEY: {
             'field': 'answer',
@@ -1094,14 +1084,14 @@ def example_many_augmenters_on_small_dataset():
 
     # Configure: all variations, but limit for demo
     sp.configure(
-        max_rows=2,
+        max_rows=1,
         variations_per_field=2,  # 2 per augmenter per field
         max_variations_per_row=16,
         random_seed=42
     )
-    sp.export("many_augmenters_small_dataset.json", format="json")
     print("\nGenerating variations...")
     variations = sp.generate(verbose=True)
+    sp.export("many_augmenters_small_dataset.json", format="json")
     print(f"\n✅ Generated {len(variations)} variations\n")
     for i, v in enumerate(variations):
         print(f"\nVariation {i + 1}:")
@@ -1126,7 +1116,7 @@ def example_paraphrase_instruction_only():
             '3, 4, 5, 6'
         ],
         'answer': [2, 1],
-        'subject': ['Geography','Geography']
+        'subject': ['Geography', 'Geography']
         # 0-based indices
     })
 
@@ -1161,7 +1151,7 @@ def example_paraphrase_instruction_only():
 def example_format_structure():
     """Example demonstrating the new FormatStructureAugmenter for semantic-preserving format variations."""
     print("\n=== Format Structure Augmenter Example ===")
-    
+
     # Create sample data
     data = pd.DataFrame({
         'question': [
@@ -1228,7 +1218,7 @@ def example_format_structure():
 def example_typos_and_noise():
     """Example demonstrating the new TextNoiseAugmenter for robustness testing with noise injection."""
     print("\n=== Typos and Noise Augmenter Example ===")
-    
+
     # Create sample data
     data = pd.DataFrame({
         'question': [
@@ -1293,7 +1283,7 @@ def example_typos_and_noise():
 def example_combined_specialized_augmenters():
     """Example demonstrating both new specialized augmenters together."""
     print("\n=== Combined Specialized Augmenters Example ===")
-    
+
     # Create sample data
     data = pd.DataFrame({
         'question': [
@@ -1314,7 +1304,8 @@ def example_combined_specialized_augmenters():
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
         QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],  # Use both augmenters
-        OPTIONS_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],   # Use both augmenters + enumerate
+        OPTIONS_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
+        # Use both augmenters + enumerate
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -1357,7 +1348,7 @@ def example_combined_specialized_augmenters():
 def example_backward_compatibility_rewording():
     """Example demonstrating backward compatibility with REWORDING."""
     print("\n=== Backward Compatibility with REWORDING Example ===")
-    
+
     # Create sample data
     data = pd.DataFrame({
         'question': [
@@ -1378,7 +1369,8 @@ def example_backward_compatibility_rewording():
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
         QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],  # This should map to TextNoiseAugmenter
-        OPTIONS_KEY: [FORMAT_STRUCTURE_VARIATION, ENUMERATE_VARIATION],   # This should map to TextNoiseAugmenter + enumerate
+        OPTIONS_KEY: [FORMAT_STRUCTURE_VARIATION, ENUMERATE_VARIATION],
+        # This should map to TextNoiseAugmenter + enumerate
         GOLD_KEY: {
             'field': 'answer',
             'type': 'index',
@@ -1415,6 +1407,7 @@ def example_backward_compatibility_rewording():
     # Export results
     sp.export("backward_compatibility_rewording.json", format="json")
     print("\n✅ Backward compatibility example completed!")
+
 
 def example_shuffle_template():
     """Debug example for complex template with multiple variations to understand variation count."""
@@ -1487,7 +1480,6 @@ def example_shuffle_template():
             if len(str(value)) > 50:
                 value = str(value)[:50] + "..."
             print(f"   - {field}: {value}")
-
 
     # Export results for further analysis
     sp.export("shuffle_template_debug.json", format="json")
@@ -1587,12 +1579,12 @@ def example_complex_template_debug():
     for var in variations:
         row_idx = var.get('original_row_index', 0)
         row_counts[row_idx] = row_counts.get(row_idx, 0) + 1
-    
+
     print(f"\n📈 Variations per row:")
     for row_idx in sorted(row_counts.keys()):
         count = row_counts[row_idx]
         print(f"   - Row {row_idx}: {count} variations")
-    
+
     # Show field values for first few variations to understand what's being varied
     print(f"\n🔍 Field values analysis (first 3 variations):")
     for i, var in enumerate(variations[:3]):
@@ -1603,30 +1595,30 @@ def example_complex_template_debug():
             if len(str(value)) > 50:
                 value = str(value)[:50] + "..."
             print(f"   - {field}: {value}")
-    
+
     # Show what's different between variations
     if len(variations) >= 2:
         print(f"\n🔍 What's different between variations:")
         var1 = variations[0]
         var2 = variations[1]
-        
+
         field_values1 = var1.get('field_values', {})
         field_values2 = var2.get('field_values', {})
-        
+
         for field in field_values1.keys():
             if field in field_values2:
                 val1 = str(field_values1[field])
                 val2 = str(field_values2[field])
                 if val1 != val2:
                     print(f"   - {field}: '{val1[:30]}...' vs '{val2[:30]}...'")
-    
+
     # Export results for further analysis
     sp.export("complex_template_debug.json", format="json")
     print(f"\n✅ Exported to complex_template_debug.json for further analysis")
-    
+
     # Show final stats
     sp.info()
-    
+
     print(f"\n💡 EXPLANATION:")
     print(f"   The high number of variations is due to combinatorial explosion:")
     print(f"   - Each field with variations generates 3 variations")
@@ -1644,13 +1636,13 @@ def example_few_shot_train_test_split():
     print("\n" + "=" * 60)
     print("🔍 Testing Few-Shot with Train/Test Split")
     print("=" * 60)
-    
+
     # Create dataset with train/test split
     data = pd.DataFrame({
         'question': [
             # Training examples (will be used for few-shot)
             'What is 2+2?',
-            'What is 3+3?', 
+            'What is 3+3?',
             'What is 4+4?',
             'What is 5+5?',
             'What is 6+6?',
@@ -1662,7 +1654,7 @@ def example_few_shot_train_test_split():
         'options': [
             # Training options
             '3, 4, 5, 6',
-            '5, 6, 7, 8', 
+            '5, 6, 7, 8',
             '7, 8, 9, 10',
             '9, 10, 11, 12',
             '11, 12, 13, 14',
@@ -1674,30 +1666,30 @@ def example_few_shot_train_test_split():
         'answer': [1, 1, 1, 1, 1, 1, 1, 1],  # All answers are option B
         'split': ['train', 'train', 'train', 'train', 'train', 'test', 'test', 'test']
     })
-    
+
     print(f"📊 Dataset Overview:")
     print(f"   - Total examples: {len(data)}")
     print(f"   - Train examples: {len(data[data['split'] == 'train'])}")
     print(f"   - Test examples: {len(data[data['split'] == 'test'])}")
-    
+
     print("\n📝 Train Examples:")
     train_data = data[data['split'] == 'train']
     for i, row in train_data.iterrows():
         print(f"   {i}: {row['question']} -> {row['options'].split(', ')[row['answer']]}")
-    
+
     print("\n📝 Test Examples (targets):")
     test_data = data[data['split'] == 'test']
     for i, row in test_data.iterrows():
         print(f"   {i}: {row['question']} -> {row['options'].split(', ')[row['answer']]}")
-    
+
     # Test 1: Ordered few-shot with train split
     print("\n" + "=" * 40)
     print("🔧 Test 1: ORDERED few-shot using TRAIN split")
     print("=" * 40)
-    
+
     sp = PromptSuite()
     sp.load_dataframe(data)
-    
+
     template_ordered_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -1711,28 +1703,28 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',    # Same examples for all questions
-            'split': 'train'      # Use only training data
+            'format': 'shared_ordered_first_n',  # Same examples for all questions
+            'split': 'train'  # Use only training data
         }
     }
-    
+
     sp.set_template(template_ordered_train)
     sp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=6)  # Process all rows
-    
+
     variations_ordered = sp.generate(verbose=False)
-    
+
     print(f"✅ Generated {len(variations_ordered)} variations with ORDERED few-shot")
     sp.export("few_shot_train_test_ordered.json", format="json")
 
     # Show few-shot examples for each test question
     test_variations = [v for v in variations_ordered if v.get('original_row_index', 0) >= 5]  # Test rows are 5,6,7
-    
+
     for i, var in enumerate(test_variations):
         row_idx = var.get('original_row_index', 0)
         question = data.iloc[row_idx]['question']
-        print(f"\n📋 Test Question {i+1} (Row {row_idx}): {question}")
+        print(f"\n📋 Test Question {i + 1} (Row {row_idx}): {question}")
         print("Few-shot examples used:")
-        
+
         conversation = var.get('conversation', [])
         if conversation:
             for msg in conversation:
@@ -1743,13 +1735,13 @@ def example_few_shot_train_test_split():
                         examples = content.split('Question:')[:-1]  # Remove last part (current question)
                         for j, example in enumerate(examples):
                             if example.strip():
-                                print(f"   Example {j+1}: Question: {example.strip()}")
-    
+                                print(f"   Example {j + 1}: Question: {example.strip()}")
+
     # Test 2: Random per row few-shot with train split
     print("\n" + "=" * 40)
     print("🔄 Test 2: RANDOM PER ROW few-shot using TRAIN split")
     print("=" * 40)
-    
+
     template_random_per_row_train = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -1766,26 +1758,26 @@ def example_few_shot_train_test_split():
         FEW_SHOT_KEY: {
             'count': 2,
             'format': 'random_per_row',  # Different examples for each question
-            'split': 'train'       # Use only training data
+            'split': 'train'  # Use only training data
         }
     }
-    
+
     sp.set_template(template_random_per_row_train)
     sp.configure(max_rows=8, variations_per_field=2, max_variations_per_row=3)
-    
+
     variations_random_per_row = sp.generate(verbose=False)
-    
+
     print(f"✅ Generated {len(variations_random_per_row)} variations with RANDOM PER ROW few-shot")
-    
+
     # Show few-shot examples for each test question
     test_variations_random_per_row = [v for v in variations_random_per_row if v.get('original_row_index', 0) >= 5]
-    
+
     for i, var in enumerate(test_variations_random_per_row):
         row_idx = var.get('original_row_index', 0)
         question = data.iloc[row_idx]['question']
-        print(f"\n🔄 Test Question {i+1} (Row {row_idx}): {question}")
+        print(f"\n🔄 Test Question {i + 1} (Row {row_idx}): {question}")
         print("Few-shot examples used:")
-        
+
         conversation = var.get('conversation', [])
         if conversation:
             for msg in conversation:
@@ -1795,8 +1787,8 @@ def example_few_shot_train_test_split():
                         examples = content.split('Question:')[:-1]
                         for j, example in enumerate(examples):
                             if example.strip():
-                                print(f"   Example {j+1}: Question: {example.strip()}")
-    
+                                print(f"   Example {j + 1}: Question: {example.strip()}")
+
     # Export results for analysis
     sp.export("few_shot_train_test_analysis.json", format="json")
     print(f"\n✅ Exported analysis to few_shot_train_test_analysis.json")
@@ -1807,12 +1799,12 @@ def example_few_shot_random_per_row_vs_ordered():
     print("\n" + "=" * 60)
     print("⚖️  Detailed Comparison: Random Per Row vs Ordered Few-Shot")
     print("=" * 60)
-    
+
     # Create a larger dataset to see rotation effects
     data = pd.DataFrame({
         'question': [
             'What is the capital of France?',
-            'What is the capital of Germany?', 
+            'What is the capital of Germany?',
             'What is the capital of Italy?',
             'What is the capital of Spain?',
             'What is the capital of UK?',
@@ -1822,7 +1814,7 @@ def example_few_shot_random_per_row_vs_ordered():
         ],
         'options': [
             'London, Paris, Berlin, Madrid',
-            'Paris, Berlin, Rome, Madrid', 
+            'Paris, Berlin, Rome, Madrid',
             'Berlin, Rome, Paris, London',
             'Madrid, Paris, Berlin, Rome',
             'London, Berlin, Paris, Madrid',
@@ -1833,22 +1825,22 @@ def example_few_shot_random_per_row_vs_ordered():
         'answer': [1, 1, 1, 0, 0, 0, 0, 0],  # Correct answers
         'split': ['train', 'train', 'train', 'train', 'test', 'test', 'test', 'test']
     })
-    
+
     print(f"📊 Dataset: {len(data)} geography questions")
     print(f"   - Train: {len(data[data['split'] == 'train'])} examples")
     print(f"   - Test: {len(data[data['split'] == 'test'])} examples")
-    
+
     # Test both formats with same configuration
     formats = ['shared_ordered_first_n', 'random_per_row']
-    
+
     for format_type in formats:
         print(f"\n" + "=" * 30)
         print(f"🔍 Testing {format_type.upper()} format")
         print("=" * 30)
-        
+
         sp = PromptSuite()
         sp.load_dataframe(data)
-        
+
         template = {
             INSTRUCTION: 'Answer the following geography questions.',
             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -1863,28 +1855,28 @@ def example_few_shot_random_per_row_vs_ordered():
                 'split': 'train'
             }
         }
-        
+
         sp.set_template(template)
         sp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
-        
+
         variations = sp.generate(verbose=False)
-        
+
         # Analyze test questions only
         test_variations = [v for v in variations if v.get('original_row_index', 0) >= 4]
-        
+
         print(f"📋 {format_type.upper()} Results:")
-        
+
         for i, var in enumerate(test_variations):
             row_idx = var.get('original_row_index', 0)
             question = data.iloc[row_idx]['question']
-            
-            print(f"\n   Test Question {i+1} (Row {row_idx}):")
+
+            print(f"\n   Test Question {i + 1} (Row {row_idx}):")
             print(f"   Q: {question}")
-            
+
             # Extract few-shot examples
             conversation = var.get('conversation', [])
             few_shot_questions = []
-            
+
             if conversation:
                 for msg in conversation:
                     if msg['role'] == 'user':
@@ -1894,18 +1886,18 @@ def example_few_shot_random_per_row_vs_ordered():
                         for line in lines:
                             if line.startswith('Question:') and line != f"Question: {question}":
                                 few_shot_questions.append(line.replace('Question: ', ''))
-            
+
             print(f"   Few-shot examples:")
             for j, fs_q in enumerate(few_shot_questions):
-                print(f"     {j+1}. {fs_q}")
-        
+                print(f"     {j + 1}. {fs_q}")
+
         # Export for this format
         sp.export(f"few_shot_{format_type}_analysis.json", format="json")
-    
+
     print(f"\n" + "=" * 60)
     print("🔍 ANALYSIS SUMMARY")
     print("=" * 60)
-    
+
     print("📊 Expected Behavior:")
     print("   SHARED_ORDERED_FIRST_N format:")
     print("     - Should use the SAME 2 training examples for ALL test questions")
@@ -1915,13 +1907,13 @@ def example_few_shot_random_per_row_vs_ordered():
     print("     - Should use DIFFERENT training examples for each test question")
     print("     - Based on random_state=current_row_idx")
     print("     - Each test question gets different training examples")
-    
+
     print("\n💡 Key Points to Verify:")
     print("   1. Does 'shared_ordered_first_n' really use the same examples for all test questions?")
     print("   2. Does 'random_per_row' use different examples for each test question?")
     print("   3. Are only TRAIN examples used (no test examples in few-shot)?")
     print("   4. Is the current question excluded from few-shot examples?")
-    
+
     print("\n✅ Check the exported JSON files for detailed analysis!")
 
 
@@ -1930,7 +1922,7 @@ def test_enumerated_gold_in_few_shot():
     print("\n" + "=" * 60)
     print("🧪 TESTING ENUMERATED GOLD VALUES IN FEW-SHOT")
     print("=" * 60)
-    
+
     # Simple test data
     data = pd.DataFrame({
         'question': ['What is 2+2?', 'What is 3+3?', 'What is 4+4?'],
@@ -1938,10 +1930,10 @@ def test_enumerated_gold_in_few_shot():
         'answer': [1, 1, 1],  # All answers are index 1 (second option)
         'split': ['train', 'train', 'test']
     })
-    
+
     print("📊 Test Data:")
     print(data.to_string(index=True))
-    
+
     template = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -1957,23 +1949,23 @@ def test_enumerated_gold_in_few_shot():
             'split': 'train'
         }
     }
-    
+
     sp = PromptSuite()
     sp.load_dataframe(data)
     sp.set_template(template)
     sp.configure(max_rows=3, variations_per_field=3, max_variations_per_row=3)
-    
+
     variations = sp.generate(verbose=False)
-    
+
     print(f"\n✅ Generated {len(variations)} variations")
-    
+
     # Show the test question result
     test_var = None
     for var in variations:
         if var.get('original_row_index', 0) == 2:  # Test row
             test_var = var
             break
-    
+
     if test_var:
         print(f"\n📝 Test Question Result:")
         conversation = test_var.get('conversation', [])
@@ -1983,7 +1975,7 @@ def test_enumerated_gold_in_few_shot():
                     print("PROMPT:")
                     print(msg['content'])
                     print("\n🎯 Expected: Few-shot answers should be '2. 4' and '2. 6' (enumerated format)")
-                    
+
                     # Check if the few-shot examples show enumerated answers
                     content = msg['content']
                     if '2. 4' in content and '2. 6' in content:
@@ -2000,7 +1992,7 @@ def test_enumerated_gold_in_few_shot():
 def example_list_data_support():
     """Example demonstrating support for list data format (instead of comma-separated strings)."""
     print("\n=== List Data Format Support Example ===")
-    
+
     # Create sample data with actual Python lists instead of comma-separated strings
     data = pd.DataFrame({
         'question': [
@@ -2010,7 +2002,8 @@ def example_list_data_support():
             'Which planet is closest to the Sun?'
         ],
         'choices': [
-            ['polymerase chain reaction.', 'single strand conformational polymorphism analysis.', 'Southern blotting.', 'Western blotting.'],
+            ['polymerase chain reaction.', 'single strand conformational polymorphism analysis.', 'Southern blotting.',
+             'Western blotting.'],
             ['Python', 'R', 'Java', 'C++'],
             ['London', 'Paris', 'Berlin', 'Madrid'],
             ['Venus', 'Mercury', 'Earth', 'Mars']
@@ -2018,12 +2011,12 @@ def example_list_data_support():
         'answer': [0, 0, 1, 1],  # Correct choice indices
         'subject': ['Biology', 'Computer Science', 'Geography', 'Astronomy']
     })
-    
+
     print("📊 Sample Data with List Format:")
     print(f"   Question 1 choices: {data.iloc[0]['choices']}")
     print(f"   Question 2 choices: {data.iloc[1]['choices']}")
     print(f"   Data type: {type(data.iloc[0]['choices'])}")
-    
+
     sp = PromptSuite()
     sp.load_dataframe(data)
     print(f"📝 Loaded {len(data)} questions with list-format choices")
@@ -2045,7 +2038,7 @@ def example_list_data_support():
             'split': 'all'
         }
     }
-    
+
     sp.set_template(template)
     print("✅ Template configured with list data support:")
     print("   - choices field: shuffle + enumerate operations")
@@ -2065,19 +2058,19 @@ def example_list_data_support():
 
     # Show results
     print(f"\n✅ Generated {len(variations)} variations with list data support")
-    
+
     # Display first few variations to see shuffle and enumerate in action
     for i, variation in enumerate(variations[:4]):
         print(f"\nVariation {i + 1}:")
         print("-" * 50)
         print(variation.get('prompt', 'No prompt found'))
         print("-" * 50)
-        
+
         # Show field values to see how list was processed
         field_values = variation.get('field_values', {})
         if 'choices' in field_values:
             print(f"Processed choices: {field_values['choices']}")
-        
+
         # Show gold updates
         gold_updates = variation.get('gold_updates', {})
         if gold_updates:
@@ -2094,13 +2087,13 @@ def example_few_shot_unordered_random():
     print("\n" + "=" * 60)
     print("🔄 Few-Shot Unordered Random Example")
     print("=" * 60)
-    
+
     # Create dataset with train/test split
     data = pd.DataFrame({
         'question': [
             # Training examples (will be used for few-shot)
             'What is 2+2?',
-            'What is 3+3?', 
+            'What is 3+3?',
             'What is 4+4?',
             'What is 5+5?',
             'What is 6+6?',
@@ -2112,7 +2105,7 @@ def example_few_shot_unordered_random():
         'options': [
             # Training options
             ['3', '4', '5', '6'],
-            ['5', '6', '7', '8'], 
+            ['5', '6', '7', '8'],
             ['7', '8', '9', '10'],
             ['9', '10', '11', '12'],
             ['11', '12', '13', '14'],
@@ -2124,20 +2117,20 @@ def example_few_shot_unordered_random():
         'answer': [1, 1, 1, 1, 1, 1, 1, 1],  # All answers are option B
         'split': ['train', 'train', 'train', 'train', 'train', 'test', 'test', 'test']
     })
-    
+
     print(f"📊 Dataset Overview:")
     print(f"   - Total examples: {len(data)}")
     print(f"   - Train examples: {len(data[data['split'] == 'train'])}")
     print(f"   - Test examples: {len(data[data['split'] == 'test'])}")
-    
+
     # Test shared_unordered_random_n format
     print("\n" + "=" * 40)
     print("🔧 Testing shared_unordered_random_n format")
     print("=" * 40)
-    
+
     sp = PromptSuite()
     sp.load_dataframe(data)
-    
+
     template_unordered = {
         INSTRUCTION: 'Answer the following multiple choice math questions.',
         PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -2153,24 +2146,24 @@ def example_few_shot_unordered_random():
             'split': 'train'
         }
     }
-    
+
     sp.set_template(template_unordered)
     sp.configure(max_rows=1, variations_per_field=5, max_variations_per_row=10)
-    
+
     variations_unordered = sp.generate(verbose=False)
-    
+
     print(f"✅ Generated {len(variations_unordered)} variations with shared_unordered_random_n")
     sp.export("few_shot_unordered_random_example.json", format="json")
 
     # Show few-shot examples for each test question
     test_variations = [v for v in variations_unordered if v.get('original_row_index', 0) >= 5]
-    
+
     for i, var in enumerate(test_variations):
         row_idx = var.get('original_row_index', 0)
         question = data.iloc[row_idx]['question']
-        print(f"\n📋 Test Question {i+1} (Row {row_idx}): {question}")
+        print(f"\n📋 Test Question {i + 1} (Row {row_idx}): {question}")
         print("Few-shot examples used (same examples, different order):")
-        
+
         conversation = var.get('conversation', [])
         if conversation:
             for msg in conversation:
@@ -2180,12 +2173,12 @@ def example_few_shot_unordered_random():
                         examples = content.split('Question:')[:-1]
                         for j, example in enumerate(examples):
                             if example.strip():
-                                print(f"   Example {j+1}: Question: {example.strip()}")
-    
+                                print(f"   Example {j + 1}: Question: {example.strip()}")
+
     print(f"\n" + "=" * 60)
     print("🔍 ANALYSIS: shared_unordered_random_n vs shared_ordered_random_n")
     print("=" * 60)
-    
+
     print("📊 Expected Behavior:")
     print("   SHARED_UNORDERED_RANDOM_N format:")
     print("     - Uses the SAME 2 random training examples for ALL test questions")
@@ -2196,13 +2189,13 @@ def example_few_shot_unordered_random():
     print("     - Uses the SAME 2 random training examples for ALL test questions")
     print("     - AND keeps the SAME ORDER for all test questions")
     print("     - Examples: Same random selection, same order always")
-    
+
     print("\n💡 Key Benefits of shared_unordered_random_n:")
     print("   1. Consistent example selection (same random examples)")
     print("   2. Order variation (shuffled order per question)")
     print("   3. Reduces position bias in few-shot examples")
     print("   4. Maintains reproducibility with fixed seed")
-    
+
     print("\n✅ Check the exported JSON file for detailed analysis!")
 
 
@@ -2211,12 +2204,12 @@ def example_few_shot_random_per_row_vs_ordered_2():
     print("\n" + "=" * 60)
     print("⚖️  Detailed Comparison: Random Per Row vs Ordered Few-Shot")
     print("=" * 60)
-    
+
     # Create a larger dataset to see rotation effects
     data = pd.DataFrame({
         'question': [
             'What is the capital of France?',
-            'What is the capital of Germany?', 
+            'What is the capital of Germany?',
             'What is the capital of Italy?',
             'What is the capital of Spain?',
             'What is the capital of UK?',
@@ -2226,7 +2219,7 @@ def example_few_shot_random_per_row_vs_ordered_2():
         ],
         'options': [
             ['London', 'Paris', 'Berlin', 'Madrid'],
-            ['Paris', 'Berlin', 'Rome', 'Madrid'], 
+            ['Paris', 'Berlin', 'Rome', 'Madrid'],
             ['Berlin', 'Rome', 'Paris', 'London'],
             ['Madrid', 'Paris', 'Berlin', 'Rome'],
             ['London', 'Berlin', 'Paris', 'Madrid'],
@@ -2237,22 +2230,22 @@ def example_few_shot_random_per_row_vs_ordered_2():
         'answer': [1, 1, 1, 0, 0, 0, 0, 0],  # Correct answers
         'split': ['train', 'train', 'train', 'train', 'test', 'test', 'test', 'test']
     })
-    
+
     print(f"📊 Dataset: {len(data)} geography questions")
     print(f"   - Train: {len(data[data['split'] == 'train'])} examples")
     print(f"   - Test: {len(data[data['split'] == 'test'])} examples")
-    
+
     # Test both formats with same configuration
     formats = ['shared_ordered_first_n', 'random_per_row']
-    
+
     for format_type in formats:
         print(f"\n" + "=" * 30)
         print(f"🔍 Testing {format_type.upper()} format")
         print("=" * 30)
-        
+
         sp = PromptSuite()
         sp.load_dataframe(data)
-        
+
         template = {
             INSTRUCTION: 'Answer the following geography questions.',
             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer:',
@@ -2267,28 +2260,28 @@ def example_few_shot_random_per_row_vs_ordered_2():
                 'split': 'train'
             }
         }
-        
+
         sp.set_template(template)
         sp.configure(max_rows=8, variations_per_field=1, max_variations_per_row=1)
-        
+
         variations = sp.generate(verbose=False)
-        
+
         # Analyze test questions only
         test_variations = [v for v in variations if v.get('original_row_index', 0) >= 4]
-        
+
         print(f"📋 {format_type.upper()} Results:")
-        
+
         for i, var in enumerate(test_variations):
             row_idx = var.get('original_row_index', 0)
             question = data.iloc[row_idx]['question']
-            
-            print(f"\n   Test Question {i+1} (Row {row_idx}):")
+
+            print(f"\n   Test Question {i + 1} (Row {row_idx}):")
             print(f"   Q: {question}")
-            
+
             # Extract few-shot examples
             conversation = var.get('conversation', [])
             few_shot_questions = []
-            
+
             if conversation:
                 for msg in conversation:
                     if msg['role'] == 'user':
@@ -2298,18 +2291,18 @@ def example_few_shot_random_per_row_vs_ordered_2():
                         for line in lines:
                             if line.startswith('Question:') and line != f"Question: {question}":
                                 few_shot_questions.append(line.replace('Question: ', ''))
-            
+
             print(f"   Few-shot examples:")
             for j, fs_q in enumerate(few_shot_questions):
-                print(f"     {j+1}. {fs_q}")
-        
+                print(f"     {j + 1}. {fs_q}")
+
         # Export for this format
         sp.export(f"few_shot_{format_type}_analysis.json", format="json")
-    
+
     print(f"\n" + "=" * 60)
     print("🔍 ANALYSIS SUMMARY")
     print("=" * 60)
-    
+
     print("📊 Expected Behavior:")
     print("   SHARED_ORDERED_FIRST_N format:")
     print("     - Should use the SAME 2 training examples for ALL test questions")
@@ -2319,13 +2312,13 @@ def example_few_shot_random_per_row_vs_ordered_2():
     print("     - Should use DIFFERENT training examples for each test question")
     print("     - Based on random_state=current_row_idx")
     print("     - Each test question gets different training examples")
-    
+
     print("\n💡 Key Points to Verify:")
     print("   1. Does 'shared_ordered_first_n' really use the same examples for all test questions?")
     print("   2. Does 'random_per_row' use different examples for each test question?")
     print("   3. Are only TRAIN examples used (no test examples in few-shot)?")
     print("   4. Is the current question excluded from few-shot examples?")
-    
+
     print("\n✅ Check the exported JSON files for detailed analysis!")
 
 
