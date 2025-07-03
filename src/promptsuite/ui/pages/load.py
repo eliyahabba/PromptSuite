@@ -233,15 +233,17 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
-                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
-                            OPTIONS_KEY: [SHUFFLE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',  # 'index' or 'value'
                                 'options_field': 'options'  # Field containing the list to shuffle
+                            },
+                            'enumerate': {
+                                'field': 'options',
+                                'type': '1234'
                             }
                         },
-                        'description': 'Multiple choice with format structure, noise injection, and option shuffling',
+                        'description': 'Multiple choice with format structure variations and option shuffling',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
@@ -256,16 +258,19 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about {subject}.',
                             INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            #PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
-                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
                             OPTIONS_KEY: [SHUFFLE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
                                 'options_field': 'options'
+                            },
+                            'enumerate': {
+                                'field': 'options',
+                                'type': '1234'
                             }
+
                         },
-                        'description': 'Multiple choice with format structure, noise injection, option shuffling, and LLM-paraphrased instruction',
+                        'description': 'Multiple choice with LLM-paraphrased instruction, format structure, noise injection on question, and option shuffling',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
@@ -278,11 +283,10 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         'name': 'Complex Multiple Choice with Few-shot',
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers).',
+                            INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            INSTRUCTION_VARIATIONS: [TYPOS_AND_NOISE_VARIATION],
-                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
-                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
-                            OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION],
+                            PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
@@ -290,11 +294,11 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 2,
-                                'format': 'shared_ordered_first_n',
+                                'format': 'random_per_row',
                                 'split': 'all'
                             }
                         },
-                        'description': 'Multiple choice with format structure, noise injection, and option shuffling',
+                        'description': 'Multiple choice with LLM-paraphrased instruction, format structure, option shuffling, enumeration, and random per row few-shot examples from train split.',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?', 'What is the smallest prime number?'],
@@ -304,37 +308,11 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         }
                     },
                     {
-                        'name': 'Enumerated Multiple Choice',
-                        'template': {
-                            INSTRUCTION: 'The following are multiple choice questions (with answers).',
-                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
-                            GOLD_KEY: {
-                                'field': 'answer',
-                                'type': 'index',
-                                'options_field': 'options'
-                            },
-                            'enumerate': {
-                                'field': 'options',
-                                'type': '1234'
-                            }
-                        },
-                        'description': 'Multiple choice with format structure, noise injection, and automatic enumeration',
-                        'sample_data': {
-                            'question': ['What is the largest planet?', 'Which element has symbol O?',
-                                         'What is the fastest land animal?'],
-                            'options': [['Mars', 'Earth', 'Jupiter', 'Venus'], ['Oxygen', 'Gold', 'Silver', 'Hydrogen'],
-                                        ['Lion', 'Cheetah', 'Horse', 'Tiger']],
-                            'answer': [2, 0, 1]  # Indices: Jupiter=2, Oxygen=0, Cheetah=1
-                        }
-                    },
-                    {
-                        'name': 'Lettered Multiple Choice with Enumerate',
+                        'name': 'Multiple Choice with Lettered Enumeration',
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers).',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
-                            OPTIONS_KEY: [SHUFFLE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
@@ -345,7 +323,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'type': 'ABCD'
                             }
                         },
-                        'description': 'Multiple choice with format structure, noise injection, and letter enumeration',
+                        'description': 'Multiple choice with option shuffling and automatic letter enumeration',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
@@ -355,7 +333,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         }
                     },
                     {
-                        'name': 'Multiple Choice with Enumerate Only',
+                        'name': 'Multiple Choice with Shuffling and Enumeration',
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
@@ -366,7 +344,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                                 'options_field': 'options'
                             }
                         },
-                        'description': 'Multiple choice with option shuffling and automatic enumeration (ENUMERATE_VARIATION as field variation)',
+                        'description': 'Multiple choice with option shuffling and automatic enumeration',
                         'sample_data': {
                             'question': ['What is the largest planet?', 'Which element has symbol O?',
                                          'What is the fastest land animal?'],
@@ -469,22 +447,22 @@ def initialize_session_state(start_step=1, debug_mode=False):
             # Specialized Augmenters Templates
             'specialized_augmenters': {
                 'category_name': 'Specialized Augmenters',
-                'description': 'Templates showcasing the new specialized augmenters for format structure and noise injection',
+                'description': 'Templates showcasing specialized augmenters for prompt variations',
                 'templates': [
                     {
-                        'name': 'Format Structure Only',
+                        'name': 'Format Structure, Shuffle & Enumerate',
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
-                            OPTIONS_KEY: [ENUMERATE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
                                 'options_field': 'options'
                             }
                         },
-                        'description': 'Semantic-preserving format structure variations with automatic enumeration',
+                        'description': 'Semantic-preserving format structure variations with option shuffling and automatic enumeration',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'What is 2+2?'],
                             'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],
@@ -492,19 +470,19 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         }
                     },
                     {
-                        'name': 'Noise Injection Only',
+                        'name': 'Noise Injection, Shuffle & Enumerate',
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
-                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
                                 'options_field': 'options'
                             }
                         },
-                        'description': 'Robustness testing with noise injection (typos, case changes, etc.)',
+                        'description': 'Robustness testing with noise injection on question and options, with option shuffling and automatic enumeration',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'What is 2+2?'],
                             'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],
@@ -512,41 +490,20 @@ def initialize_session_state(start_step=1, debug_mode=False):
                         }
                     },
                     {
-                        'name': 'Combined Specialized Augmenters',
+                        'name': 'Combined Format, Noise, Shuffle & Enumerate',
                         'template': {
                             INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
                             PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
                             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
                             QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],
-                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
+                            OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
                             GOLD_KEY: {
                                 'field': 'answer',
                                 'type': 'index',
                                 'options_field': 'options'
                             }
                         },
-                        'description': 'Both format structure and noise injection augmenters combined',
-                        'sample_data': {
-                            'question': ['What is the capital of France?', 'What is 2+2?'],
-                            'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],
-                            'answer': [2, 1]  # 0-based indices
-                        }
-                    },
-                    {
-                        'name': 'Noise Injection with Enumerate',
-                        'template': {
-                            INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
-                            PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
-                            QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION],  # Noise injection for robustness testing
-                            OPTIONS_KEY: [TYPOS_AND_NOISE_VARIATION, ENUMERATE_VARIATION],
-                            # Noise injection + enumerate
-                            GOLD_KEY: {
-                                'field': 'answer',
-                                'type': 'index',
-                                'options_field': 'options'
-                            }
-                        },
-                        'description': 'Noise injection for robustness testing with automatic enumeration',
+                        'description': 'Combined format structure and noise injection augmenters on prompt format and question, with option shuffling and automatic enumeration',
                         'sample_data': {
                             'question': ['What is the capital of France?', 'What is 2+2?'],
                             'options': [['London', 'Berlin', 'Paris', 'Madrid'], ['3', '4', '5', '6']],

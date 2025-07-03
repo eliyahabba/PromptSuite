@@ -11,14 +11,13 @@ from promptsuite import PromptSuiteEngine
 from promptsuite.core.template_keys import (
     PROMPT_FORMAT, INSTRUCTION
 )
-from promptsuite.shared.constants import GenerationDefaults
+from promptsuite.shared.constants import GenerationDefaults,PLATFORMS_API_KEYS_VARS
 from .results_display import display_full_results
 
 # Load environment variables
 load_dotenv()
 
 # Get API key from environment
-API_KEY = os.getenv("TOGETHER_API_KEY")
 
 
 def render():
@@ -233,6 +232,7 @@ def configure_generation():
                 help="Choose the AI platform for paraphrase generation"
             )
             st.session_state.api_platform = platform
+            API_KEY = os.getenv(PLATFORMS_API_KEYS_VARS.get(platform, None))
 
             # Model name with default value directly in the text box
             default_model = GenerationDefaults.MODEL_NAME

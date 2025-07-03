@@ -1,6 +1,9 @@
 """Constants for the Multi-Prompt Evaluation Tool."""
 
-
+PLATFORMS_API_KEYS_VARS = {
+    "TogetherAI" : "TOGETHER_API_KEY",
+    "OpenAI" : "OPENAI_API_KEY"
+}
 # Default number of variations to generate per axis
 class GenerationInterfaceConstants:
     # Generation limits

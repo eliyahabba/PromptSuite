@@ -246,15 +246,52 @@ def template_builder_interface(available_columns):
 
     # Use tabs for better organization
     field_tabs = st.tabs(
-        ["📝 Instruction", "📊 Data Fields", "🏆 Gold Field", "🔢 Enumerate", "🎯 Few-shot", "⚙️ System Prompt"])
+        ["📝 Instruction", "📊 Prompt Format", "📋 Data Fields", "🏆 Gold Field", "🔢 Enumerate", "🎯 Few-shot"])
 
     with field_tabs[0]:
         # Instruction configuration
-        st.markdown("**Instruction Field Configuration**")
-        st.write("The prompt_format field defines the overall prompt structure.")
+        st.markdown("**Instruction Configuration**")
+        st.write("The instruction field provides general instructions that appear at the top of every prompt (optional).")
 
         # Instruction template input
-        st.markdown("**1. Instruction Template (Required)**")
+        st.markdown("**1. Instruction Template (Optional)**")
+        instruction_template = st.text_area(
+            "Enter your instruction template with placeholders:",
+            value=st.session_state.template_config.get(INSTRUCTION, ''),
+            key=INSTRUCTION,
+            help="Optional general instruction. Can use placeholders like {subject}. Example: 'You are a helpful assistant. Answer the following questions about {subject}.'",
+            placeholder="You are a helpful assistant. Answer the following questions."
+        )
+
+        if instruction_template:
+            # Show preview of placeholders
+            import re
+            placeholders = re.findall(r'\{([^}]+)\}', instruction_template)
+            if placeholders:
+                st.info(f"📋 Found placeholders: {', '.join(set(placeholders))}")
+
+        if instruction_template:
+            configured_fields[INSTRUCTION] = instruction_template
+
+        st.markdown("**2. Instruction Variations (Optional)**")
+        selected_variations = st.multiselect(
+            "Variation types for instruction",
+            options=variation_types,
+            default=st.session_state.template_config.get(INSTRUCTION_VARIATIONS, []),
+            key="instruction_variations",
+            help="Select variation types to apply to the instruction"
+        )
+
+        if selected_variations:
+            configured_fields[INSTRUCTION_VARIATIONS] = selected_variations
+
+    with field_tabs[1]:
+        # Prompt format configuration
+        st.markdown("**Prompt Format Configuration**")
+        st.write("The prompt_format field defines the overall prompt structure (Required).")
+
+        # Prompt format template input
+        st.markdown("**1. Prompt Format Template (Required)**")
         prompt_format_template = st.text_area(
             "Enter your prompt_format template with placeholders:",
             value=st.session_state.template_config.get(PROMPT_FORMAT, ''),
@@ -275,7 +312,7 @@ def template_builder_interface(available_columns):
         if prompt_format_template:
             configured_fields[PROMPT_FORMAT] = prompt_format_template
 
-        st.markdown("**2. Instruction Variations (Optional)**")
+        st.markdown("**2. Prompt Format Variations (Optional)**")
         selected_variations = st.multiselect(
             "Variation types for prompt_format",
             options=variation_types,
@@ -287,7 +324,7 @@ def template_builder_interface(available_columns):
         if selected_variations:
             configured_fields[PROMPT_FORMAT_VARIATIONS] = selected_variations
 
-    with field_tabs[1]:
+    with field_tabs[2]:
         # Data fields configuration
         st.markdown("**Data Fields Configuration**")
         st.write("Configure variations for your data columns:")
@@ -311,7 +348,7 @@ def template_builder_interface(available_columns):
                     sample_value = str(df[field_name].dropna().iloc[0])
                     st.code(f"Sample: {sample_value[:100]}{'...' if len(sample_value) > 100 else ''}")
 
-    with field_tabs[2]:
+    with field_tabs[3]:
         # Gold field configuration
         st.markdown("**Gold Field Configuration**")
         st.write("Configure the gold field (correct answer/output column):")
@@ -412,7 +449,7 @@ def template_builder_interface(available_columns):
                     else:
                         st.warning("⚠️ Index type requires an options field")
 
-    with field_tabs[3]:
+    with field_tabs[4]:
         # Enumerate configuration
         st.markdown("**Enumerate Field Configuration**")
         st.write("Configure automatic enumeration for list fields (e.g., multiple choice options):")
@@ -482,7 +519,7 @@ def template_builder_interface(available_columns):
                 'type': enumerate_type
             }
 
-    with field_tabs[4]:
+    with field_tabs[5]:
         # Few-shot configuration
         st.markdown("**Few-shot Examples Configuration**")
         st.write("Configure few-shot learning examples:")
@@ -537,29 +574,7 @@ def template_builder_interface(available_columns):
                 'split': few_shot_split
             }
 
-    # System prompt configuration (new tab)
-    with field_tabs[5]:
-        st.markdown("**System Prompt Configuration**")
-        st.write("Configure the system prompt for your template (optional):")
 
-        instruction = st.text_area(
-            "System prompt template (optional):",
-            value=st.session_state.template_config.get(INSTRUCTION, ''),
-            key=INSTRUCTION,
-            help="System prompt for the model, e.g. 'You are a helpful assistant.'"
-        )
-        if instruction:
-            configured_fields[INSTRUCTION] = instruction
-
-        instruction_variations = st.multiselect(
-            "Variation types for system prompt (optional):",
-            options=variation_types,
-            default=st.session_state.template_config.get(INSTRUCTION_VARIATIONS, []),
-            key="instruction_variations",
-            help="Select variation types to apply to the system prompt"
-        )
-        if instruction_variations:
-            configured_fields[INSTRUCTION_VARIATIONS] = instruction_variations
 
     # Template preview and validation
     st.markdown("### 2. Template Preview")
@@ -636,7 +651,7 @@ def template_builder_interface(available_columns):
 
     # Check if prompt_format template is provided
     if PROMPT_FORMAT not in configured_fields:
-        template_errors.append("Instruction template is required")
+        template_errors.append("Prompt format template is required")
 
     # Display validation errors
     if template_errors:
