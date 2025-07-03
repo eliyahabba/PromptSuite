@@ -37,12 +37,12 @@ jobs:
         python -c "
         from promptsuite import PromptSuite
         import pandas as pd
-        sp = PromptSuite()
+        ps = PromptSuite()
         data = [{'question': 'Test?', 'answer': 'Yes'}]
-        sp.load_dataframe(pd.DataFrame(data))
+        ps.load_dataframe(pd.DataFrame(data))
         template = {'prompt format': 'Q: {question}\nA: {answer}', 'gold': 'answer'}
-        sp.set_template(template)
-        sp.configure(max_rows=1, variations_per_field=1)
+        ps.set_template(template)
+        ps.configure(max_rows=1, variations_per_field=1)
         print('API test completed')
         "
 

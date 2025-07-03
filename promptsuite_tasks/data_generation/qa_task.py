@@ -72,16 +72,16 @@ class QATask(BaseTask):
         print(f"✅ Combined total: {len(df)} rows")
 
         # Load into promptsuite
-        self.sp.load_dataframe(df)
+        self.ps.load_dataframe(df)
         self.post_process()
         print("✅ Data post-processed")
 
     def post_process(self) -> None:
         """Extract answer text from SQuAD answers structure."""
-        self.sp.data['answer'] = self.sp.data['answers'].apply(lambda x: x['text'][0])
-        print(f"✅ Processed {len(self.sp.data)} rows:")
-        print(f"   - Train: {len(self.sp.data[self.sp.data['split'] == 'train'])} rows")
-        print(f"   - Test: {len(self.sp.data[self.sp.data['split'] == 'test'])} rows")
+        self.ps.data['answer'] = self.ps.data['answers'].apply(lambda x: x['text'][0])
+        print(f"✅ Processed {len(self.ps.data)} rows:")
+        print(f"   - Train: {len(self.ps.data[self.ps.data['split'] == 'train'])} rows")
+        print(f"   - Test: {len(self.ps.data[self.ps.data['split'] == 'test'])} rows")
 
     def get_template(self) -> Dict[str, Any]:
         """Get template configuration for question answering task."""
@@ -138,7 +138,7 @@ def process(variations_per_field=DEFAULT_VARIATIONS_PER_FIELD,
             task.load_data()
             print("\n2. Setting up template...")
             template = task.get_template()
-            task.sp.set_template(template)
+            task.ps.set_template(template)
             print("✅ Template configured")
             print(f"\n3. Configuring generation...")
             print(f"   Variations per field: {task.variations_per_field}")
@@ -147,7 +147,7 @@ def process(variations_per_field=DEFAULT_VARIATIONS_PER_FIELD,
             print(f"   Max rows: {task.max_rows}")
             print(f"   Max variations per row: {task.max_variations_per_row}")
             print(f"   Random seed: {task.random_seed}")
-            task.sp.configure(
+            task.ps.configure(
                 max_rows=task.max_rows,
                 variations_per_field=task.variations_per_field,
                 max_variations_per_row=task.max_variations_per_row,
@@ -156,7 +156,7 @@ def process(variations_per_field=DEFAULT_VARIATIONS_PER_FIELD,
                 model_name=task.model_name
             )
             print("\n4. Generating prompt variations...")
-            variations = task.sp.generate(verbose=True)
+            variations = task.ps.generate(verbose=True)
 
             # Display results
             print(f"\n✅ Generated {len(variations)} variations")
@@ -174,12 +174,12 @@ def process(variations_per_field=DEFAULT_VARIATIONS_PER_FIELD,
 
             # Export results using the correct path
             print(f"\n6. Exporting results to {output_file}...")
-            task.sp.export(str(output_file), format="json")
+            task.ps.export(str(output_file), format="json")
             print("✅ Export completed!")
 
             # Show final statistics
             print("\n7. Final statistics:")
-            task.sp.info()
+            task.ps.info()
 
             return str(output_file)
 

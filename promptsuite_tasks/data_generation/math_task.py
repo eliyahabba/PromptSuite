@@ -67,7 +67,7 @@ class MathTask(BaseTask):
         df = pd.concat([train_df, test_df], ignore_index=True)
         print(f"✅ Combined total: {len(df)} rows")
 
-        self.sp.load_dataframe(df)
+        self.ps.load_dataframe(df)
         print("✅ Data loaded")
 
     def get_template(self) -> Dict[str, Any]:
@@ -116,7 +116,7 @@ def generate_math_variations(variations_per_field, api_platform, model_name, max
         task.load_data()
         print("\n2. Setting up template...")
         template = task.get_template()
-        task.sp.set_template(template)
+        task.ps.set_template(template)
         print("✅ Template configured")
         print(f"\n3. Configuring generation...")
         print(f"   Variations per field: {task.variations_per_field}")
@@ -125,7 +125,7 @@ def generate_math_variations(variations_per_field, api_platform, model_name, max
         print(f"   Max rows: {task.max_rows}")
         print(f"   Max variations per row: {task.max_variations_per_row}")
         print(f"   Random seed: {task.random_seed}")
-        task.sp.configure(
+        task.ps.configure(
             max_rows=task.max_rows,
             variations_per_field=task.variations_per_field,
             max_variations_per_row=task.max_variations_per_row,
@@ -134,7 +134,7 @@ def generate_math_variations(variations_per_field, api_platform, model_name, max
             model_name=task.model_name
         )
         print("\n4. Generating prompt variations...")
-        variations = task.sp.generate(verbose=True)
+        variations = task.ps.generate(verbose=True)
 
         # Display results
         print(f"\n✅ Generated {len(variations)} variations")
@@ -152,12 +152,12 @@ def generate_math_variations(variations_per_field, api_platform, model_name, max
 
         # Export results using the correct path
         print(f"\n6. Exporting results to {output_file}...")
-        task.sp.export(str(output_file), format="json")
+        task.ps.export(str(output_file), format="json")
         print("✅ Export completed!")
 
         # Show final statistics
         print("\n7. Final statistics:")
-        task.sp.info()
+        task.ps.info()
 
         print(f"✅ Completed Math Problems Task: {output_file}")
         return str(output_file)
