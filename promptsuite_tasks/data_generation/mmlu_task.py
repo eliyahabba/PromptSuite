@@ -27,8 +27,8 @@ from promptsuite.core.template_keys import (
     FEW_SHOT_KEY
 )
 
-from .base_task import BaseTask
-from constants import (
+from base_task import BaseTask
+from promptsuite_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -68,10 +68,10 @@ class MMLUTask(BaseTask):
     
     def load_data(self) -> None:
         """Load MMLU data from local CSV file."""
-        csv_path = Path(__file__).parent.parent / "raw_data/mmlu_sample.csv"
+        csv_path = Path(__file__).parent.parent / "tasks_data/raw_data/mmlu_sample.csv"
         if not csv_path.exists():
             raise FileNotFoundError(f"MMLU CSV file not found: {csv_path}")
-        
+
         print(f"Loading MMLU data from {csv_path}")
         df = pd.read_csv(csv_path)
         df['choices'] = df['choices'].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
