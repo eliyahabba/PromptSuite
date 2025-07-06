@@ -74,10 +74,10 @@ class MathTask(BaseTask):
         """Get template configuration for math problem solving task."""
         return {
             INSTRUCTION: "Let's think step by step. Solve the following math problem and provide the final numerical answer in the format #### answer.",
-            # INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
+            INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
             PROMPT_FORMAT: "Question: {question}\nAnswer: {answer}",
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
-            'question': [TYPOS_AND_NOISE_VARIATION],
+            # 'question': [TYPOS_AND_NOISE_VARIATION],
             GOLD_KEY: 'answer',  # The original answer field with full solution and #### format
             FEW_SHOT_KEY: {
                 'count': 3,  # Number of few-shot examples

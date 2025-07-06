@@ -10,22 +10,16 @@ import pandas as pd
 from pathlib import Path
 import os
 import sys
-
-# Add the project root to the path to import promptsuite and promptsuite_tasks
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-
-# Add current directory to path for local imports
-current_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(current_dir))
+from datasets import load_dataset
 
 from promptsuite.core import PROMPT_FORMAT_VARIATIONS, FEW_SHOT_KEY
 from promptsuite.core.template_keys import (
     INSTRUCTION, PROMPT_FORMAT, QUESTION_KEY, GOLD_KEY,
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION, INSTRUCTION_VARIATIONS
 )
-from .base_task import BaseTask
-from constants import (
+from base_task import BaseTask
+
+from promptsuite_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -73,7 +67,7 @@ class TranslationTask(BaseTask):
         return language_pair
 
     def load_data(self) -> None:
-        """Load translation data using datasets library."""
+        """Load translation data using datasets library - both train and test splits."""
         display_pair = TranslationTask._get_display_name(self.language_pair)
         print(f"Loading WMT14 data for {display_pair} ({self.language_pair})")
         
@@ -90,52 +84,58 @@ class TranslationTask(BaseTask):
             wmt14_config = self.language_pair
             self.is_reversed = False
         
-        # Load WMT14 dataset for the specific language pair
-        # Use train[:100] to get first 100 examples for faster processing
         try:
-            self.sp.load_dataset("wmt14", wmt14_config, split="train[:100]")
-            print(f"✅ Loaded WMT14 dataset for {display_pair}: {len(self.sp.data)} rows")
+            # Load both train and test splits, similar to qa_task.py
+            print("Loading WMT14 train dataset...")
+            train_ds = load_dataset("wmt14", wmt14_config, split="train[:50]")
+            train_df = pd.DataFrame(train_ds)
+            train_df['split'] = 'train'
+            print(f"✅ Loaded {len(train_df)} train rows")
+
+            print("Loading WMT14 test dataset...")
+            test_ds = load_dataset("wmt14", wmt14_config, split="test[:50]")
+            test_df = pd.DataFrame(test_ds)
+            test_df['split'] = 'test'
+            print(f"✅ Loaded {len(test_df)} test rows")
+
+            # Combine
+            df = pd.concat([train_df, test_df], ignore_index=True)
+            print(f"✅ Combined total: {len(df)} rows")
+
+            # Load into promptsuite
+            self.ps.load_dataframe(df)
+            print(f"✅ Loaded WMT14 dataset for {display_pair}: {len(self.ps.data)} rows")
+            
         except Exception as e:
             print(f"❌ Error loading WMT14 dataset for {wmt14_config}: {e}")
             raise ValueError(f"Failed to load WMT14 data for language pair: {self.language_pair}")
         
-        # Post-process the data to create language-specific columns and add split info
+        # Post-process the data to create language-specific columns
         self.post_process()
         
-        train_count = sum(1 for split in self.sp.data['split'] if split == 'train')
-        test_count = sum(1 for split in self.sp.data['split'] if split == 'test')
+        train_count = sum(1 for split in self.ps.data['split'] if split == 'train')
+        test_count = sum(1 for split in self.ps.data['split'] if split == 'test')
         print(f"✅ Data processed for {display_pair} ({train_count} train, {test_count} test)")
 
     def post_process(self) -> None:
-        """Create language-specific columns from WMT14 translation data and add split info."""
+        """Create language-specific columns from WMT14 translation data."""
         # Extract source and target language codes from language_pair (e.g., "de-en" -> "de", "en")
         source_code, target_code = self.language_pair.split('-')
         
         # WMT14 data structure: DataFrame with 'translation' column containing dicts
         # Each dict has language codes as keys (e.g., {'de': 'text', 'en': 'text'})
         if hasattr(self, 'is_reversed') and self.is_reversed:
-            # For EN->X pairs, we loaded X->EN and need to reverse
-            # The WMT14 data has the reverse mapping, so we swap source/target
-            wmt_source = target_code  # 'en' in the WMT14 data
-            wmt_target = source_code  # 'de' in the WMT14 data
-            self.sp.data[source_code] = [row[wmt_source] for row in self.sp.data['translation']]  # en text
-            self.sp.data[target_code] = [row[wmt_target] for row in self.sp.data['translation']]  # de text
+            # For EN->X pairs, we loaded X->EN and need to map correctly
+            # We loaded hi-en but want en-hi, so the mapping should be straightforward:
+            # source_code (en) should get English text, target_code (hi) should get Hindi text
+            self.ps.data[source_code] = [row[source_code] for row in self.ps.data['translation']]  # en gets en text
+            self.ps.data[target_code] = [row[target_code] for row in self.ps.data['translation']]  # hi gets hi text
         else:
             # For X->EN pairs, use directly
-            self.sp.data[source_code] = [row[source_code] for row in self.sp.data['translation']]
-            self.sp.data[target_code] = [row[target_code] for row in self.sp.data['translation']]
+            self.ps.data[source_code] = [row[source_code] for row in self.ps.data['translation']]
+            self.ps.data[target_code] = [row[target_code] for row in self.ps.data['translation']]
         
-        # Add train/test split - use 80/20 split with fixed seed for reproducibility
-        import random
-        total_rows = len(self.sp.data)
-        indices = list(range(total_rows))
-        random.seed(42)  # Fixed seed for reproducible splits
-        random.shuffle(indices)
-        
-        train_size = int(total_rows * 0.8)
-        train_indices = set(indices[:train_size])
-        
-        self.sp.data['split'] = ['train' if i in train_indices else 'test' for i in range(total_rows)]
+        # Split column is already created during load_data() - no need to create it artificially
 
     def get_template(self) -> Dict[str, Any]:
         """Get template configuration for translation task."""
@@ -151,7 +151,7 @@ class TranslationTask(BaseTask):
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
             GOLD_KEY: target_code,  # Target language code is the gold standard
             FEW_SHOT_KEY: {
-                'count': 2,  # Reduced from 5 to work with smaller datasets
+                'count': 5,  # Reduced from 5 to work with smaller datasets
                 'format': 'random_per_row',
                 'split': 'train'
             },
@@ -215,7 +215,7 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
             task.load_data()
             print("\n2. Setting up template...")
             template = task.get_template()
-            task.sp.set_template(template)
+            task.ps.set_template(template)
             print("✅ Template configured")
             print(f"\n3. Configuring generation...")
             print(f"   Variations per field: {task.variations_per_field}")
@@ -224,7 +224,7 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
             print(f"   Max rows: {task.max_rows}")
             print(f"   Max variations per row: {task.max_variations_per_row}")
             print(f"   Random seed: {task.random_seed}")
-            task.sp.configure(
+            task.ps.configure(
                 max_rows=task.max_rows,
                 variations_per_field=task.variations_per_field,
                 max_variations_per_row=task.max_variations_per_row,
@@ -233,7 +233,7 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
                 model_name=task.model_name
             )
             print("\n4. Generating prompt variations...")
-            variations = task.sp.generate(verbose=True)
+            variations = task.ps.generate(verbose=True)
 
             # Display results
             print(f"\n✅ Generated {len(variations)} variations")
@@ -251,12 +251,12 @@ def generate_all_language_pairs(variations_per_field, api_platform, model_name, 
 
             # Export results using the correct path
             print(f"\n6. Exporting results to {output_file}...")
-            task.sp.export(str(output_file), format="json")
+            task.ps.export(str(output_file), format="json")
             print("✅ Export completed!")
 
             # Show final statistics
             print("\n7. Final statistics:")
-            task.sp.info()
+            task.ps.info()
 
             generated_files.append(str(output_file))
             print(f"✅ Completed {display_name}: {output_file}")

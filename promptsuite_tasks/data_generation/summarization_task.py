@@ -18,8 +18,9 @@ from promptsuite.core.template_keys import (
     PARAPHRASE_WITH_LLM, FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION,
     CONTEXT_VARIATION, INSTRUCTION_VARIATIONS, PROMPT_FORMAT_VARIATIONS, FEW_SHOT_VARIATION, FEW_SHOT_KEY
 )
-from .base_task import BaseTask
-from constants import (
+from base_task import BaseTask
+
+from promptsuite_tasks.constants import (
     DEFAULT_VARIATIONS_PER_FIELD, DEFAULT_PLATFORM, DEFAULT_MODEL_NAME,
     DEFAULT_MAX_VARIATIONS_PER_ROW, DEFAULT_MAX_ROWS, DEFAULT_RANDOM_SEED
 )
@@ -51,7 +52,7 @@ class SummarizationTask(BaseTask):
         """Get template configuration for summarization task."""
         return {
             INSTRUCTION: "You are a professional summarizer. Create a concise summary of the following text.",
-            # INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
+            INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
             PROMPT_FORMAT: "Article: {article}\nSummary: {highlights}",
             PROMPT_FORMAT_VARIATIONS: [
                 FORMAT_STRUCTURE_VARIATION,  # Semantic-preserving format changes
