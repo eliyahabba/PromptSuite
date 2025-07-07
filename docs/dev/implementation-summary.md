@@ -106,7 +106,7 @@ promptsuite --template '{"instruction_template": "{instruction}: {question}", "q
                --data data.csv
 
 # With few-shot examples and output
-promptsuite --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "fixed", "split": "all"}}' \
+promptsuite --template '{"instruction_template": "{instruction}: {question}", "question": ["paraphrase_with_llm"], "gold": "answer", "few_shot": {"count": 2, "format": "same_examples__no_variations", "split": "all"}}' \
                --data data.csv \
                --output variations.json
 ```
