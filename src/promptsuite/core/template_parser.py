@@ -5,7 +5,7 @@ Template parser for PromptSuiteEngine templates with dictionary format.
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Set, Optional
 
-from promptsuite.core.exceptions import InvalidTemplateFieldError
+from promptsuite.core.exceptions import InvalidTemplateFieldError, InvalidFewShotConfigurationError
 from promptsuite.core.template_keys import (
     PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY,
     PARAPHRASE_WITH_LLM, INSTRUCTION, INSTRUCTION_VARIATIONS, FORMAT_STRUCTURE_VARIATION,
@@ -16,14 +16,14 @@ from promptsuite.core.template_keys import (
 @dataclass
 class TemplateField:
     """Represents a field in a template with its variation types.
-    few_shot_format: 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
+    few_shot_format: 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
     """
     name: str
     variation_types: List[str] = None
     is_literal: bool = False
     # Few-shot specific parameters
     few_shot_count: Optional[int] = None
-    few_shot_format: Optional[str] = None  # 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
+    few_shot_format: Optional[str] = None  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
     few_shot_split: Optional[str] = None  # 'train', 'test', or 'all' for data splitting
     # Enumerate specific parameters
     enumerate_field: Optional[str] = None  # Which field to enumerate
@@ -46,7 +46,7 @@ class TemplateParser:
         "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
-            "format": "shared_ordered_first_n",  # 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
+            "format": "same_examples__no_variations",  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
             "split": "train"    # or "test" or "all"
         },
         "input": ["surface"]
@@ -112,12 +112,9 @@ class TemplateParser:
                 if isinstance(config, dict):
                     few_shot_format = config.get("format", "shared_first_n")
                     
-                    # Determine if this few-shot configuration should be treated as a variation axis
-                    # For formats that create meaningful variations, treat as variation axis
-                    variation_types = []
-                    if few_shot_format in ['shared_unordered_random_n', 'random_per_row']:
-                        # These formats create meaningful variations, so include as variation axis
-                        variation_types = ['few_shot_variation']
+                    # Always include few_shot_variation if few_shot is present,
+                    # the actual generation logic is now handled by the format string.
+                    variation_types = ['few_shot_variation']
                     
                     field = TemplateField(
                         name=FEW_SHOT_KEY,
@@ -281,14 +278,14 @@ class TemplateParser:
         except ValueError as e:
             return False, [str(e)]
 
-        # Validate few-shot configuration
+        # Validate few-shot configuration (removed generate_variations validation)
         for field in fields:
             if field.name == FEW_SHOT_KEY:
                 if field.few_shot_count and field.few_shot_count <= 0:
                     errors.append(f"Few-shot count must be positive, got {field.few_shot_count}")
 
-                if field.few_shot_format not in ['shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', 'random_per_row']:
-                    errors.append(f"Few-shot format must be 'shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', or 'random_per_row', got {field.few_shot_format}")
+                if field.few_shot_format not in ['same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', 'different_examples__different_order_per_variation']:
+                    errors.append(f"Few-shot format must be 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation', got {field.few_shot_format}")
 
                 if field.few_shot_split not in ['all', 'train', 'test']:
                     errors.append(f"Few-shot split must be 'all', 'train', or 'test', got {field.few_shot_split}")
