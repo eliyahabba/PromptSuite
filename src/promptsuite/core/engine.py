@@ -45,7 +45,7 @@ class PromptSuiteEngine:
         "gold": "output",  # Name of the column containing the correct output/label
         "few_shot": {
             "count": 2,
-            "format": "shared_ordered_first_n",  # 'shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', or 'random_per_row'
+            "format": "same_examples__no_variations",  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
             "split": "train"    # or "test" or "all"
         },
         "input": ["surface"]
@@ -71,6 +71,8 @@ class PromptSuiteEngine:
             seed: Optional[int] = None,
             progress_callback: Optional[Callable] = None,
             max_rows: Optional[int] = None,
+            model_name: Optional[str] = None,
+            api_platform: Optional[str] = None,
             **kwargs
     ) -> List[Dict[str, Any]]:
         """
@@ -107,13 +109,17 @@ class PromptSuiteEngine:
         few_shot_fields = self.template_parser.get_few_shot_fields()
         enumerate_fields = self.template_parser.get_enumerate_fields()
 
+
+
         # Create configuration objects
         gold_config = GoldFieldConfig.from_template(template.get('gold', None))
         variation_config = VariationConfig(
             variations_per_field=variations_per_field,
             api_key=api_key,
             max_variations_per_row=self.max_variations_per_row,
-            seed=seed
+            seed=seed,
+            model_name=model_name,
+            api_platform=api_platform
         )
         instruction = self.template_parser.get_instruction()
 
