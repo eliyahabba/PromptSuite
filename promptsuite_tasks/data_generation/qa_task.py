@@ -96,7 +96,7 @@ class QATask(BaseTask):
             ],
             FEW_SHOT_KEY: {
                 'count': 3,  # Reduced from 5 to work with smaller datasets
-                'format': 'random_per_row',
+                'format': 'different_examples__different_order_per_variation',
                 'split': 'train'
             },
             GOLD_KEY: "answer"  # The answer text is the gold standard
