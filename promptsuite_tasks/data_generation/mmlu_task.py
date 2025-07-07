@@ -109,9 +109,9 @@ class MMLUTask(BaseTask):
                 'options_field': 'choices'
             },
             FEW_SHOT_KEY: {
-                'count': 5,  # Reduced from 5 to work with smaller datasets
-                'format': 'random_per_row',
-                'split': 'train'
+                'count': 5,  # Use 5 few-shot examples
+                'format': 'different_examples__different_order_per_variation',
+                'split': 'train'  # Use training split for few-shot examples
             }
         }
 

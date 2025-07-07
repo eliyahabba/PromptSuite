@@ -136,7 +136,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         # If we have n_augments > 1, generate multiple variations with different types
         if self.n_augments > 1:
             # Define different enumeration types to try
-            enum_types = ['1234', 'ABCD', 'abcd', 'roman']
+            enum_types = ['1234', 'ABCD', 'abcd', 'roman', 'greek']
 
             # Use deterministic selection to ensure consistency between few-shot and main variations
             # Take the first n_augments types in order for consistency
@@ -176,7 +176,7 @@ def main():
     options = "Venus, Mercury, Earth, Mars"
     print(f"Original options: {options}")
 
-    for enum_type in ['1234', 'ABCD', 'abcd', 'hebrew']:
+    for enum_type in ['1234', 'ABCD', 'abcd', 'roman', 'greek']:
         try:
             result = augmenter.enumerate_field(options, enum_type)
             print(f"Type '{enum_type}': {result}")

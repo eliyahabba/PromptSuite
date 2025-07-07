@@ -211,7 +211,7 @@ class FewShotConfigurationError(FewShotError):
             context["valid_values"] = valid_values
             suggestion = f"Set {config_key} to one of: {', '.join(valid_values)}"
         else:
-            suggestion = f"Check the documentation for valid {config_key} values"
+            suggestion = f"Check documentation for valid {config_key} values"
 
         message = f"Invalid few-shot configuration: {config_key}={config_value}"
         super().__init__(message, "FEWSHOT_CONFIG_INVALID", context, suggestion)

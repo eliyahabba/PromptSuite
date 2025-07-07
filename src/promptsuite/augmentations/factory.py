@@ -41,6 +41,8 @@ class AugmenterFactory:
             n_augments: int,
             api_key: Optional[str] = None,
             seed: Optional[int] = None,
+            model_name: Optional[str] = None,
+            api_platform: Optional[str] = None,
             **kwargs
     ) -> BaseAxisAugmenter:
         """
@@ -70,7 +72,8 @@ class AugmenterFactory:
         if augmenter_class == Paraphrase:
             # Paraphrase requires api_key
             if api_key:
-                return augmenter_class(n_augments=n_augments - 1, api_key=api_key, seed=seed)
+                return augmenter_class(n_augments=n_augments - 1, api_key=api_key, seed=seed, 
+                                     model_name=model_name, api_platform=api_platform)
             else:
                 print(f"⚠️ Paraphrase augmenter requires api_key, using TextNoiseAugmenter as fallback")
                 return TextNoiseAugmenter(n_augments=n_augments, seed=seed)
@@ -86,7 +89,7 @@ class AugmenterFactory:
                 return TextNoiseAugmenter(n_augments=n_augments, seed=seed)
 
         elif augmenter_class == FewShotAugmenter:
-            # FewShotAugmenter might have different parameters
+            # FewShotAugmenter parameters are now handled by the VariationGenerator
             return augmenter_class(n_augments=n_augments, seed=seed)
 
         elif augmenter_class == EnumeratorAugmenter:

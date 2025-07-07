@@ -125,9 +125,9 @@ class MuSiQueTask(BaseTask):
             'paragraph_titles': [ENUMERATE_VARIATION],  # For title-only variations (no shuffle since gold is not an index)
             GOLD_KEY: 'answer',  # Simple format for text answers
             FEW_SHOT_KEY: {
-                'count': 3,  # Use 3 few-shot examples
-                'format': 'random_per_row',
-                'split': 'train'
+                'count': 5,  # Number of few-shot examples
+                'format': 'different_examples__different_order_per_variation',
+                'split': 'train'  # Use training split for few-shot examples
             }
         }
 

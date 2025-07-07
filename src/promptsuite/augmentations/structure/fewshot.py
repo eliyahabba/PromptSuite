@@ -92,17 +92,17 @@ This augmenter handles few-shot examples for NLP tasks.
         """Generate few-shot examples using the configured parameters with structured output.
         
         Few-shot formats:
-        - "shared_ordered_first_n": Always use the first N examples from the available data (deterministic, shared for all rows)
-        - "shared_ordered_random_n": Always use the same N random examples (with fixed seed, shared for all rows)
-        - "shared_unordered_random_n": Samples the same random rows but shuffles their order
-        - "random_per_row": Randomly sample different examples for each row (using row index as seed)
+        - "same_examples__no_variations": Same examples for all rows, no variations (single variation per row)
+        - "same_examples__synchronized_order_variations": Same examples for all rows, synchronized order variations
+        - "different_examples__same_shuffling_order_across_rows": Different examples per row, same shuffling order across rows
+        - "different_examples__different_order_per_variation": Different examples and different order per variation
         """
 
         if not few_shot_field:
             return []
 
         count = few_shot_field.few_shot_count or 2
-        few_shot_format = few_shot_field.few_shot_format or "shared_ordered_first_n"
+        few_shot_format = few_shot_field.few_shot_format or "same_examples__no_variations"
         split = few_shot_field.few_shot_split or "all"
 
         # Get available data for few-shot examples based on split configuration
@@ -120,21 +120,30 @@ This augmenter handles few-shot examples for NLP tasks.
             raise FewShotDataInsufficientError(count, len(available_data), split)
 
         # Sample examples based on format
-        if few_shot_format == "shared_ordered_first_n":
+        if few_shot_format == "same_examples__no_variations":
+            # Same examples for all rows, no variations - use first N examples
             sampled_data = available_data.head(count)
-        elif few_shot_format == "shared_ordered_random_n":
-            sampled_data = available_data.sample(n=count, random_state=42)
-        elif few_shot_format == "shared_unordered_random_n":
-            # Sample the same random rows but shuffle their order
+        elif few_shot_format == "same_examples__synchronized_order_variations":
+            # Same examples for all rows, synchronized order variations
             # Use order_seed from identification_data if available for variations
             order_seed = identification_data.get('order_seed', current_row_idx) if identification_data else current_row_idx
-            sampled_data = available_data.sample(n=count, random_state=42).sample(frac=1.0, random_state=order_seed)
-        elif few_shot_format == "random_per_row":
+            sampled_data = available_data.head(count).sample(frac=1.0, random_state=order_seed)
+        elif few_shot_format == "different_examples__same_shuffling_order_across_rows":
+            # Different examples per row, same shuffling order across rows
+            # Use row-specific seed for example selection, but consistent shuffling
+            selection_seed = current_row_idx
+            sampled_data = available_data.sample(n=count, random_state=selection_seed)
+            # Apply consistent shuffling if order_seed is provided
+            if identification_data and 'order_seed' in identification_data:
+                order_seed = identification_data.get('order_seed')
+                sampled_data = sampled_data.sample(frac=1.0, random_state=order_seed)
+        elif few_shot_format == "different_examples__different_order_per_variation":
+            # Different examples and different order per variation
             # Use selection_seed from identification_data if available for variations
             selection_seed = identification_data.get('selection_seed', current_row_idx) if identification_data else current_row_idx
             sampled_data = available_data.sample(n=count, random_state=selection_seed)
         else:
-            print(f"⚠️ Unknown few-shot format '{few_shot_format}', using 'shared_ordered_first_n'")
+            print(f"⚠️ Unknown few-shot format '{few_shot_format}', using 'same_examples__no_variations'")
             sampled_data = available_data.head(count)
 
         examples = []

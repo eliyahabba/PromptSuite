@@ -108,7 +108,7 @@ template = {
     },
     'few_shot': {
         'count': 2,
-        'format': 'random_per_row',
+        'format': 'different_examples__different_order_per_variation',
         'split': 'all'
     }
 }
@@ -181,7 +181,7 @@ template = {
     },
     'few_shot': {                           # Few-shot configuration
         'count': 2,
-        'format': 'random_per_row',        # 'shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', or 'random_per_row'
+        'format': 'different_examples__different_order_per_variation',        # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
         'split': 'all'                       # 'all', 'train', or 'test'
     }
 }
@@ -392,7 +392,7 @@ template = {
     },
     'few_shot': {
         'count': 2,
-        'format': 'random_per_row',
+        'format': 'different_examples__different_order_per_variation',
         'split': 'all'
     }
 }
@@ -514,16 +514,16 @@ Few-shot examples can be configured with different sampling strategies:
 
 | Format | Description | Use Case |
 |--------|-------------|----------|
-| `shared_ordered_first_n` | Always uses the first N examples from available data (deterministic, shared for all rows) | When you want consistent, predictable examples |
-| `shared_ordered_random_n` | Always uses the same N random examples (with fixed seed, shared for all rows) | When you want random but consistent examples across all rows |
-| `shared_unordered_random_n` | Always uses the same N random examples but shuffles their order for each row | When you want consistent examples but varied order to reduce position bias |
-| `random_per_row` | Randomly samples different examples for each row (using row index as seed) | When you want variety and different examples per question |
+| `same_examples__no_variations` | Same examples for all rows, no variations (single variation per row) | When you want consistent, predictable examples |
+| `same_examples__synchronized_order_variations` | Same examples for all rows, synchronized order variations across all rows | When you want consistent examples but test different orderings |
+| `different_examples__same_shuffling_order_across_rows` | Different examples per row, same shuffling order across rows | When you want unique examples per question but consistent ordering patterns |
+| `different_examples__different_order_per_variation` | Different examples and different order per variation | When you want maximum variety and different examples per question |
 
 **Example:**
 ```python
 "few_shot": {
     "count": 2,                    # Number of examples to use
-    "format": "shared_ordered_random_n",   # Sampling strategy
+    "format": "same_examples__synchronized_order_variations",   # Sampling strategy
     "split": "train"               # Use only training data for examples
 }
 ```

@@ -45,7 +45,9 @@ class VariationGenerator:
                     variation_type=variation_type,
                     n_augments=variation_config.variations_per_field,
                     api_key=variation_config.api_key,
-                    seed=variation_config.seed
+                    seed=variation_config.seed,
+                    model_name=variation_config.model_name,
+                    api_platform=variation_config.api_platform
                 )
 
                 # Use Factory to handle augmentation with special cases
@@ -94,7 +96,9 @@ class VariationGenerator:
                     variation_type=variation_type,
                     n_augments=variation_config.variations_per_field,
                     api_key=variation_config.api_key,
-                    seed=variation_config.seed
+                    seed=variation_config.seed,
+                    model_name=variation_config.model_name,
+                    api_platform=variation_config.api_platform
                 )
                 variations = AugmenterFactory.augment_with_special_handling(
                     augmenter=augmenter,
@@ -131,17 +135,21 @@ class VariationGenerator:
         Returns:
             List of FieldVariation objects representing different few-shot configurations
         """
-        few_shot_format = few_shot_config.get('format', 'shared_first_n')
-        
-        # Only generate variations for formats that create meaningful differences
-        if few_shot_format not in ['shared_unordered_random_n', 'random_per_row']:
-            # For non-varying formats, return single configuration
-            return [FieldVariation(data=few_shot_config, gold_update=None)]
-        
+        few_shot_format = few_shot_config.get('format', 'same_examples__no_variations')
+
+        # If format is 'same_examples__no_variations', no variations are generated for few-shot examples.
+        # This implicitly handles the previous 'generate_variations: False' case.
+        if few_shot_format == 'same_examples__no_variations':
+            # Create a copy to ensure _order_seed or _selection_seed are not added for this format
+            config_copy = few_shot_config.copy()
+            config_copy.pop('_order_seed', None) # Remove if exists
+            config_copy.pop('_selection_seed', None) # Remove if exists
+            return [FieldVariation(data=config_copy, gold_update=None)]
+
         variations = []
-        
-        if few_shot_format == 'shared_unordered_random_n':
-            # For shared_unordered_random_n, we need to find seeds that actually produce different orderings
+
+        if few_shot_format == 'same_examples__synchronized_order_variations':
+            # For synchronized order variations, we need to find seeds that actually produce different orderings
             # Since we only have 2 items, there are only 2 possible orderings: [0,1] and [1,0]
             few_shot_count = few_shot_config.get('count', 2)
             
@@ -175,8 +183,8 @@ class VariationGenerator:
                 config_variation['_order_seed'] = seed
                 variations.append(FieldVariation(data=config_variation, gold_update=None))
         
-        elif few_shot_format == 'random_per_row':
-            # For random_per_row, we can generate meaningful variations based on different selection seeds
+        elif few_shot_format == 'different_examples__different_order_per_variation':
+            # For different examples and different order per variation
             # The number of possible unique selections depends on the dataset size and few-shot count
             # We'll generate up to the requested number, but not more than what makes sense
             for i in range(variation_config.variations_per_field):
@@ -184,6 +192,19 @@ class VariationGenerator:
                 # Use a more spread out seed range to ensure different selections
                 config_variation['_selection_seed'] = (variation_config.seed or 42) * 100 + i * 23
                 variations.append(FieldVariation(data=config_variation, gold_update=None))
+        elif few_shot_format == 'different_examples__same_shuffling_order_across_rows':
+            # Generate variations by selecting different examples but applying the same shuffling order for each variation.
+            for i in range(variation_config.variations_per_field):
+                config_variation = few_shot_config.copy()
+                # Selection seed varies per variation to get different examples
+                config_variation['_selection_seed'] = (variation_config.seed or 42) * 1000 + i * 73
+                # Order seed is fixed for this specific few-shot variation, so all rows use the same shuffle order for this variation
+                config_variation['_order_seed'] = (variation_config.seed or 1) * 50 + i * 13 # A new deterministic seed for order
+                variations.append(FieldVariation(data=config_variation, gold_update=None))
+        else:
+            # Fallback for unexpected formats (should ideally not happen with valid inputs)
+            print(f"⚠️ Unexpected few-shot format '{few_shot_format}' in VariationGenerator, returning single configuration.")
+            return [FieldVariation(data=few_shot_config, gold_update=None)]
         
         # Return only the requested number of variations
         return variations[:variation_config.variations_per_field]
@@ -255,6 +276,7 @@ class VariationGenerator:
         apply them in a fixed order: shuffle first, then enumerate, regardless of their order in the template.
         Use deterministic sampling to select a subset of variations for consistency across rows.
         """
+        
         # If no variation types, return the original value (formatted)
         if not field_data.variation_types:
             original_formatted = format_field_value(field_data.field_value)
@@ -289,7 +311,9 @@ class VariationGenerator:
                     variation_type=variation_type,
                     n_augments=field_data.variation_config.variations_per_field,
                     api_key=field_data.variation_config.api_key,
-                    seed=field_data.variation_config.seed
+                    seed=field_data.variation_config.seed,
+                    model_name=field_data.variation_config.model_name,
+                    api_platform=field_data.variation_config.api_platform
                 )
                 # Special handling for shuffle
                 if variation_type == SHUFFLE_VARIATION:

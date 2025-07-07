@@ -545,15 +545,19 @@ def template_builder_interface(available_columns):
         with col2:
             few_shot_format = st.selectbox(
                 "Example selection",
-                options=["random_per_row", "shared_ordered_first_n", "shared_unordered_random_n"],
+                options=["different_examples__different_order_per_variation", "same_examples__no_variations", "same_examples__synchronized_order_variations", "different_examples__same_shuffling_order_across_rows"],
                 format_func=lambda x: {
-                    "random_per_row": "Random per row (different examples for each row)",
-                    "shared_ordered_first_n": "Shared ordered (same examples, same order)",
-                    "shared_unordered_random_n": "Shared unordered (same examples, random order)"
+                    "different_examples__different_order_per_variation": "Different Examples, Different Order per Variation (maximum variety)",
+                    "same_examples__no_variations": "Same Examples, No Variations (consistent for all rows)",
+                    "same_examples__synchronized_order_variations": "Same Examples, Synchronized Order Variations (consistent examples, varied order)",
+                    "different_examples__same_shuffling_order_across_rows": "Different Examples, Same Shuffling Order across Rows (unique examples, consistent shuffling)"
                 }.get(x, x),
                 index=0 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format',
-                                                                                      'random_per_row') == 'random_per_row' else (
-                    1 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format') == 'shared_ordered_first_n' else 2),
+                                                                                      'different_examples__different_order_per_variation') == 'different_examples__different_order_per_variation' else (
+                    1 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format') == 'same_examples__no_variations' else (
+                        2 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format') == 'same_examples__synchronized_order_variations' else 3
+                    )
+                ),
                 key="few_shot_format",
                 help="Choose how few-shot examples are selected and ordered"
             )
