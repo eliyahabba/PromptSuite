@@ -62,7 +62,8 @@ Output only a Python list of strings with the alternatives. Do not include any e
 
 Original instruction: '''{prompt}'''"""
 class Paraphrase(BaseAxisAugmenter):
-    def __init__(self, n_augments: int = 1, api_key: str = None, seed: Optional[int] = None):
+    def __init__(self, n_augments: int = 1, api_key: str = None, seed: Optional[int] = None, 
+                 model_name: Optional[str] = None, api_platform: Optional[str] = None):
         """
         Initialize the paraphrse augmenter.
 
@@ -70,9 +71,13 @@ class Paraphrase(BaseAxisAugmenter):
             n_augments: number of paraphrase needed
             api_key: API key for the language model service
             seed: Random seed for reproducibility
+            model_name: Name of the model to use
+            api_platform: Platform to use ("TogetherAI" or "OpenAI")
         """
         super().__init__(n_augments=n_augments, seed=seed)
         self.api_key = api_key
+        self.model_name = model_name
+        self.api_platform = api_platform
 
     def build_rephrasing_prompt(self, template: str, n_augments: int, prompt: str) -> str:
         return template.format(n_augments=n_augments, prompt=prompt)
@@ -88,7 +93,12 @@ class Paraphrase(BaseAxisAugmenter):
             List of paraphrased variations
         """
         rephrasing_prompt = self.build_rephrasing_prompt(instruction_template, self.n_augments, prompt)
-        response = get_completion(rephrasing_prompt, api_key=self.api_key)
+        response = get_completion(
+            rephrasing_prompt, 
+            api_key=self.api_key, 
+            model_name=self.model_name, 
+            platform=self.api_platform
+        )
         return ast.literal_eval(response)
 
     def _generate_simple_paraphrases(self, prompt: str) -> List[str]:
