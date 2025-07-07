@@ -1,6 +1,6 @@
 <div align="center">
   <img src="logo.png" alt="PromptSuite Logo" width="120">
-  <h1>PromptSuite: A Universal Toolkit for Multi-Prompt Evaluation</h1>
+  <h1>PromptSuite: A Task-Agnostic Framework for Multi-Prompt Generation</h1>
 </div>
 A tool that creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
 
@@ -92,111 +92,9 @@ variations = ps.generate(verbose=True)
 ps.export("output.json", format="json")
 ```
 
-## 📚 Core Concepts
+For more detailed examples of API usage, refer to the `examples/` directory.
 
-### Templates
-Templates control how prompts are structured and varied:
-
-| Key | Description                       | Example                                                                                                               |
-|-----|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| `instruction` | System prompt (optional) {placeholders}| `'You are a helpful assistant. Answer the following questions about {subject}.''` |
-| `prompt format` | Main template with {placeholders} | `'Q: {question}\nA: {answer}'`                                                                                        |
-| `gold` | Correct answer field | `'answer'` or `{'field': 'answer', 'type': 'index'}`                                                                  |
-| `few_shot` | Few-shot configuration | `{'count': 2, 'format': 'shared_ordered_random_n', 'split': 'train'}`                                                                  |
-
-### Variation Types
-
-| Type                  | Description | Requires API Key |
-|-----------------------|-------------|------------------|
-| `paraphrase_with_llm` | AI-powered rephrasing | ✅ |
-| `context`             | Adds background context | ✅ |
-| `format_structure`    | Changes separators, casing, field connectors | ❌ |
-| `typos and noise`     | Injects typos, capitalization changes, spacing, character swaps, and punctuation noise | ❌ |
-| `shuffle`             | Reorders list items | ❌ |
-| `enumerate`           | Adds numbering (1. 2. 3.) | ❌ |
-
-
-This template demonstrates how to use all the main keys for maximum flexibility and clarity. You can import these keys from `promptsuite.core.template_keys` to avoid typos and ensure consistency.
-
-## Template Format
-
-Templates use Python f-string syntax with custom variation annotations:
-
-```python
-"{instruction:semantic}: {few_shot}\n Question: {question:paraphrase_with_llm}\n Options: {options:non-semantic}"
-```
-
-### System Prompt
-- `instruction`: (optional) A general instruction that appears at the top of every prompt, before any few-shot or main question. You can use placeholders (e.g., `{subject}`) that will be filled from the data for each row.
-- `prompt format`: The per-example template, usually containing the main question and placeholders for fields.
-
-## Supported Variation Types
-
-- `paraphrase_with_llm` - Paraphrasing variations (LLM-based)
-- `format_structure` - Semantic-preserving format changes (e.g., separators, casing, field connectors)
-- `typos and noise` - Injects typos, capitalization changes, spacing, character swaps, and punctuation noise
-- `context` - Context-based variations
-- `shuffle` - Shuffle options/elements (for multiple choice)
-- `enumerate` - Enumerate list fields (e.g., 1. 2. 3. 4., A. B. C. D., roman numerals, etc.)
-You can combine these augmenters in your template for richer prompt variations.
-
-## Template Format
-
-Templates use a dictionary format with specific keys for different components:
-
-```python
-template = {
-  "instruction": "You are a helpful assistant. Please answer the following questions.",
-  "instruction variations": ["paraphrase_with_llm"],
-  "prompt format": "Q: {question}\nOptions: {options}\nA: {answer}",
-  "prompt format variations": ["format structure"],
-  "question": ["shuffle", "typos and noise"],
-  "options": ["enumerate"],
-  "gold": {
-    'field': 'answer',
-    'type': 'index',
-    'options_field': 'options'
-  },
-  "few_shot": {
-    'count': 2,
-    'format': 'shared_ordered_random_n',
-    'split': 'train'
-  }
-}
-```
-
-## API Reference
-
-### PromptSuite Class
-
-```python
-class PromptSuite:
-    def __init__(self):
-        """Initialize PromptSuite."""
-        
-    def load_dataframe(self, df: pd.DataFrame) -> None:
-        """Load data from pandas DataFrame."""
-        
-    def load_csv(self, filepath: str, **kwargs) -> None:
-        """Load data from CSV file."""
-        
-    def load_dataset(self, dataset_name: str, split: str = "train", **kwargs) -> None:
-        """Load data from HuggingFace datasets."""
-        
-    def set_template(self, template_dict: Dict[str, Any]) -> None:
-        """Set template configuration."""
-        
-    def configure(self, **kwargs) -> None:
-        """Configure generation parameters."""
-        
-    def generate(self, verbose: bool = False) -> List[Dict[str, Any]]:
-        """Generate prompt variations."""
-        
-    def export(self, filepath: str, format: str = "json") -> None:
-        """Export variations to file."""
-```
-
-## Examples
+## 📖 Code Examples
 
 ### Sentiment Analysis
 
@@ -223,7 +121,7 @@ ps.configure(
   variations_per_field=3,
   max_variations_per_row=2,
   random_seed=42,
-  api_platform="TogetherAI",
+  api_platform="TogetherAI",  # or "OpenAI", "Anthropic", "Google", "Cohere"
   model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 )
 variations = ps.generate(verbose=True)
@@ -239,7 +137,7 @@ template = {
   'gold': 'answer',
   'few_shot': {
     'count': 2,
-    'format': 'shared_ordered_random_n',
+    'format': 'same_examples__synchronized_order_variations',
     'split': 'train'
   }
 }
@@ -249,7 +147,7 @@ ps.load_dataframe(qa_data)
 ps.set_template(template)
 ps.configure(
   variations_per_field=2,
-  api_platform="TogetherAI",
+  api_platform="TogetherAI",  # or "OpenAI", "Anthropic", "Google", "Cohere"
   model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 )
 variations = ps.generate(verbose=True)
@@ -291,7 +189,7 @@ template = {
     },
     'few_shot': {
         'count': 2,
-        'format': 'shared_ordered_random_n',
+        'format': 'same_examples__synchronized_order_variations',
         'split': 'train'
     }
 }
@@ -327,7 +225,7 @@ A typical output from `ps.generate()` or the exported JSON file looks like this 
       },
       "few_shot": {
         "count": 1,
-        "format": "shared_ordered_random_n",
+        "format": "same_examples__synchronized_order_variations",
         "split": "train"
       }
     },
@@ -379,7 +277,7 @@ ps.configure(
     variations_per_field=3,         # Variations per field (default: 3)
     max_variations_per_row=50,      # Cap on total variations per row
     random_seed=42,                 # For reproducibility
-    api_platform="TogetherAI",      # or "OpenAI"
+    api_platform="TogetherAI",      # or "OpenAI", "Anthropic", "Google", "Cohere"
     model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 )
 ```
@@ -407,6 +305,63 @@ The UI guides you through a simple 3-step workflow:
 3. **Generate & Export**: Configure generation settings, run the variation process, and export your results in various formats.
 
 The Streamlit UI is the easiest way to explore, test, and generate prompt variations visually.
+
+## 🤖 Supported AI Platforms
+
+PromptSuite supports multiple AI platforms with automatic dependency detection:
+
+### Core Platforms (Always Available)
+- **TogetherAI**: Open-source models (Llama, Mistral, etc.)
+- **OpenAI**: GPT models (GPT-4, GPT-3.5, etc.)
+
+### Extended Platforms (Optional Dependencies)
+- **Anthropic**: Claude models (claude-3-haiku, claude-3-sonnet, claude-3-opus)
+- **Google**: Gemini models (gemini-1.5-flash, gemini-1.5-pro)
+- **Cohere**: Command models (command-r-plus, command-r)
+
+### Installation
+
+Install optional platform dependencies:
+```bash
+pip install -r requirements-optional.txt
+```
+
+Or install specific platforms:
+```bash
+pip install anthropic          # For Anthropic/Claude
+pip install google-generativeai # For Google/Gemini
+pip install cohere             # For Cohere
+```
+
+### API Keys
+
+Set environment variables for the platforms you want to use:
+```bash
+export TOGETHER_API_KEY="your_together_key"
+export OPENAI_API_KEY="your_openai_key"
+export ANTHROPIC_API_KEY="your_anthropic_key"
+export GOOGLE_API_KEY="your_google_key"
+export COHERE_API_KEY="your_cohere_key"
+```
+
+### Platform Selection
+
+```python
+# Automatic platform detection
+from promptsuite.shared.model_client import get_supported_platforms, is_platform_available
+
+available_platforms = [p for p in get_supported_platforms() if is_platform_available(p)]
+print(f"Available platforms: {available_platforms}")
+
+# Use different platforms
+ps.configure(api_platform="OpenAI", model_name="gpt-4o-mini")
+ps.configure(api_platform="Anthropic", model_name="claude-3-haiku-20240307")
+ps.configure(api_platform="Google", model_name="gemini-1.5-flash")
+```
+
+### Adding New Platforms
+
+See [Platform Integration Guide](docs/platform-integration-guide.md) for instructions on adding support for additional AI platforms.
 
 ## 🔧 Advanced Features
 
@@ -437,23 +392,56 @@ This optimization is especially important for LLM-based augmenters like `paraphr
 
 ### Few-Shot Configuration
 
-Few-shot examples can be configured with different sampling strategies:
+Few-shot examples can be configured with different sampling strategies. The format names clearly indicate what varies across data rows and variations:
+
+**Format naming convention: `<examples_strategy>__<order_strategy>`**
+
+- **Examples strategy**: Whether examples are the same or different across data rows
+- **Order strategy**: Whether the order of examples varies across variations
 
 | Format | Description | Use Case |
 |--------|-------------|----------|
-| `shared_ordered_first_n` | Always uses the first N examples from available data (deterministic, shared for all rows) | When you want consistent, predictable examples |
-| `shared_ordered_random_n` | Always uses the same N random examples (with fixed seed, shared for all rows) | When you want random but consistent examples across all rows |
-| `shared_unordered_random_n` | Always uses the same N random examples but shuffles their order for each row | When you want consistent examples but varied order to reduce position bias |
-| `random_per_row` | Randomly samples different examples for each row (using row index as seed) | When you want variety and different examples per question |
+| `same_examples__no_variations` | Same examples for all rows, no variations (single variation per row) | When you want consistent, predictable examples |
+| `same_examples__synchronized_order_variations` | Same examples for all rows, synchronized order variations across all rows | When you want consistent examples but test different orderings |
+| `different_examples__same_shuffling_order_across_rows` | Different examples per row, same shuffling order across rows | When you want unique examples per question but consistent ordering patterns |
+| `different_examples__different_order_per_variation` | Different examples and different order per variation | When you want maximum variety and different examples per question |
+
+**Examples:**
+
+```python
+# same_examples__no_variations
+# Row 1: [Example A, Example B]
+# Row 2: [Example A, Example B]  # Same examples, no variations
+
+# same_examples__synchronized_order_variations  
+# Row 1, Variation 1: [Example A, Example B]
+# Row 1, Variation 2: [Example B, Example A]
+# Row 2, Variation 1: [Example A, Example B]  # Same order as Row 1, Variation 1
+# Row 2, Variation 2: [Example B, Example A]  # Same order as Row 1, Variation 2
+
+# different_examples__same_shuffling_order_across_rows
+# Row 1, Variation 1: [Example A, Example B]
+# Row 1, Variation 2: [Example A, Example B]  # Same examples for this row
+# Row 2, Variation 1: [Example C, Example D]  # Different examples
+# Row 2, Variation 2: [Example C, Example D]  # Same examples for this row
+
+# different_examples__different_order_per_variation
+# Row 1, Variation 1: [Example A, Example B]
+# Row 1, Variation 2: [Example C, Example D]  # Different examples
+# Row 2, Variation 1: [Example E, Example F]  # Different examples
+# Row 2, Variation 2: [Example G, Example H]  # Different examples
+```
 
 **Example:**
 ```python
 "few_shot": {
     "count": 2,                    # Number of examples to use
-    "format": "shared_ordered_random_n",   # Sampling strategy
-    "split": "train"               # Use only training data for examples
+    "format": "same_examples__synchronized_order_variations",   # Sampling strategy
+    "split": "train"              # Use only training data for examples
 }
 ```
+
+This feature is useful when you want each test question to have unique few-shot examples for context, but don't need multiple variations of the few-shot examples themselves.
 
 ## Contributing
 
