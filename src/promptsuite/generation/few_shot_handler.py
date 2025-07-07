@@ -220,6 +220,12 @@ class FewShotHandler:
             field_name: field_data.data
             for field_name, field_data in field_values.items()
         }
+        
+        # Prepare original row data - convert all values to strings for consistency
+        original_row_data = {}
+        for col in variation_context.row_data.index:
+            original_row_data[col] = format_field_value(variation_context.row_data[col])
+        
         return {
             'original_row_index': variation_context.row_index,
             'variation_count': variation_count,
@@ -228,6 +234,7 @@ class FewShotHandler:
             'template_config': variation_context.template,
             'field_values': output_field_values,  # Formatted values for display in prompts
             'gold_updates': gold_updates,
+            'original_row_data': original_row_data,  # NEW: All original data from the row
         }
 
     def _extract_row_values_and_updates(
