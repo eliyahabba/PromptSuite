@@ -154,7 +154,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 2,
-                                'format': 'shared_ordered_first_n',
+                                'format': 'same_examples__no_variations',
                                 'split': 'all'
                             }
                         },
@@ -207,7 +207,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 3,
-                                'format': 'shared_ordered_first_n',
+                                'format': 'same_examples__no_variations',
                                 'split': 'all'
                             }
                         },
@@ -294,7 +294,7 @@ def initialize_session_state(start_step=1, debug_mode=False):
                             },
                             FEW_SHOT_KEY: {
                                 'count': 2,
-                                'format': 'random_per_row',
+                                'format': 'different_examples__different_order_per_variation',
                                 'split': 'all'
                             }
                         },
