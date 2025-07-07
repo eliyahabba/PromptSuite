@@ -221,10 +221,10 @@ class FewShotHandler:
             for field_name, field_data in field_values.items()
         }
         return {
-            'prompt': final_prompt,
-            'conversation': conversation_messages,
             'original_row_index': variation_context.row_index,
             'variation_count': variation_count,
+            'prompt': final_prompt,
+            'conversation': conversation_messages,
             'template_config': variation_context.template,
             'field_values': output_field_values,  # Formatted values for display in prompts
             'gold_updates': gold_updates,
