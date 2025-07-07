@@ -28,7 +28,7 @@ from promptsuite.core.template_keys import (
     PARAPHRASE_WITH_LLM
 )
 from promptsuite.core.template_parser import TemplateParser
-from promptsuite.shared.constants import GenerationDefaults
+from promptsuite.shared.constants import GenerationDefaults, PLATFORMS_API_KEYS_VARS
 from .engine import PromptSuiteEngine
 
 load_dotenv()
@@ -93,10 +93,9 @@ class PromptSuite:
 
     def _get_api_key_for_platform(self, platform: str) -> Optional[str]:
         """Get API key for the specified platform."""
-        if platform == "TogetherAI":
-            return os.getenv("TOGETHER_API_KEY")
-        elif platform == "OpenAI":
-            return os.getenv("OPENAI_API_KEY")
+        env_var = PLATFORMS_API_KEYS_VARS.get(platform)
+        if env_var:
+            return os.getenv(env_var)
         else:
             # Fallback to generic API_KEY
             return os.getenv("API_KEY")
@@ -259,15 +258,18 @@ class PromptSuite:
                           If a row has more variations than this limit, 
                           the same subset of variations will be selected for all rows
             random_seed: Random seed for reproducibility (default: 42)
-            api_platform: AI platform ("TogetherAI" or "OpenAI") (default: "TogetherAI")
+            api_platform: AI platform (supported: TogetherAI, OpenAI, Anthropic, Google, Cohere) (default: "TogetherAI")
             api_key: API key for paraphrase variations (default: from environment based on platform)
-            model_name: LLM model name (default: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free")
+            model_name: LLM model name (default: platform-specific default)
         """
         # Handle platform change specially
         if 'api_platform' in kwargs:
             new_platform = kwargs['api_platform']
-            if new_platform not in ["TogetherAI", "OpenAI"]:
-                raise InvalidConfigurationError("api_platform", new_platform, ["TogetherAI", "OpenAI"])
+            from promptsuite.shared.model_client import get_supported_platforms
+            supported_platforms = get_supported_platforms()
+            
+            if new_platform not in supported_platforms:
+                raise InvalidConfigurationError("api_platform", new_platform, supported_platforms)
 
             self.config['api_platform'] = new_platform
             # Update API key based on new platform (unless explicitly provided)
@@ -303,6 +305,8 @@ class PromptSuite:
         Raises:
             ValueError: If data or template not set, or generation fails
         """
+
+        
         # Validate prerequisites
         if self.data is None:
             raise DataNotLoadedError()
@@ -361,6 +365,11 @@ class PromptSuite:
             # Use provided callback or simple verbose callback
             final_callback = progress_callback if progress_callback else (simple_progress_callback if verbose else None)
 
+            # Debug - print what we're about to pass
+            print(f"🔍 API CALLING ENGINE - About to call sp.generate_variations with:")
+            print(f"   model_name: {self.config['model_name']}")
+            print(f"   api_platform: {self.config['api_platform']}")
+            
             self.results = self.sp.generate_variations(
                 template=self.template,
                 data=data_for_engine,
@@ -368,7 +377,9 @@ class PromptSuite:
                 api_key=self.config['api_key'],
                 seed=self.config['random_seed'],
                 progress_callback=final_callback,
-                max_rows=self.config['max_rows']  # Pass max_rows to engine
+                max_rows=self.config['max_rows'],  # Pass max_rows to engine
+                model_name=self.config['model_name'],
+                api_platform=self.config['api_platform']
             )
 
             # Step 5: Compute statistics
