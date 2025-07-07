@@ -5,7 +5,7 @@ Template parser for PromptSuiteEngine templates with dictionary format.
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Set, Optional
 
-from promptsuite.core.exceptions import InvalidTemplateFieldError, InvalidFewShotConfigurationError
+from promptsuite.core.exceptions import InvalidTemplateFieldError
 from promptsuite.core.template_keys import (
     PROMPT_FORMAT, PROMPT_FORMAT_VARIATIONS, GOLD_KEY, FEW_SHOT_KEY,
     PARAPHRASE_WITH_LLM, INSTRUCTION, INSTRUCTION_VARIATIONS, FORMAT_STRUCTURE_VARIATION,
@@ -23,7 +23,8 @@ class TemplateField:
     is_literal: bool = False
     # Few-shot specific parameters
     few_shot_count: Optional[int] = None
-    few_shot_format: Optional[str] = None  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
+    few_shot_format: Optional[
+        str] = None  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
     few_shot_split: Optional[str] = None  # 'train', 'test', or 'all' for data splitting
     # Enumerate specific parameters
     enumerate_field: Optional[str] = None  # Which field to enumerate
@@ -111,11 +112,11 @@ class TemplateParser:
                 # Special handling for few_shot
                 if isinstance(config, dict):
                     few_shot_format = config.get("format", "shared_first_n")
-                    
+
                     # Always include few_shot_variation if few_shot is present,
                     # the actual generation logic is now handled by the format string.
                     variation_types = ['few_shot_variation']
-                    
+
                     field = TemplateField(
                         name=FEW_SHOT_KEY,
                         variation_types=variation_types,
@@ -284,8 +285,12 @@ class TemplateParser:
                 if field.few_shot_count and field.few_shot_count <= 0:
                     errors.append(f"Few-shot count must be positive, got {field.few_shot_count}")
 
-                if field.few_shot_format not in ['same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', 'different_examples__different_order_per_variation']:
-                    errors.append(f"Few-shot format must be 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation', got {field.few_shot_format}")
+                if field.few_shot_format not in ['same_examples__no_variations',
+                                                 'same_examples__synchronized_order_variations',
+                                                 'different_examples__same_shuffling_order_across_rows',
+                                                 'different_examples__different_order_per_variation']:
+                    errors.append(
+                        f"Few-shot format must be 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation', got {field.few_shot_format}")
 
                 if field.few_shot_split not in ['all', 'train', 'test']:
                     errors.append(f"Few-shot split must be 'all', 'train', or 'test', got {field.few_shot_split}")
