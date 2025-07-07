@@ -2572,7 +2572,133 @@ def example_few_shot_use_as_variations():
     print("\n✅ Test completed! Check exported JSON files for detailed analysis.")
 
 
+def example_preserve_original_data():
+    """Example demonstrating preservation of original data columns in the output."""
+    print("\n=== Preserve Original Data Example ===")
+    print("📊 Showing how original data columns are preserved in variations")
+    
+    # Create sample data with a category column that we want to preserve
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is 2+2?',
+            'Which planet is closest to the Sun?'
+        ],
+        'category': [
+            'Geography',
+            'Mathematics', 
+            'Astronomy'
+        ],
+        'difficulty': [
+            'Easy',
+            'Easy',
+            'Medium'
+        ],
+        'source': [
+            'World Knowledge',
+            'Basic Math',
+            'Space Science'
+        ],
+        'answer': [
+            'Paris',
+            '4', 
+            'Mercury'
+        ]
+    })
+    
+    print(f"📝 Original Dataset:")
+    print(data.to_string(index=False))
+    
+    ps = PromptSuite()
+    ps.load_dataframe(data)
+    
+    # Simple template that only varies the question, but we want to preserve all other columns
+    template = {
+        INSTRUCTION: "You are a helpful and harmless AI assistant. Please respond to the following request carefully.",
+        PROMPT_FORMAT: f"User: {{{QUESTION_KEY}}}",
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],  # Only vary the question
+        GOLD_KEY: 'answer'
+    }
+    
+    ps.set_template(template)
+    print("\n✅ Template configured to vary only the question field")
+    print("   - category, difficulty, source columns are NOT in the template")
+    print("   - But they should still appear in the output!")
+    
+    # Configure generation
+    ps.configure(
+        max_rows=3,
+        variations_per_field=2,
+        max_variations_per_row=4,
+        random_seed=42
+    )
+    
+    # Generate variations
+    variations = ps.generate(verbose=True)
+    
+    print(f"\n✅ Generated {len(variations)} variations")
+    
+    # Show how original data is preserved
+    print("\n📋 Original Data Preservation Analysis:")
+    print("=" * 60)
+    
+    for i, variation in enumerate(variations[:3]):
+        row_idx = variation.get('original_row_index', 0)
+        original_data = variation.get('original_row_data', {})
+        field_values = variation.get('field_values', {})
+        
+        print(f"\n🔍 Variation {i+1} (from row {row_idx}):")
+        print(f"   Original question: {original_data.get('question', 'N/A')}")
+        print(f"   Varied question:   {field_values.get('question', 'N/A')}")
+        print(f"   Category:          {original_data.get('category', 'N/A')}")
+        print(f"   Difficulty:        {original_data.get('difficulty', 'N/A')}")
+        print(f"   Source:            {original_data.get('source', 'N/A')}")
+        print(f"   Answer:            {original_data.get('answer', 'N/A')}")
+        
+        print(f"\n   Generated Prompt:")
+        print(f"   {variation.get('prompt', 'N/A')}")
+        
+        # Show if data is properly preserved
+        if original_data:
+            print(f"   ✅ Original data preserved: {len(original_data)} fields")
+        else:
+            print(f"   ❌ Original data missing!")
+    
+    # Also show a sample of the raw variation structure
+    if variations:
+        print(f"\n🔍 Raw Variation Structure (first variation):")
+        sample_var = variations[0]
+        print(f"   Keys in variation: {list(sample_var.keys())}")
+        if 'original_row_data' in sample_var:
+            print(f"   Original row data keys: {list(sample_var['original_row_data'].keys())}")
+        else:
+            print(f"   ⚠️ 'original_row_data' key missing!")
+    
+    # Export results
+    ps.export("preserve_original_data_example.json", format="json")
+    print(f"\n✅ Exported to preserve_original_data_example.json")
+    
+    # Show the structure of the exported data
+    print(f"\n📁 Exported JSON Structure:")
+    print(f"   Each variation now contains:")
+    print(f"   - 'original_row_data': All original columns from the dataset")
+    print(f"   - 'field_values': Only the fields that were varied")
+    print(f"   - 'prompt': The generated prompt")
+    print(f"   - 'conversation': Conversation format")
+    print(f"   - 'gold_updates': Any gold field updates")
+    
+    print(f"\n💡 Use Case:")
+    print(f"   - You can now filter/group variations by category, difficulty, etc.")
+    print(f"   - Original metadata is preserved for downstream analysis")
+    print(f"   - No information is lost from the original dataset")
+    
+    return variations
+
+
 if __name__ == "__main__":
+    # Run the new preserve original data example
+    # example_preserve_original_data()
+    
     # Run the new unordered random few-shot example
     # example_few_shot_unordered_random()
     example_platform_switching()
@@ -2619,3 +2745,8 @@ if __name__ == "__main__":
     # example_backward_compatibility_rewording()  # Backward compatibility with REWORDING
 
     print("\n🎉 All examples completed!")
+    print("\n✨ NEW FEATURE: Original Data Preservation")
+    print("   - All original columns from your dataset are now preserved in variations")
+    print("   - Check 'original_row_data' field in exported JSON for complete original data")
+    print("   - No information is lost, even for columns not used in templates")
+    print("   - Perfect for maintaining metadata like categories, difficulty levels, etc.")
