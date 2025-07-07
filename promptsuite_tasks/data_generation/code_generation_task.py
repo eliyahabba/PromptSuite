@@ -114,7 +114,7 @@ class CodeGenerationTask(BaseTask):
             GOLD_KEY: 'canonical_solution',  # The canonical solution is the gold standard
             FEW_SHOT_KEY: {
                 'count': 5,  # Use 2 few-shot examples
-                'format': 'random_per_row',
+                'format': 'different_examples__different_order_per_variation',
                 'split': 'train'  # Use test split for few-shot (since all data is test)
             }
         }

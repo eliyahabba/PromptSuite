@@ -151,9 +151,9 @@ class TranslationTask(BaseTask):
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION],
             GOLD_KEY: target_code,  # Target language code is the gold standard
             FEW_SHOT_KEY: {
-                'count': 5,  # Reduced from 5 to work with smaller datasets
-                'format': 'random_per_row',
-                'split': 'train'
+                'count': 5,  # Number of few-shot examples
+                'format': 'different_examples__different_order_per_variation',
+                'split': 'train'  # Use training split for few-shot examples
             },
         }
 

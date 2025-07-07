@@ -84,7 +84,7 @@ class SentimentTask(BaseTask):
             GOLD_KEY: 'label',  # The target field for evaluation
             FEW_SHOT_KEY: {
                 'count': 3,  # Number of few-shot examples
-                'format': 'random_per_row',  # Random examples per row
+                'format': 'different_examples__different_order_per_variation',  # Random examples per row
                 'split': 'train'  # Use training split for few-shot examples
             }
         }

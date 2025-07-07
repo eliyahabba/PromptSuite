@@ -81,7 +81,7 @@ class MathTask(BaseTask):
             GOLD_KEY: 'answer',  # The original answer field with full solution and #### format
             FEW_SHOT_KEY: {
                 'count': 3,  # Number of few-shot examples
-                'format': 'random_per_row',  # Random examples per row
+                'format': 'different_examples__different_order_per_variation',  # Random examples per row
                 'split': 'train'  # Use training split for few-shot examples
             }
         }

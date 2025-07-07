@@ -62,8 +62,8 @@ class SummarizationTask(BaseTask):
                  ],  # Add noise to the article text
             GOLD_KEY: "highlights",  # The summary is the gold standard
             FEW_SHOT_KEY: {
-                'count': 2,  # Reduced from 5 to work with smaller datasets
-                'format': 'random_per_row',
+                'count': 2,
+                'format': 'different_examples__different_order_per_variation',
                 'split': 'train'
             },
         }
