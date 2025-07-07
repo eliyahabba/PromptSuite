@@ -15,6 +15,7 @@ from promptsuite.core.exceptions import (
     FewShotGoldFieldMissingError, FewShotDataInsufficientError, FewShotConfigurationError
 )
 from promptsuite.core.models import VariationContext, FieldVariation, FewShotContext
+from promptsuite.core.template_keys import ENUMERATE_VARIATION
 from promptsuite.core.template_keys import (
     PROMPT_FORMAT_VARIATIONS, INSTRUCTION, INSTRUCTION_VARIATIONS, FEW_SHOT_KEY
 )
@@ -27,11 +28,11 @@ class FewShotConfig:
     
     Attributes:
         count: Number of few-shot examples to use
-        format: Sampling strategy - 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
+        format: Sampling strategy - 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
         split: Data split to use for few-shot examples - 'train', 'test', or 'all'
     """
     count: int = 2
-    format: str = "shared_ordered_first_n"  # 'shared_ordered_first_n', 'shared_ordered_random_n', or 'random_per_row'
+    format: str = "same_examples__no_variations"  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
     split: str = "all"  # 'train', 'test', or 'all'
 
 
@@ -42,8 +43,8 @@ class FewShotHandler:
     """
 
     def __init__(self):
-        self.few_shot_augmenter = FewShotAugmenter()
         self.enumerator_augmenter = EnumeratorAugmenter()
+        # We'll create FewShotAugmenter on-demand to handle use_as_variations parameter
 
     def validate_gold_field_requirement(
             self,
@@ -72,17 +73,17 @@ class FewShotHandler:
         Centralized from template_parser.py logic.
         
         Few-shot formats:
-        - "shared_ordered_first_n": Always use the first N examples from the available data (deterministic, shared for all rows)
-        - "shared_ordered_random_n": Always use the same N random examples (with fixed seed, shared for all rows)
-        - "shared_unordered_random_n": Always use the same N random examples but shuffle their order
-        - "random_per_row": Randomly sample different examples for each row (using row index as seed)
+        - "same_examples__no_variations": Same examples for all rows, no variations (single variation per row)
+        - "same_examples__synchronized_order_variations": Same examples for all rows, synchronized order variations
+        - "different_examples__same_shuffling_order_across_rows": Different examples per row, same shuffling order across rows
+        - "different_examples__different_order_per_variation": Different examples and different order per variation
         """
         if not isinstance(config, dict):
             raise FewShotConfigurationError("config_type", type(config).__name__, ["dictionary"])
 
         few_shot_config = FewShotConfig(
             count=config.get("count", 2),
-            format=config.get("format", "shared_ordered_first_n"),
+            format=config.get("format", "same_examples__no_variations"),
             split=config.get("split", "all")
         )
 
@@ -90,8 +91,14 @@ class FewShotHandler:
         if few_shot_config.count <= 0:
             raise FewShotConfigurationError("count", few_shot_config.count)
 
-        if few_shot_config.format not in ['shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', 'random_per_row']:
-            raise FewShotConfigurationError("format", few_shot_config.format, ['shared_ordered_first_n', 'shared_ordered_random_n', 'shared_unordered_random_n', 'random_per_row'])
+        if few_shot_config.format not in ['same_examples__no_variations',
+                                          'same_examples__synchronized_order_variations',
+                                          'different_examples__same_shuffling_order_across_rows',
+                                          'different_examples__different_order_per_variation']:
+            raise FewShotConfigurationError("format", few_shot_config.format, ['same_examples__no_variations',
+                                                                               'same_examples__synchronized_order_variations',
+                                                                               'different_examples__same_shuffling_order_across_rows',
+                                                                               'different_examples__different_order_per_variation'])
 
         if few_shot_config.split not in ['all', 'train', 'test']:
             raise FewShotConfigurationError("split", few_shot_config.split, ['all', 'train', 'test'])
@@ -123,10 +130,10 @@ class FewShotHandler:
 
         # Create all possible combinations of field variations
         variation_combinations = self._create_variation_combinations(variation_context.field_variations)
-        
+
         # Create a list of (combination, original_index) pairs to track original indices
         indexed_combinations = [(combo, idx) for idx, combo in enumerate(variation_combinations)]
-        
+
         # If we have a limit, sample deterministically based on seed
         if max_variations_per_row is not None and len(indexed_combinations) > max_variations_per_row:
             import random
@@ -274,15 +281,14 @@ class FewShotHandler:
 
     def _get_enumerate_fields_config(self, template: dict) -> Dict[str, dict]:
         """Extract enumerate field configurations from template."""
-        from promptsuite.core.template_keys import ENUMERATE_VARIATION
         enumerate_config = {}
-        
+
         # Check for direct enumerate configuration (both old and new format)
         if 'enumerate' in template:
             enum_field = template['enumerate'].get('field')
             if enum_field:
                 enumerate_config[enum_field] = template['enumerate']
-        
+
         # Check for ENUMERATE_VARIATION as a direct key (new format)
         if ENUMERATE_VARIATION in template:
             enum_field = template[ENUMERATE_VARIATION].get('field')
@@ -296,24 +302,24 @@ class FewShotHandler:
                 # This matches the deterministic order used in EnumeratorAugmenter
                 enum_types = ['1234', 'ABCD', 'abcd', 'roman']
                 enumerate_config[field_name] = {'type': enum_types[0]}
-        
+
         return enumerate_config
 
     def _get_enumerate_fields_config_for_variation(
-            self, 
-            template: dict, 
+            self,
+            template: dict,
             field_values: Dict[str, FieldVariation] = None
     ) -> Dict[str, dict]:
         """Extract enumerate field configurations for a specific variation."""
         from promptsuite.core.template_keys import ENUMERATE_VARIATION
         enumerate_config = {}
-        
+
         # Check for direct enumerate configuration (both old and new format)
         if 'enumerate' in template:
             enum_field = template['enumerate'].get('field')
             if enum_field:
                 enumerate_config[enum_field] = template['enumerate']
-        
+
         # Check for ENUMERATE_VARIATION as a direct key (new format)
         if ENUMERATE_VARIATION in template:
             enum_field = template[ENUMERATE_VARIATION].get('field')
@@ -337,14 +343,14 @@ class FewShotHandler:
                     # Fallback to first type
                     enum_types = ['1234', 'ABCD', 'abcd', 'roman']
                     enumerate_config[field_name] = {'type': enum_types[0]}
-        
+
         return enumerate_config
 
     def _detect_enumeration_type(self, field_data: str) -> str:
         """Detect the enumeration type from the field data."""
         if not field_data:
             return None
-        
+
         # Look for patterns in the enumerated data
         if '1.' in field_data or '2.' in field_data:
             return '1234'
@@ -354,7 +360,7 @@ class FewShotHandler:
             return 'abcd'
         elif 'I.' in field_data or 'II.' in field_data:
             return 'roman'
-        
+
         return None
 
     def _apply_enumerate_if_needed(self, value: str, field_name: str, enumerate_configs: Dict[str, dict]) -> str:
@@ -384,7 +390,7 @@ class FewShotHandler:
 
         # Check if we have few-shot variations in field_values
         few_shot_config = few_shot_field.__dict__.copy()  # Start with base config
-        
+
         # If few-shot is treated as a variation axis, use the specific variation config
         if field_values and FEW_SHOT_KEY in field_values:
             few_shot_variation = field_values[FEW_SHOT_KEY]
@@ -400,18 +406,23 @@ class FewShotHandler:
             gold_config=variation_context.gold_config
         )
         identification_data = few_shot_context.to_identification_data()
-        
+
         # Add few-shot configuration modifications for variations
         if '_order_seed' in few_shot_config:
             identification_data['order_seed'] = few_shot_config['_order_seed']
         if '_selection_seed' in few_shot_config:
             identification_data['selection_seed'] = few_shot_config['_selection_seed']
-            
+
         # Add enumeration configuration - use current variation's enumeration type if available
         identification_data['enumerate_configs'] = self._get_enumerate_fields_config_for_variation(
             variation_context.template, field_values
         )
-        examples = self.few_shot_augmenter.augment(
+
+        # Create FewShotAugmenter - n_augments doesn't affect the actual few-shot generation here
+        # The variations are controlled at the field level in generate_few_shot_variations
+        few_shot_augmenter = FewShotAugmenter(n_augments=1, seed=None)
+
+        examples = few_shot_augmenter.augment(
             prompt_format_variant,
             identification_data
         )
@@ -481,7 +492,9 @@ class FewShotHandler:
         if prompt_format:
             prompt_parts.append(prompt_format)
         if few_shot_examples:
-            few_shot_content = self.few_shot_augmenter.format_few_shot_as_string(few_shot_examples)
+            # Create temporary FewShotAugmenter for formatting
+            temp_augmenter = FewShotAugmenter(n_augments=1, seed=None)
+            few_shot_content = temp_augmenter.format_few_shot_as_string(few_shot_examples)
             prompt_parts.append(few_shot_content)
         if main_input:
             prompt_parts.append(main_input)
