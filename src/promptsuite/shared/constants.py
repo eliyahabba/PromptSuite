@@ -1,16 +1,43 @@
 """Constants for the Multi-Prompt Evaluation Tool."""
 
 PLATFORMS_API_KEYS_VARS = {
-    "TogetherAI" : "TOGETHER_API_KEY",
-    "OpenAI" : "OPENAI_API_KEY"
+    "TogetherAI": "TOGETHER_API_KEY",
+    "OpenAI": "OPENAI_API_KEY",
+    "Anthropic": "ANTHROPIC_API_KEY",
+    "Google": "GOOGLE_API_KEY",
+    "Cohere": "COHERE_API_KEY",
 }
+
 # Default number of variations to generate per axis
 class GenerationInterfaceConstants:
-    # Generation limits
-    MIN_VARIATIONS = 1
-    MAX_VARIATIONS = 1000
-    MIN_VARIATIONS_PER_FIELD = 1
-    MAX_VARIATIONS_PER_FIELD = 10
+
+    # Platform-specific model limits
+    PLATFORM_MODEL_LIMITS = {
+        "TogetherAI": {"max_tokens": 8192, "max_context": 32768},
+        "OpenAI": {"max_tokens": 4096, "max_context": 128000},
+        "Anthropic": {"max_tokens": 4096, "max_context": 200000},
+        "Google": {"max_tokens": 8192, "max_context": 1000000},
+        "Cohere": {"max_tokens": 4096, "max_context": 128000},
+    }
+
+    # Default models per platform
+    DEFAULT_MODELS = {
+        "TogetherAI": "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+        "OpenAI": "gpt-4o-mini",
+        "Anthropic": "claude-3-haiku-20240307",
+        "Google": "gemini-1.5-flash",
+        "Cohere": "command-r-plus",
+    }
+
+
+class GenerationDefaults:
+    """Centralized defaults for generation parameters across API, CLI, and UI."""
+    MAX_VARIATIONS_PER_ROW = None  # None means no limit on variations
+    MAX_ROWS = None  # None means use all rows
+    VARIATIONS_PER_FIELD = 3
+    MODEL_NAME = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+    API_PLATFORM = "TogetherAI"
+    RANDOM_SEED = 42
 
 
 # Base augmenter constants
@@ -104,16 +131,6 @@ class NoiseAugmenterConstants:
 
     # Transformation techniques
     TRANSFORMATION_TECHNIQUES = ["typos", "capitalization", "punctuation", "spacing"]
-
-
-class GenerationDefaults:
-    """Centralized defaults for generation parameters across API, CLI, and UI."""
-    MAX_VARIATIONS_PER_ROW = None  # None means no limit on variations
-    MAX_ROWS = None  # None means use all rows
-    VARIATIONS_PER_FIELD = 3
-    MODEL_NAME = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
-    API_PLATFORM = "TogetherAI"
-    RANDOM_SEED = 42
 
 
 # Few-shot dynamic default (used in template builder UI)
