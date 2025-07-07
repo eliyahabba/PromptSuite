@@ -405,7 +405,20 @@ def display_single_variation(variation, variation_num, original_data):
                     """, unsafe_allow_html=True)
 
             # Show any additional fields from original data that weren't used in field_values
-            if original_row is not None:
+            # Use the new original_row_data field if available, otherwise fallback to original_row
+            original_row_data = variation.get('original_row_data', {})
+            if original_row_data:
+                # Use the preserved original row data from the variation
+                gold_updates = variation.get('gold_updates', {})
+                for col, original_val in original_row_data.items():
+                    if col not in field_values and col not in gold_updates and str(original_val).strip():
+                        st.markdown(f"""
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <strong style="color: #1976d2;">{col}:</strong> <span style="background: {HIGHLIGHT_COLORS['original']}; padding: 2px 6px; border-radius: 3px;">{original_val}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+            elif original_row is not None:
+                # Fallback to original method for backward compatibility
                 gold_updates = variation.get('gold_updates', {})
                 for col in original_row.index:
                     if col not in field_values and col not in gold_updates and str(original_row[col]).strip():
@@ -520,6 +533,12 @@ def export_interface(variations):
                     else:
                         flat_var[f'field_{key}'] = value
                         flat_var[f'field_{key}_type'] = type(value).__name__
+
+                # Add original row data (NEW)
+                original_row_data = var.get('original_row_data', {})
+                for key, value in original_row_data.items():
+                    # Prefix with 'original_' to distinguish from field values
+                    flat_var[f'original_{key}'] = value
 
                 # Add gold updates if present
                 gold_updates = var.get('gold_updates')
