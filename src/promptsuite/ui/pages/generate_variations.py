@@ -11,11 +11,14 @@ from promptsuite import PromptSuiteEngine
 from promptsuite.core.template_keys import (
     PROMPT_FORMAT, INSTRUCTION
 )
-from promptsuite.shared.constants import GenerationDefaults,PLATFORMS_API_KEYS_VARS
-from .results_display import display_full_results
+from promptsuite.shared.constants import GenerationDefaults, PLATFORMS_API_KEYS_VARS
+from promptsuite.shared.constants import GenerationInterfaceConstants
+from promptsuite.shared.model_client import get_supported_platforms, is_platform_available
+from results_display import display_full_results
 
 # Load environment variables
 load_dotenv()
+
 
 # Get API key from environment
 
@@ -224,25 +227,59 @@ def configure_generation():
         if has_paraphrase:
             st.markdown("**🤖 AI Configuration**")
 
-            # Platform selection
+            # Platform selection - now dynamic based on available platforms
+            available_platforms = [p for p in get_supported_platforms() if is_platform_available(p)]
+
+            if not available_platforms:
+                st.error("❌ No AI platforms are available. Please install required dependencies.")
+                st.info("Install dependencies: pip install anthropic google-generativeai cohere")
+                return
+
+            # Default to first available platform or user's preference
+            default_platform = GenerationDefaults.API_PLATFORM if GenerationDefaults.API_PLATFORM in available_platforms else \
+            available_platforms[0]
+
             platform = st.selectbox(
                 "🌐 Platform",
-                [GenerationDefaults.API_PLATFORM, "OpenAI"],
-                index=0,
+                available_platforms,
+                index=available_platforms.index(default_platform) if default_platform in available_platforms else 0,
                 help="Choose the AI platform for paraphrase generation"
             )
             st.session_state.api_platform = platform
+
+            # Show platform status
+            if is_platform_available(platform):
+                st.success(f"✅ {platform} is available")
+            else:
+                st.error(f"❌ {platform} is not available - missing dependencies")
+                return
+
             API_KEY = os.getenv(PLATFORMS_API_KEYS_VARS.get(platform, None))
 
-            # Model name with default value directly in the text box
-            default_model = GenerationDefaults.MODEL_NAME
-            current_model = st.session_state.get('model_name', default_model)
+            # Model name with platform-specific defaults
+            platform_default_model = GenerationInterfaceConstants.DEFAULT_MODELS.get(platform,
+                                                                                     GenerationDefaults.MODEL_NAME)
+
+            current_model = st.session_state.get('model_name', platform_default_model)
             model_name = st.text_input(
                 "🧠 Model Name",
                 value=current_model,
-                help="Name of the model to use for paraphrase generation"
+                help=f"Name of the model to use for paraphrase generation on {platform}"
             )
             st.session_state.model_name = model_name
+
+            # Show platform-specific model suggestions
+            if platform == "OpenAI":
+                st.info("💡 Popular models: gpt-4o-mini, gpt-4o, gpt-3.5-turbo")
+            elif platform == "Anthropic":
+                st.info("💡 Popular models: claude-3-haiku-20240307, claude-3-sonnet-20240229, claude-3-opus-20240229")
+            elif platform == "Google":
+                st.info("💡 Popular models: gemini-1.5-flash, gemini-1.5-pro, gemini-pro")
+            elif platform == "Cohere":
+                st.info("💡 Popular models: command-r-plus, command-r, command")
+            elif platform == "TogetherAI":
+                st.info(
+                    "💡 Popular models: meta-llama/Llama-3.3-70B-Instruct-Turbo-Free, meta-llama/Llama-3.1-8B-Instruct-Turbo")
 
             # API Key input
             api_key = st.text_input(
@@ -255,7 +292,15 @@ def configure_generation():
             st.session_state.api_key = api_key
 
             if not api_key:
-                st.warning("⚠️ API key is required for paraphrase variations. Generation may not work without it.")
+                st.warning(
+                    f"⚠️ API key is required for paraphrase variations. Set {PLATFORMS_API_KEYS_VARS.get(platform, 'API_KEY')} environment variable or enter it above.")
+
+            # Show platform-specific pricing/limits info
+            limits = GenerationInterfaceConstants.PLATFORM_MODEL_LIMITS.get(platform, {})
+            if limits:
+                st.caption(
+                    f"📊 Platform limits: Max tokens: {limits.get('max_tokens', 'N/A')}, Max context: {limits.get('max_context', 'N/A')}")
+
         else:
             # Clear API key if not needed
             for key in ['api_key', 'api_platform', 'model_name']:
@@ -432,11 +477,17 @@ def generate_all_variations():
                     )
                     row_progress.info(f"🔄 Processing row {row_idx + 1} of {total_rows}...")
 
+                # Get model name and platform from session state
+                model_name = st.session_state.get('model_name')
+                api_platform = st.session_state.get('api_platform')
+
                 variations = sp.generate_variations(
                     template=template,
                     data=df,
                     variations_per_field=variations_per_field,
                     api_key=api_key,
+                    model_name=model_name,
+                    api_platform=api_platform,
                     progress_callback=update_ui_progress
                 )
 
