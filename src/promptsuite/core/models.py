@@ -41,6 +41,8 @@ class VariationConfig:
     api_key: Optional[str] = None
     max_variations_per_row: Optional[int] = GenerationDefaults.MAX_VARIATIONS_PER_ROW
     seed: Optional[int] = GenerationDefaults.RANDOM_SEED
+    model_name: Optional[str] = GenerationDefaults.MODEL_NAME
+    api_platform: Optional[str] = GenerationDefaults.API_PLATFORM
 
 
 @dataclass
