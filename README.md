@@ -52,9 +52,6 @@ promptsuite-ui
 
 # From project root (development)
 python src/promptsuite/ui/main.py
-
-# Alternative: using the runner script
-python scripts/run_ui.py
 ```
 
 The web UI provides:
