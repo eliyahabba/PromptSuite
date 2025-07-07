@@ -341,6 +341,7 @@ class PromptSuiteEngine:
                 'prompt': variation.get('prompt', ''),
                 'conversation': None,  # Will be set below
                 'gold_updates': variation.get('gold_updates'),
+                'original_row_data': variation.get('original_row_data', {}),  # NEW: Include original data
                 'configuration': {
                     'template_config': variation.get('template_config', {}),
                     'field_values': variation.get('field_values', {})
@@ -416,6 +417,10 @@ class PromptSuiteEngine:
                     'original_row_index': var.get('original_row_index', ''),
                     'variation_count': var.get('variation_count', ''),
                 }
+                # Add original row data with 'original_' prefix
+                for key, value in var.get('original_row_data', {}).items():
+                    flat_var[f'original_{key}'] = value
+                # Add field values with 'field_' prefix
                 for key, value in var.get('field_values', {}).items():
                     flat_var[f'field_{key}'] = value
                 flattened.append(flat_var)
