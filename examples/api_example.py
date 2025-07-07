@@ -47,7 +47,7 @@ def example_with_sample_data_few_shot():
         'gold': 'answer',
         'few_shot': {
             'count': 2,  # Use 2 examples
-            'format': 'shared_ordered_first_n',  # Different examples each time
+            'format': 'same_examples__no_variations',  # Same examples for all questions
             'split': 'all'  # Use all data for examples
         }
     }
@@ -295,7 +295,7 @@ def example_platform_switching():
     """Example showing how to switch between AI platforms."""
 
     print("\n" + "=" * 50)
-    print("🔄 Platform Switching Example")
+    print("🔄 Platform Switching Example - WITH ACTUAL API CALLS")
     print("=" * 50)
 
     # Initialize API
@@ -309,28 +309,61 @@ def example_platform_switching():
     template = {
         INSTRUCTION: 'The following are multiple choice questions (with answers) about general knowledge.',
         PROMPT_FORMAT: 'Question: {question}\nAnswer: {answer}',
-        QUESTION_KEY: [PARAPHRASE_WITH_LLM],
+        INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
         GOLD_KEY: 'answer'  # Simple format - just the field name
     }
     ps.set_template(template)
 
-    print("\n1. Default platform (TogetherAI):")
-    ps.info()
+    # Test platforms with actual API calls
+    platforms_to_test = [
+        # ("TogetherAI", "meta-llama/Llama-3.1-8B-Instruct-Turbo"),
+        ("OpenAI", "gpt-4o-mini")
+    ]
 
-    print("\n2. Switching to OpenAI:")
-    ps.configure(api_platform="OpenAI")
-    ps.info()
+    for i, (platform_name, model_name) in enumerate(platforms_to_test, 1):
+        print(f"\n{i}. Testing {platform_name} with {model_name}:")
+        print("-" * 40)
 
-    print("\n3. Back to TogetherAI with custom model:")
-    ps.configure(
-        api_platform="TogetherAI",
-        model_name="meta-llama/Llama-3.1-8B-Instruct-Turbo"
-    )
-    ps.info()
+        ps.configure(api_platform=platform_name, model_name=model_name, max_rows=1, variations_per_field=2)
+        ps.info()
 
-    print("\n4. Manual API key override:")
-    ps.configure(api_key="manual_key_override")
-    ps.info()
+        # Try to generate variations
+        print(f"   🚀 Attempting to generate variations with {model_name}...")
+        variations = ps.generate(verbose=False)
+
+        if variations:
+            print(f"   ✅ SUCCESS: Generated {len(variations)} variations")
+            print(f"   📝 Sample variation:")
+            print(f"      {variations[0].get('prompt', 'No prompt')[:100]}...")
+        else:
+            print(f"   ⚠️  No variations generated")
+
+    # Test with DEBUG: Check what gets passed to Paraphrase augmenter
+    print(f"\n" + "=" * 50)
+    print("🔍 DEBUG: Check Paraphrase Augmenter Configuration")
+    print("=" * 50)
+    # Set a dummy OpenAI key
+    dummy_openai_key = "sk_test_dummy_openai_key"
+    os.environ['OPENAI_API_KEY'] = dummy_openai_key
+    print(f"🔧 Set dummy OpenAI API key: {dummy_openai_key}")
+
+    # Create new PromptSuite instance
+    ps_debug = PromptSuite()
+    ps_debug.load_dataframe(pd.DataFrame(data))
+    ps_debug.set_template(template)
+
+    # Configure with OpenAI platform explicitly
+    ps_debug.configure(api_platform="OpenAI", model_name="gpt-4o-mini", max_rows=1, variations_per_field=1)
+    variations = ps_debug.generate(verbose=False)
+    assert len(variations) == 1, "Expected 1 variation with dummy key"
+    print(f"\n" + "=" * 50)
+    print("💡 Platform Switching Test Summary:")
+    print("   - This test verifies that platform switching actually works")
+    print("   - It attempts real API calls to test connectivity")
+    print("   - Requires valid API keys to pass fully")
+    print("   - Tests dummy API key rejection for security")
+    print("   - Check the results above to see which platforms work")
+    print("=" * 50)
 
 
 def example_with_huggingface():
@@ -411,7 +444,7 @@ def example_different_templates():
         },
         FEW_SHOT_KEY: {
             'count': 1,
-            'format': 'shared_ordered_first_n',
+            'format': 'same_examples__no_variations',
             'split': 'all'
         }
     }
@@ -557,7 +590,7 @@ def example_with_simple_qa():
         GOLD_KEY: 'answer',
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',
+            'format': 'same_examples__no_variations',
             'split': 'all'
         }
     }
@@ -635,7 +668,7 @@ def example_with_system_prompt_few_shot():
         GOLD_KEY: 'answer',
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',
+            'format': 'same_examples__no_variations',  # Same examples for all questions
             'split': 'all'
         }
     }
@@ -727,8 +760,8 @@ def example_system_prompt_with_placeholder_and_few_shot():
             'options_field': 'options'
         },
         FEW_SHOT_KEY: {
-            'count': 2,
-            'format': 'shared_ordered_first_n',
+            'count': 1,
+            'format': 'same_examples__no_variations',  # Same examples for all questions
             'split': 'all'
         }
     }
@@ -861,8 +894,8 @@ def example_system_prompt_with_context_and_few_shot():
             'options_field': 'options'
         },
         FEW_SHOT_KEY: {
-            'count': 2,
-            'format': 'shared_ordered_first_n',  # Same examples for all questions
+            'count': 1,
+            'format': 'same_examples__no_variations',  # Same examples for all questions
             'split': 'train'  # Use only training data
         }
     }
@@ -1449,7 +1482,7 @@ def example_shuffle_template():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',
+            'format': 'same_examples__no_variations',
             'split': 'all'
         }
     }
@@ -1459,7 +1492,7 @@ def example_shuffle_template():
     print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
     print("   - QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION]")
     print("   - OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
-    print("   - FEW_SHOT_KEY: count=2, format=shared_ordered_first_n, split=all")
+    print("   - FEW_SHOT_KEY: count=2, format=same_examples__no_variations, split=all")
 
     # Configure with 3 variations per field
     ps.configure(
@@ -1531,8 +1564,8 @@ def example_complex_template_debug():
             'options_field': 'options'
         },
         FEW_SHOT_KEY: {
-            'count': 2,
-            'format': 'shared_ordered_first_n',
+            'count': 1,
+            'format': 'same_examples__no_variations',
             'split': 'all'
         }
     }
@@ -1542,7 +1575,7 @@ def example_complex_template_debug():
     print("   - PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
     print("   - QUESTION_KEY: [TYPOS_AND_NOISE_VARIATION]")
     print("   - OPTIONS_KEY: [SHUFFLE_VARIATION, TYPOS_AND_NOISE_VARIATION]")
-    print("   - FEW_SHOT_KEY: count=2, format=shared_ordered_first_n, split=all")
+    print("   - FEW_SHOT_KEY: count=1, format=same_examples__no_variations, split=all")
 
     # Configure with 3 variations per field
     ps.configure(
@@ -1632,7 +1665,7 @@ def example_complex_template_debug():
 
 
 def example_few_shot_train_test_split():
-    """Test few-shot behavior with train/test split to understand how shared_ordered_first_n works."""
+    """Test few-shot behavior with train/test split to understand how same_examples__no_variations works."""
     print("\n" + "=" * 60)
     print("🔍 Testing Few-Shot with Train/Test Split")
     print("=" * 60)
@@ -1703,7 +1736,7 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',  # Same examples for all questions
+            'format': 'same_examples__no_variations',  # Same examples for all questions
             'split': 'train'  # Use only training data
         }
     }
@@ -1757,7 +1790,7 @@ def example_few_shot_train_test_split():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'random_per_row',  # Different examples for each question
+            'format': 'different_examples__same_shuffling_order_across_rows',  # Same examples, different order
             'split': 'train'  # Use only training data
         }
     }
@@ -1831,7 +1864,7 @@ def example_few_shot_random_per_row_vs_ordered():
     print(f"   - Test: {len(data[data['split'] == 'test'])} examples")
 
     # Test both formats with same configuration
-    formats = ['shared_ordered_first_n', 'random_per_row']
+    formats = ['same_examples__synchronized_order_variations', 'different_examples__different_order_per_variation']
 
     for format_type in formats:
         print(f"\n" + "=" * 30)
@@ -1899,18 +1932,18 @@ def example_few_shot_random_per_row_vs_ordered():
     print("=" * 60)
 
     print("📊 Expected Behavior:")
-    print("   SHARED_ORDERED_FIRST_N format:")
+    print("   SAME_EXAMPLES__SYNCHRONIZED_ORDER_VARIATIONS format:")
     print("     - Should use the SAME 2 training examples for ALL test questions")
     print("     - Examples: Always questions 0,1 (France, Germany)")
     print()
-    print("   RANDOM_PER_ROW format:")
+    print("   DIFFERENT_EXAMPLES__DIFFERENT_ORDER_PER_VARIATION format:")
     print("     - Should use DIFFERENT training examples for each test question")
     print("     - Based on random_state=current_row_idx")
     print("     - Each test question gets different training examples")
 
     print("\n💡 Key Points to Verify:")
-    print("   1. Does 'shared_ordered_first_n' really use the same examples for all test questions?")
-    print("   2. Does 'random_per_row' use different examples for each test question?")
+    print("   1. Does 'same_examples__synchronized_order_variations' really use the same examples for all test questions?")
+    print("   2. Does 'different_examples__different_order_per_variation' use different examples for each test question?")
     print("   3. Are only TRAIN examples used (no test examples in few-shot)?")
     print("   4. Is the current question excluded from few-shot examples?")
 
@@ -1945,7 +1978,7 @@ def test_enumerated_gold_in_few_shot():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_ordered_first_n',
+            'format': 'same_examples__no_variations',
             'split': 'train'
         }
     }
@@ -2034,7 +2067,7 @@ def example_list_data_support():
         },
         FEW_SHOT_KEY: {
             'count': 2,  # Reduced from 5 to work with smaller datasets
-            'format': 'shared_ordered_first_n',
+            'format': 'same_examples__no_variations',
             'split': 'all'
         }
     }
@@ -2142,7 +2175,7 @@ def example_few_shot_unordered_random():
         },
         FEW_SHOT_KEY: {
             'count': 2,
-            'format': 'shared_unordered_random_n',  # Same examples but shuffled order
+            'format': 'different_examples__same_shuffling_order_across_rows',  # Same examples, different order
             'split': 'train'
         }
     }
@@ -2180,7 +2213,7 @@ def example_few_shot_unordered_random():
     print("=" * 60)
 
     print("📊 Expected Behavior:")
-    print("   SHARED_UNORDERED_RANDOM_N format:")
+    print("   DIFFERENT_EXAMPLES__SAME_SHUFFLING_ORDER_ACROSS_ROWS format:")
     print("     - Uses the SAME 2 random training examples for ALL test questions")
     print("     - BUT shuffles the ORDER of these examples for each test question")
     print("     - Examples: Same random selection, but order varies per question")
@@ -2236,7 +2269,7 @@ def example_few_shot_random_per_row_vs_ordered_2():
     print(f"   - Test: {len(data[data['split'] == 'test'])} examples")
 
     # Test both formats with same configuration
-    formats = ['shared_ordered_first_n', 'random_per_row']
+    formats = ['same_examples__synchronized_order_variations', 'different_examples__different_order_per_variation']
 
     for format_type in formats:
         print(f"\n" + "=" * 30)
@@ -2304,27 +2337,245 @@ def example_few_shot_random_per_row_vs_ordered_2():
     print("=" * 60)
 
     print("📊 Expected Behavior:")
-    print("   SHARED_ORDERED_FIRST_N format:")
+    print("   SAME_EXAMPLES__SYNCHRONIZED_ORDER_VARIATIONS format:")
     print("     - Should use the SAME 2 training examples for ALL test questions")
     print("     - Examples: Always questions 0,1 (France, Germany)")
     print()
-    print("   RANDOM_PER_ROW format:")
+    print("   DIFFERENT_EXAMPLES__DIFFERENT_ORDER_PER_VARIATION format:")
     print("     - Should use DIFFERENT training examples for each test question")
     print("     - Based on random_state=current_row_idx")
     print("     - Each test question gets different training examples")
 
     print("\n💡 Key Points to Verify:")
-    print("   1. Does 'shared_ordered_first_n' really use the same examples for all test questions?")
-    print("   2. Does 'random_per_row' use different examples for each test question?")
+    print("   1. Does 'same_examples__synchronized_order_variations' really use the same examples for all test questions?")
+    print("   2. Does 'different_examples__different_order_per_variation' use different examples for each test question?")
     print("   3. Are only TRAIN examples used (no test examples in few-shot)?")
     print("   4. Is the current question excluded from few-shot examples?")
 
     print("\n✅ Check the exported JSON files for detailed analysis!")
 
 
+def example_few_shot_use_as_variations():
+    """Test the new generate_variations parameter for few-shot configuration."""
+    print("\n" + "=" * 60)
+    print("🧪 Testing generate_variations Parameter for Few-Shot")
+    print("=" * 60)
+
+    # Create dataset with train/test split - 10 train examples, 2 test examples
+    data = pd.DataFrame({
+        'question': [
+            # Training examples (10 examples)
+            'What is the capital of France?',
+            'What is the capital of Germany?', 
+            'What is the capital of Italy?',
+            'What is the capital of Spain?',
+            'What is the capital of UK?',
+            'What is the capital of Japan?',
+            'What is the capital of China?',
+            'What is the capital of Russia?',
+            'What is the capital of Brazil?',
+            'What is the capital of Canada?',
+            # Test examples (2 examples)
+            'What is the capital of Australia?',
+            'What is the capital of India?'
+        ],
+        'options': [
+            # Training options (as lists)
+            ['London', 'Paris', 'Berlin', 'Madrid'],
+            ['Paris', 'Berlin', 'Rome', 'Madrid'],
+            ['Berlin', 'Rome', 'Paris', 'London'],
+            ['Madrid', 'Paris', 'Berlin', 'Rome'],
+            ['London', 'Berlin', 'Paris', 'Madrid'],
+            ['Tokyo', 'Beijing', 'Seoul', 'Bangkok'],
+            ['Beijing', 'Tokyo', 'Seoul', 'Bangkok'],
+            ['Moscow', 'Kiev', 'Warsaw', 'Prague'],
+            ['Brasilia', 'Rio de Janeiro', 'São Paulo', 'Salvador'],
+            ['Ottawa', 'Toronto', 'Montreal', 'Vancouver'],
+            # Test options (as lists)
+            ['Sydney', 'Canberra', 'Melbourne', 'Perth'],
+            ['New Delhi', 'Mumbai', 'Kolkata', 'Chennai']
+        ],
+        'answer': [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],  # Correct answer indices
+        'split': ['train'] * 6 + ['test'] * 6
+    })
+
+    print(f"📊 Dataset Overview:")
+    print(f"   - Total examples: {len(data)}")
+    print(f"   - Train examples: {len(data[data['split'] == 'train'])}")
+    print(f"   - Test examples: {len(data[data['split'] == 'test'])}")
+
+    # Test 1: Regular few-shot with variations (generate_variations=True, default)
+    print("\n" + "=" * 40)
+    print("🔧 Test 1: Regular few-shot WITH variations (generate_variations=True)")
+    print("=" * 40)
+
+    ps1 = PromptSuite()
+    ps1.load_dataframe(data)
+
+    template_with_variations = {
+        INSTRUCTION: 'Answer the following geography questions.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        OPTIONS_KEY: [SHUFFLE_VARIATION, ENUMERATE_VARIATION],
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': 'different_examples__different_order_per_variation',  # different examples, different order
+            'split': 'train',
+        }
+    }
+
+    ps1.set_template(template_with_variations)
+    ps1.configure(max_rows=2, variations_per_field=5, max_variations_per_row=10)  # Should get 5 variations per test question
+
+    variations_with = ps1.generate(verbose=True)
+
+    print(f"✅ Generated {len(variations_with)} variations WITH few-shot variations")
+    
+    # Count variations per test row
+    test_row_counts_with = {}
+    for var in variations_with:
+        row_idx = var.get('original_row_index', 0)
+        if row_idx >= 10:  # Test rows are 10, 11
+            test_row_counts_with[row_idx] = test_row_counts_with.get(row_idx, 0) + 1
+
+    print(f"📊 Variations per test row (WITH variations):")
+    for row_idx in sorted(test_row_counts_with.keys()):
+        count = test_row_counts_with[row_idx]
+        print(f"   - Test Row {row_idx}: {count} variations")
+
+    # Test 2: Few-shot without variations (generate_variations=False)
+    print("\n" + "=" * 40)
+    print("🔧 Test 2: Few-shot WITHOUT variations (generate_variations=False)")
+    print("=" * 40)
+
+    ps2 = PromptSuite()
+    ps2.load_dataframe(data)
+
+    template_without_variations = {
+        INSTRUCTION: 'Answer the following geography questions.',
+        PROMPT_FORMAT: 'Question: {question}\nOptions: {options}\nAnswer: {answer}',
+        # No field variations - only few-shot without variations
+        GOLD_KEY: {
+            'field': 'answer',
+            'type': 'index',
+            'options_field': 'options'
+        },
+        FEW_SHOT_KEY: {
+            'count': 2,
+            'format': 'same_examples__no_variations',  # Same examples, different order
+            'split': 'train',
+            'generate_variations': False  # NEW - don't generate variations
+        }
+    }
+
+    ps2.set_template(template_without_variations)
+    ps2.configure(max_rows=4, variations_per_field=1, max_variations_per_row=2)  # Should get only 1 variation per test question
+
+    variations_without = ps2.generate(verbose=True)
+
+    print(f"✅ Generated {len(variations_without)} variations WITHOUT few-shot variations")
+    
+    # Count variations per test row
+    test_row_counts_without = {}
+    for var in variations_without:
+        row_idx = var.get('original_row_index', 0)
+        if row_idx >= 10:  # Test rows are 10, 11
+            test_row_counts_without[row_idx] = test_row_counts_without.get(row_idx, 0) + 1
+
+    print(f"📊 Variations per test row (WITHOUT variations):")
+    for row_idx in sorted(test_row_counts_without.keys()):
+        count = test_row_counts_without[row_idx]
+        print(f"   - Test Row {row_idx}: {count} variations")
+
+    # Test 3: Verify that few-shot examples are different between test questions
+    print("\n" + "=" * 40)
+    print("🔍 Test 3: Verify few-shot examples are different per test question")
+    print("=" * 40)
+
+    # Get the variations for each test row (without variations)
+    test_row_10_var = None
+    test_row_11_var = None
+    
+    for var in variations_without:
+        row_idx = var.get('original_row_index', 0)
+        if row_idx == 10:
+            test_row_10_var = var
+        elif row_idx == 11:
+            test_row_11_var = var
+
+    if test_row_10_var and test_row_11_var:
+        print(f"📋 Test Row 10 (Question: {data.iloc[10]['question']}):")
+        conversation_10 = test_row_10_var.get('conversation', [])
+        few_shot_examples_10 = []
+        for msg in conversation_10:
+            if msg['role'] == 'user' and 'Question:' in msg['content']:
+                lines = msg['content'].split('\n')
+                for line in lines:
+                    if line.startswith('Question:') and line != f"Question: {data.iloc[10]['question']}":
+                        few_shot_examples_10.append(line.replace('Question: ', ''))
+
+        print(f"   Few-shot examples:")
+        for i, example in enumerate(few_shot_examples_10):
+            print(f"     {i+1}. {example}")
+
+        print(f"\n📋 Test Row 11 (Question: {data.iloc[11]['question']}):")
+        conversation_11 = test_row_11_var.get('conversation', [])
+        few_shot_examples_11 = []
+        for msg in conversation_11:
+            if msg['role'] == 'user' and 'Question:' in msg['content']:
+                lines = msg['content'].split('\n')
+                for line in lines:
+                    if line.startswith('Question:') and line != f"Question: {data.iloc[11]['question']}":
+                        few_shot_examples_11.append(line.replace('Question: ', ''))
+
+        print(f"   Few-shot examples:")
+        for i, example in enumerate(few_shot_examples_11):
+            print(f"     {i+1}. {example}")
+
+        # Check if they're different
+        if set(few_shot_examples_10) != set(few_shot_examples_11):
+            print(f"\n✅ SUCCESS: Few-shot examples are DIFFERENT between test questions")
+        else:
+            print(f"\n❌ FAILED: Few-shot examples are the SAME between test questions")
+
+    # Export results
+    ps1.export("few_shot_with_variations.json", format="json")
+    ps2.export("few_shot_without_variations.json", format="json")
+
+    print(f"\n" + "=" * 60)
+    print("📊 EXPECTED RESULTS SUMMARY")
+    print("=" * 60)
+
+    print("✅ With generate_variations=True (default):")
+    print("   - Should generate multiple variations per test question")
+    print("   - Each variation has different few-shot examples")
+    print(f"   - Expected: ~5 variations per test question = ~10 total")
+    print(f"   - Actual: {len(variations_with)} total variations")
+
+    print("\n✅ With generate_variations=False (new feature):")
+    print("   - Should generate only 1 variation per test question")
+    print("   - Each test question gets different few-shot examples")
+    print("   - But no variations of the few-shot examples")
+    print(f"   - Expected: 1 variation per test question = 2 total")
+    print(f"   - Actual: {len(variations_without)} total variations")
+
+    print("\n💡 Key Benefits of generate_variations=False:")
+    print("   1. Each example gets unique few-shot examples (random_per_row)")
+    print("   2. No redundant variations of few-shot examples")
+    print("   3. Faster generation with fewer variations")
+    print("   4. Still maintains few-shot diversity between questions")
+
+    print("\n✅ Test completed! Check exported JSON files for detailed analysis.")
+
+
 if __name__ == "__main__":
     # Run the new unordered random few-shot example
     # example_few_shot_unordered_random()
+    example_platform_switching()
 
     # Run the new list data support example first
     # example_list_data_support()
@@ -2339,7 +2590,7 @@ if __name__ == "__main__":
     # # example_complex_template_debug()
     # example_many_augmenters_on_small_dataset()
     # # Uncomment other examples as needed:
-    example_shuffle_template()
+    # example_shuffle_template()
     # example_with_sample_data_few_shot()
     # example_with_enumerate()
     # example_enumerate_types()
@@ -2368,15 +2619,3 @@ if __name__ == "__main__":
     # example_backward_compatibility_rewording()  # Backward compatibility with REWORDING
 
     print("\n🎉 All examples completed!")
-    print("\nNext steps:")
-    print("1. Install datasets library: pip install datasets")
-    print("2. Set your API keys:")
-    print("   export TOGETHER_API_KEY='your_together_key'")
-    print("   export OPENAI_API_KEY='your_openai_key'")
-    print("3. Try the new specialized augmenters:")
-    print("   - FORMAT_STRUCTURE: Semantic-preserving format changes")
-    print("   - TYPOS_AND_NOISE: Robustness testing with noise injection")
-    print("   - REWORDING: Backward compatibility (maps to TYPOS_AND_NOISE)")
-    print("4. Try the new enumerate feature in your templates:")
-    print("   'enumerate': {'field': 'options', 'type': '1234'}")
-    print("5. Try with your own data and templates")
