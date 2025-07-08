@@ -521,63 +521,103 @@ def template_builder_interface(available_columns):
 
     with field_tabs[5]:
         # Few-shot configuration
-        st.markdown("**Few-shot Examples Configuration**")
-        st.write("Configure few-shot learning examples:")
+        st.markdown("**Few-shot Examples (for contextual learning):**")
+        st.write("Include examples from your dataset within the prompt.")
 
-        col1, col2, col3 = st.columns(3)
+        # Enable/Disable Few-shot
+        few_shot_enabled = st.checkbox("Enable Few-shot Examples",
+                                       value=FEW_SHOT_KEY in st.session_state.template_config,
+                                       key="few_shot_enable")
 
-        with col1:
-            # Calculate dynamic default based on available data
-            df = st.session_state.uploaded_data
-            available_rows = len(df) if df is not None else 0
-            # Set default to min(2, max(0, available_rows - 1)) to ensure we have at least 1 row left for generation
-            dynamic_default = FEW_SHOT_DYNAMIC_DEFAULT(available_rows)
+        if few_shot_enabled:
+            # Initialize few_shot if not present
+            if FEW_SHOT_KEY not in st.session_state.template_config:
+                st.session_state.template_config[FEW_SHOT_KEY] = {
+                    "count": 2,
+                    "format": "same_examples__no_variations",
+                    "split": "all",
+                    "filter_by": None,  # Initialize new fields
+                    "fallback_strategy": "global"
+                }
 
-            few_shot_count = st.number_input(
-                "Number of examples",
-                min_value=0,
-                max_value=min(10, available_rows - 1) if available_rows > 1 else 0,
-                value=st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('count', dynamic_default),
-                key="few_shot_count",
-                help=f"Set to 0 to disable few-shot examples. Max available: {available_rows - 1 if available_rows > 1 else 0} (keeping 1 row for generation)"
+            current_few_shot_config = st.session_state.template_config[FEW_SHOT_KEY]
+
+            fs_count = st.number_input(
+                "Number of few-shot examples:",
+                min_value=1,
+                value=current_few_shot_config.get("count", 2),
+                key="few_shot_count"
             )
 
-        with col2:
-            few_shot_format = st.selectbox(
-                "Example selection",
-                options=["different_examples__different_order_per_variation", "same_examples__no_variations", "same_examples__synchronized_order_variations", "different_examples__same_shuffling_order_across_rows"],
-                format_func=lambda x: {
-                    "different_examples__different_order_per_variation": "Different Examples, Different Order per Variation (maximum variety)",
-                    "same_examples__no_variations": "Same Examples, No Variations (consistent for all rows)",
-                    "same_examples__synchronized_order_variations": "Same Examples, Synchronized Order Variations (consistent examples, varied order)",
-                    "different_examples__same_shuffling_order_across_rows": "Different Examples, Same Shuffling Order across Rows (unique examples, consistent shuffling)"
-                }.get(x, x),
-                index=0 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format',
-                                                                                      'different_examples__different_order_per_variation') == 'different_examples__different_order_per_variation' else (
-                    1 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format') == 'same_examples__no_variations' else (
-                        2 if st.session_state.template_config.get(FEW_SHOT_KEY, {}).get('format') == 'same_examples__synchronized_order_variations' else 3
-                    )
+            fs_format = st.selectbox(
+                "Few-shot Format Strategy:",
+                options=[
+                    "same_examples__no_variations",
+                    "same_examples__synchronized_order_variations",
+                    "different_examples__same_shuffling_order_across_rows",
+                    "different_examples__different_order_per_variation"
+                ],
+                index=["same_examples__no_variations",
+                       "same_examples__synchronized_order_variations",
+                       "different_examples__same_shuffling_order_across_rows",
+                       "different_examples__different_order_per_variation"].index(
+                    current_few_shot_config.get("format", "same_examples__no_variations")
                 ),
                 key="few_shot_format",
-                help="Choose how few-shot examples are selected and ordered"
+                help="Choose how few-shot examples vary: examples, order, or both."
             )
 
-        with col3:
-            few_shot_split = st.selectbox(
-                "Data split",
+            fs_split = st.selectbox(
+                "Data Split for Examples:",
                 options=["all", "train", "test"],
-                index=0,
+                index=["all", "train", "test"].index(
+                    current_few_shot_config.get("split", "all")
+                ),
                 key="few_shot_split",
-                help="Which portion of data to use for examples"
+                help="Select examples from 'train', 'test', or 'all' data split."
             )
 
-        if few_shot_count > 0:
-            configured_fields[FEW_SHOT_KEY] = {
-                'count': few_shot_count,
-                'format': few_shot_format,
-                'split': few_shot_split
-            }
+            st.markdown("**Few-shot Filtering (Advanced):**")
+            st.write("Optionally filter few-shot examples by a specific column's value from the current row.")
 
+            # Add filter_by option
+            filter_by_options = [None] + available_columns  # Allow no filter
+            current_filter_by = current_few_shot_config.get("filter_by", None)
+            if current_filter_by not in filter_by_options:
+                current_filter_by = None  # Reset if column no longer exists
+
+            fs_filter_by = st.selectbox(
+                "Filter Few-shot Examples by Column:",
+                options=filter_by_options,
+                index=filter_by_options.index(current_filter_by),
+                format_func=lambda x: x if x is not None else "None (No Filtering)",
+                key="few_shot_filter_by",
+                help="Select a column (e.g., 'category') to use for filtering few-shot examples. Examples will be chosen from the same value as the current row in this column."
+            )
+
+            # Add fallback_strategy option
+            fs_fallback_strategy = st.selectbox(
+                "Fallback Strategy (if not enough filtered examples):",
+                options=["global", "strict"],
+                index=["global", "strict"].index(
+                    current_few_shot_config.get("fallback_strategy", "global")
+                ),
+                key="few_shot_fallback_strategy",
+                help="- Global: Pulls additional examples from the entire dataset if filtered examples are insufficient. \n- Strict: Only uses examples from the filtered category; raises an error if count cannot be met."
+            )
+
+            # Update session state
+            st.session_state.template_config[FEW_SHOT_KEY] = {
+                "count": fs_count,
+                "format": fs_format,
+                "split": fs_split,
+                "filter_by": fs_filter_by,
+                "fallback_strategy": fs_fallback_strategy
+            }
+        else:
+            # Remove few_shot from config if disabled
+            if FEW_SHOT_KEY in st.session_state.template_config:
+                del st.session_state.template_config[FEW_SHOT_KEY]
 
 
     # Template preview and validation

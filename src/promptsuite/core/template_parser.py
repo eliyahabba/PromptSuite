@@ -26,6 +26,8 @@ class TemplateField:
     few_shot_format: Optional[
         str] = None  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
     few_shot_split: Optional[str] = None  # 'train', 'test', or 'all' for data splitting
+    few_shot_filter_by: Optional[str] = None  # Column name to filter few-shot examples by (e.g., 'category')
+    few_shot_fallback_strategy: str = "global"  # 'global' or 'strict'
     # Enumerate specific parameters
     enumerate_field: Optional[str] = None  # Which field to enumerate
     enumerate_type: Optional[str] = None  # Type of enumeration ('1234', 'ABCD', etc.)
@@ -122,7 +124,9 @@ class TemplateParser:
                         variation_types=variation_types,
                         few_shot_count=config.get("count", 2),
                         few_shot_format=few_shot_format,
-                        few_shot_split=config.get("split", "all")
+                        few_shot_split=config.get("split", "all"),
+                        few_shot_filter_by=config.get("filter_by", None),
+                        few_shot_fallback_strategy=config.get("fallback_strategy", "global")
                     )
                     self.fields.append(field)
                     continue
@@ -202,6 +206,10 @@ class TemplateParser:
             # For few-shot with split, we might need a split column
             if field.name == FEW_SHOT_KEY and field.few_shot_split in ['train', 'test']:
                 required.add('split')  # Convention: 'split' column indicates train/test
+            
+            # For few-shot with filter_by, we need the filter column
+            if field.name == FEW_SHOT_KEY and field.few_shot_filter_by:
+                required.add(field.few_shot_filter_by)
 
         # Check if gold field value exists in columns
         if template and GOLD_KEY in template:
@@ -294,6 +302,9 @@ class TemplateParser:
 
                 if field.few_shot_split not in ['all', 'train', 'test']:
                     errors.append(f"Few-shot split must be 'all', 'train', or 'test', got {field.few_shot_split}")
+
+                if field.few_shot_fallback_strategy not in ['global', 'strict']:
+                    errors.append(f"Few-shot fallback_strategy must be 'global' or 'strict', got {field.few_shot_fallback_strategy}")
 
         # Validate enumerate configuration
         for field in fields:

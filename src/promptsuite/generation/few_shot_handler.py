@@ -30,10 +30,14 @@ class FewShotConfig:
         count: Number of few-shot examples to use
         format: Sampling strategy - 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
         split: Data split to use for few-shot examples - 'train', 'test', or 'all'
+        filter_by: Optional column name to filter few-shot examples by (e.g., 'category')
+        fallback_strategy: Strategy when not enough examples in filtered category - 'global' or 'strict'
     """
     count: int = 2
     format: str = "same_examples__no_variations"  # 'same_examples__no_variations', 'same_examples__synchronized_order_variations', 'different_examples__same_shuffling_order_across_rows', or 'different_examples__different_order_per_variation'
     split: str = "all"  # 'train', 'test', or 'all'
+    filter_by: Optional[str] = None  # Column name to filter examples by (e.g., 'category')
+    fallback_strategy: str = "global"  # 'global' or 'strict'
 
 
 class FewShotHandler:
@@ -84,7 +88,9 @@ class FewShotHandler:
         few_shot_config = FewShotConfig(
             count=config.get("count", 2),
             format=config.get("format", "same_examples__no_variations"),
-            split=config.get("split", "all")
+            split=config.get("split", "all"),
+            filter_by=config.get("filter_by", None),
+            fallback_strategy=config.get("fallback_strategy", "global")
         )
 
         # Validate configuration
@@ -102,6 +108,9 @@ class FewShotHandler:
 
         if few_shot_config.split not in ['all', 'train', 'test']:
             raise FewShotConfigurationError("split", few_shot_config.split, ['all', 'train', 'test'])
+
+        if few_shot_config.fallback_strategy not in ['global', 'strict']:
+            raise FewShotConfigurationError("fallback_strategy", few_shot_config.fallback_strategy, ['global', 'strict'])
 
         return few_shot_config
 

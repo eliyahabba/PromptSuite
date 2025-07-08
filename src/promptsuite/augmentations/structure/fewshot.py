@@ -116,8 +116,25 @@ This augmenter handles few-shot examples for NLP tasks.
         # Remove current row to avoid data leakage (regardless of its split)
         available_data = available_data.drop(current_row_idx, errors='ignore')
 
+        # Apply category filtering if configured
+        filter_by = getattr(few_shot_field, 'few_shot_filter_by', None)
+        fallback_strategy = getattr(few_shot_field, 'few_shot_fallback_strategy', 'global')
+        
+        if filter_by:
+            current_row = data.loc[current_row_idx]
+            available_data = self._filter_examples_by_category(
+                available_data, current_row, filter_by, count, fallback_strategy
+            )
+
         if len(available_data) < count:
-            raise FewShotDataInsufficientError(count, len(available_data), split)
+            if filter_by and fallback_strategy == 'strict':
+                current_category = data.loc[current_row_idx][filter_by] if current_row_idx in data.index else "Unknown"
+                raise FewShotDataInsufficientError(
+                    count, len(available_data), split,
+                    filter_by=filter_by, filter_value=current_category
+                )
+            else:
+                raise FewShotDataInsufficientError(count, len(available_data), split)
 
         # Sample examples based on format
         if few_shot_format == "same_examples__no_variations":
@@ -228,6 +245,51 @@ This augmenter handles few-shot examples for NLP tasks.
                     "output": output_value if output_value else ""
                 })
         return examples
+
+    def _filter_examples_by_category(
+        self, 
+        data: pd.DataFrame, 
+        current_row: pd.Series,
+        filter_column: str,
+        count: int,
+        fallback_strategy: str
+    ) -> pd.DataFrame:
+        """Filter few-shot examples by category/metadata."""
+        
+        if filter_column not in data.columns:
+            print(f"⚠️ Filter column '{filter_column}' not found in data, using all available data")
+            return data
+        
+        if filter_column not in current_row.index:
+            print(f"⚠️ Filter column '{filter_column}' not found in current row, using all available data")
+            return data
+        
+        current_category = current_row[filter_column]
+        
+        # Filter by category
+        category_data = data[data[filter_column] == current_category]
+        
+        if len(category_data) >= count:
+            return category_data
+        
+        # Handle fallback strategies
+        if fallback_strategy == "global":
+            remaining_needed = count - len(category_data)
+            other_data = data[data[filter_column] != current_category]
+            
+            if len(other_data) > 0:
+                # Sample the remaining needed examples from other categories
+                sample_size = min(remaining_needed, len(other_data))
+                other_sampled = other_data.sample(n=sample_size, random_state=42)
+                return pd.concat([category_data, other_sampled])
+            else:
+                return category_data
+        
+        elif fallback_strategy == "strict":
+            # Return only what we have from the category, even if it's less than count
+            return category_data
+        
+        return category_data
 
     def _fill_template_placeholders(self, template: str, values: Dict[str, str]) -> str:
         """Fill template placeholders with values."""

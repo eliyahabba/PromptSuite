@@ -185,8 +185,8 @@ class PromptSuiteEngine:
         start_time = time.time()
         total_rows = len(generation_data)
         
-        with tqdm(generation_data.iterrows(), desc="Generating variations", total=total_rows) as pbar:
-            for row_idx, row in pbar:
+        with tqdm(enumerate(generation_data.iterrows()), desc="Generating variations", total=total_rows) as pbar:
+            for pbar_row_idx, (row_idx, row) in pbar:
                 row_start_time = time.time()
                 
                 # Generate variations for row-specific fields only (not instruction/prompt format)
@@ -224,11 +224,11 @@ class PromptSuiteEngine:
                 row_time = time.time() - row_start_time
                 variations_this_row = len(row_variations)
                 total_variations_so_far = len(all_variations)
-                avg_time_per_row = (time.time() - start_time) / (row_idx + 1)
-                eta = avg_time_per_row * (total_rows - row_idx - 1)
+                avg_time_per_row = (time.time() - start_time) / (pbar_row_idx + 1)
+                eta = avg_time_per_row * (total_rows - pbar_row_idx - 1)
                 
                 pbar.set_postfix({
-                    'row': f"{row_idx + 1}/{total_rows}",
+                    'row': f"{pbar_row_idx + 1}/{total_rows}",
                     'variations': f"{variations_this_row}",
                     'total': f"{total_variations_so_far}",
                     'avg_time': f"{avg_time_per_row:.2f}s",

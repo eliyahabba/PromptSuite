@@ -229,9 +229,15 @@ class FewShotGoldFieldMissingError(FewShotError):
 class FewShotDataInsufficientError(FewShotError):
     """Raised when there's not enough data for few-shot examples."""
 
-    def __init__(self, requested: int, available: int, split: str = "all"):
+    def __init__(self, requested: int, available: int, split: str = "all", filter_by: str = None, filter_value: Any = None):
         context = {"requested": requested, "available": available, "split": split}
-        message = f"Not enough data for few-shot examples: requested {requested}, available {available} (split: {split})"
+        if filter_by and filter_value:
+            context["filter_by"] = filter_by
+            context["filter_value"] = filter_value
+            message = f"Not enough data for few-shot examples: requested {requested}, available {available} (split: {split} with filter_by='{filter_by}' (category: '{filter_value}'))"
+        else:
+            message = f"Not enough data for few-shot examples: requested {requested}, available {available} (split: {split})"
+        
         suggestion = "Reduce few-shot count or provide more data. Check if split configuration is correct"
         super().__init__(message, "FEWSHOT_DATA_INSUFFICIENT", context, suggestion)
 
