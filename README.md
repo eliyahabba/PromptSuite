@@ -434,9 +434,20 @@ Few-shot examples can be configured with different sampling strategies. The form
 "few_shot": {
     "count": 2,                    # Number of examples to use
     "format": "same_examples__synchronized_order_variations",   # Sampling strategy
-    "split": "train"              # Use only training data for examples
+    "split": "train",              # Use only training data for examples
+    "filter_by": "category",       # NEW: Optional column name to filter few-shot examples by
+    "fallback_strategy": "global"  # NEW: What to do if not enough examples in filtered category ('global' or 'strict')
 }
 ```
+
+**Few-Shot Filtering with `filter_by` and `fallback_strategy`:**
+
+This new feature allows you to control which few-shot examples are selected based on metadata columns (e.g., 'category', 'difficulty').
+
+-   `filter_by`: Specify a column name in your dataset (e.g., `"category"`, `"subject"`) to ensure that few-shot examples are chosen from the same category as the current data row.
+-   `fallback_strategy`: Defines the behavior when there aren't enough few-shot examples within the filtered category:
+    *   `"global"`: (Default) If there aren't enough examples in the specified `filter_by` category, the system will sample the remaining required examples from the *entire* dataset (globally), ignoring the category filter for those additional examples. This ensures that the requested `count` of few-shot examples is always met.
+    *   `"strict"`: If there aren't enough examples in the specified `filter_by` category, the system will *only* use the examples available within that category. It will not pull examples from other categories, and if the `count` cannot be met from the category, it will raise an `FewShotDataInsufficientError`. This is useful for strict domain-specific few-shot requirements.
 
 This feature is useful when you want each test question to have unique few-shot examples for context, but don't need multiple variations of the few-shot examples themselves.
 
