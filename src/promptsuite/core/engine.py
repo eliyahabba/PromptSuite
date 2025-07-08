@@ -236,7 +236,7 @@ class PromptSuiteEngine:
                 })
                 
                 if progress_callback:
-                    progress_callback(row_idx, total_rows, variations_this_row, total_variations_so_far, eta)
+                    progress_callback(pbar_row_idx, total_rows, variations_this_row, total_variations_so_far, eta)
 
         return all_variations
 

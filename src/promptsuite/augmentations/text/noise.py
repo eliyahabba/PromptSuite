@@ -289,7 +289,7 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
         
         # Map technique names to functions
         technique_map = {
-            "typos": lambda t: self.butter_finger(t, prob=0.05, max_outputs=1),
+            "typos": lambda t: self.butter_finger(t, prob=0.03, max_outputs=1),
             "capitalization": lambda t: self.change_char_case(t, prob=0.15, max_outputs=1),
             "spacing": lambda t: self.add_white_spaces(t, max_outputs=1),
             "swap_characters": lambda t: self.swap_characters(t, max_outputs=1),
@@ -297,12 +297,16 @@ class TextNoiseAugmenter(BaseAxisAugmenter):
         }
         transformations = [technique_map[name] for name in techniques if name in technique_map]
         
-        variations = random_composed_augmentations(
-            protected_text,
-            transformations,
-            self.n_augments,
-            self._rng
-        )
+        # Always include the original text as the first variation
+        variations = [protected_text]
+        if self.n_augments > 1:
+            variations.extend(random_composed_augmentations(
+                protected_text,
+                transformations,
+                self.n_augments - 1,  # Generate n_augments - 1 additional variations
+                self._rng
+            ))
+
         # Restore placeholders in all variations
         restored_variations = [restore_placeholders(var, placeholder_map) for var in variations]
         return restored_variations
