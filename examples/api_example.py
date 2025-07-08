@@ -2617,7 +2617,8 @@ def example_preserve_original_data():
         INSTRUCTION: "You are a helpful and harmless AI assistant. Please respond to the following request carefully.",
         PROMPT_FORMAT: f"User: {{{QUESTION_KEY}}}",
         QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],  # Only vary the question
-        GOLD_KEY: 'answer'
+        GOLD_KEY: 'answer',
+
     }
     
     ps.set_template(template)
@@ -2695,13 +2696,269 @@ def example_preserve_original_data():
     return variations
 
 
+def example_category_filtered_few_shot():
+    """
+    Example demonstrating few-shot filtering by category with different fallback strategies.
+    """
+    print("\n=== Category-Filtered Few-Shot Example ===")
+    print("🎯 Demonstrating few-shot filtering by category")
+    
+    # Create sample data with different categories
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is the capital of Germany?', 
+            'What is 2+2?',
+            'What is 5*3?',
+            'Who wrote Romeo and Juliet?',
+            'Who painted the Mona Lisa?',
+            'What is the largest planet?',
+            'What is the smallest planet?'
+        ],
+        'category': [
+            'Geography', 'Geography', 
+            'Mathematics', 'Mathematics',
+            'Literature', 'Literature',
+            'Astronomy', 'Astronomy'
+        ],
+        'difficulty': [
+            'Easy', 'Easy',
+            'Easy', 'Easy', 
+            'Easy', 'Easy',
+            'Medium', 'Medium'
+        ],
+        'answer': [
+            'Paris', 'Berlin',
+            '4', '15',
+            'William Shakespeare', 'Leonardo da Vinci',
+            'Jupiter', 'Mercury'
+        ],
+        'split': [
+            'train', 'train',
+            'train', 'train',
+            'train', 'train',
+            'test', 'test'
+        ]
+    })
+    
+    print("📊 Sample Data:")
+    print(data.to_string(index=False))
+    print()
+    
+    # Test 1: Global fallback strategy
+    print("🔄 Test 1: Global Fallback Strategy")
+    print("-" * 40)
+    
+    ps1 = PromptSuite()
+    ps1.load_dataframe(data)
+    
+    template_global = {
+        INSTRUCTION: 'You are a helpful AI assistant.',
+        PROMPT_FORMAT: f'Question: {{{QUESTION_KEY}}}\nAnswer:',
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
+        GOLD_KEY: 'answer',
+        FEW_SHOT_KEY: {
+            "count": 2,
+            "format": "same_examples__no_variations",
+            "split": "train",
+            "filter_by": "category",
+            "fallback_strategy": "global"
+        }
+    }
+    
+    ps1.set_template(template_global)
+    ps1.configure(max_rows=10, variations_per_field=1, max_variations_per_row=1, random_seed=42)
+    
+    try:
+        variations_global = ps1.generate(verbose=True)
+        print(f"✅ Generated {len(variations_global)} variations with global fallback")
+        
+        # Show first variation
+        if variations_global:
+            print("\n📝 Sample variation (global fallback):")
+            print("Prompt:")
+            print(variations_global[0]['prompt'])
+            print()
+            
+    except Exception as e:
+        print(f"❌ Error with global fallback: {e}")
+    
+    # Test 2: Strict fallback strategy
+    print("🔄 Test 2: Strict Fallback Strategy")
+    print("-" * 40)
+    
+    ps2 = PromptSuite()
+    ps2.load_dataframe(data)
+    
+    template_strict = {
+        INSTRUCTION: 'You are a helpful AI assistant.',
+        PROMPT_FORMAT: f'Question: {{{QUESTION_KEY}}}\nAnswer:',
+        QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
+        GOLD_KEY: 'answer',
+        FEW_SHOT_KEY: {
+            "count": 2,
+            "format": "same_examples__no_variations", 
+            "split": "train",
+            "filter_by": "category",
+            "fallback_strategy": "strict"
+        }
+    }
+    
+    ps2.set_template(template_strict)
+    ps2.configure(max_rows=2, variations_per_field=1, max_variations_per_row=1, random_seed=42)
+    
+    try:
+        variations_strict = ps2.generate(verbose=True)
+        print(f"✅ Generated {len(variations_strict)} variations with strict fallback")
+        
+        # Show first variation
+        if variations_strict:
+            print("\n📝 Sample variation (strict fallback):")
+            print("Prompt:")
+            print(variations_strict[0]['prompt'])
+            print()
+            
+    except Exception as e:
+        print(f"❌ Error with strict fallback: {e}")
+    
+    # Test 3: Test with insufficient data for strict mode
+    print("🔄 Test 3: Strict Mode with Insufficient Data")
+    print("-" * 40)
+    
+    # Create data with only 1 example per category
+    limited_data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is 2+2?',
+            'Who wrote Romeo and Juliet?',
+        ],
+        'category': [
+            'Geography',
+            'Mathematics', 
+            'Literature'
+        ],
+        'answer': [
+            'Paris',
+            '4',
+            'William Shakespeare'
+        ],
+        'split': [
+            'train',
+            'train',
+            'test'  # This will be the target for generation
+        ]
+    })
+    
+    ps3 = PromptSuite()
+    ps3.load_dataframe(limited_data)
+    ps3.set_template(template_strict)
+    ps3.configure(max_rows=1, variations_per_field=1, max_variations_per_row=1, random_seed=42)
+    
+    try:
+        variations_limited = ps3.generate(verbose=True)
+        print(f"✅ Generated {len(variations_limited)} variations with limited data")
+    except Exception as e:
+        print(f"❌ Expected error with strict mode and insufficient data: {e}")
+
+    # Create sample data with different categories
+    data = pd.DataFrame({
+        'question': [
+            'What is the capital of France?',
+            'What is the capital of Germany?',
+            'What is 2+2?',
+            'What is 5*3?',
+            'Who wrote Romeo and Juliet?',
+            'Who painted the Mona Lisa?',
+            'What is the largest planet?',
+            'What is the smallest planet?'
+        ],
+        'category': [
+            'Geography', 'Geography',
+            'Mathematics', 'Mathematics',
+            'Literature', 'Literature',
+            'Astronomy', 'Astronomy'
+        ],
+        'difficulty': [
+            'Easy', 'Easy',
+            'Easy', 'Easy',
+            'Easy', 'Easy',
+            'Medium', 'Medium'
+        ],
+        'answer': [
+            'Paris', 'Berlin',
+            '4', '15',
+            'William Shakespeare', 'Leonardo da Vinci',
+            'Jupiter', 'Mercury'
+        ],
+        'split': [
+            'train', 'train',
+            'train', 'train',
+             'test', 'test',
+            'train', 'train'
+        ]
+    })
+
+    print("📊 Sample Data:")
+    print(data.to_string(index=False))
+    print()
+
+    # Test 1: Global fallback strategy
+    print("🔄 Test 1: Global Fallback Strategy")
+    print("-" * 40)
+
+    ps1 = PromptSuite()
+    ps1.load_dataframe(data)
+
+    template_global = {
+        INSTRUCTION: 'You are a helpful AI assistant.',
+        PROMPT_FORMAT: f'Question: {{{QUESTION_KEY}}}\nAnswer:',
+        # QUESTION_KEY: [FORMAT_STRUCTURE_VARIATION],
+        GOLD_KEY: 'answer',
+        FEW_SHOT_KEY: {
+            "count": 4,
+            "format": "different_examples__different_order_per_variation",
+            "split": "train",
+            "filter_by": "difficulty",
+            "fallback_strategy": "global"
+        }
+    }
+
+    ps1.set_template(template_global)
+    ps1.configure(max_rows=10, variations_per_field=4, max_variations_per_row=4, random_seed=22)
+
+    try:
+        variations_global = ps1.generate(verbose=True)
+        print(f"✅ Generated {len(variations_global)} variations with global fallback")
+
+        # Show first variation
+        if variations_global:
+            print("\n📝 Sample variation (global fallback):")
+            print("Prompt:")
+            print(variations_global[0]['prompt'])
+            print()
+
+    except Exception as e:
+        print(f"❌ Error with global fallback: {e}")
+
+
+    print("\n🎉 Category filtering example completed!")
+    print("💡 Key Benefits:")
+    print("   - Few-shot examples are filtered by category/metadata")
+    print("   - Global fallback ensures generation always succeeds")
+    print("   - Strict mode enforces category consistency")
+    print("   - Perfect for domain-specific few-shot learning")
+
+
 if __name__ == "__main__":
     # Run the new preserve original data example
     # example_preserve_original_data()
     
+    # Run the new category filtered few-shot example
+    example_category_filtered_few_shot()
+    
     # Run the new unordered random few-shot example
     # example_few_shot_unordered_random()
-    example_platform_switching()
+    # example_platform_switching()
 
     # Run the new list data support example first
     # example_list_data_support()
