@@ -20,7 +20,7 @@ from promptsuite.core.exceptions import (
     DatasetLoadError, FileNotFoundError, DataParsingError, InvalidDataFormatError,
     InvalidTemplateError, InvalidConfigurationError, UnknownConfigurationError,
     DataNotLoadedError, MissingTemplateError, NoResultsToExportError,
-    UnsupportedExportFormatError, ExportWriteError
+    UnsupportedExportFormatError, ExportWriteError, PromptSuiteEngineError
 )
 from promptsuite.core.exceptions import GenerationError
 from promptsuite.core.template_keys import (
@@ -399,12 +399,13 @@ class PromptSuite:
         except Exception as e:
             # Enhanced error reporting
             error_msg = f"Generation failed: {str(e)}"
+            error_context = e.context if isinstance(e, PromptSuiteEngineError) else {}
             if verbose:
                 import traceback
                 print(f"❌ Error details: {error_msg}")
                 print("🔍 Full traceback:")
                 traceback.print_exc()
-            raise GenerationError(str(e), "generation", str(e))
+            raise GenerationError(error_msg, "generation", error_context)
 
     def export(self, filepath: Union[str, Path], format: str = "json") -> None:
         """
