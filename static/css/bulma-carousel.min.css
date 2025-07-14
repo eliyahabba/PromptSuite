@@ -1,0 +1,43 @@
+/* Bulma Carousel CSS - Placeholder */
+/* Download from: https://github.com/VizuaaLOG/bulma-carousel */
+
+.carousel {
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-item {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-item.is-active {
+  display: block;
+}
+
+.carousel-navigation {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 1rem;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.carousel-navigation.is-prev {
+  left: 1rem;
+}
+
+.carousel-navigation.is-next {
+  right: 1rem;
+} 

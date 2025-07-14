@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners -->
+  <title>PromptSuite: A Task-Agnostic Framework for Multi-Prompt Generation</title>
+  <meta name="description" content="PromptSuite: A flexible framework for automatic generation of prompt variations for robust LLM evaluation" />
+  <meta property="og:title" content="🚀 PromptSuite: A Task-Agnostic Framework for Multi-Prompt Generation" />
+  <meta property="og:description" content="A flexible framework that enables automatic generation of various prompts for robust multi-prompt evaluation of LLMs." />
+  <meta property="og:url" content="https://eliyahabba.github.io/PromptSuite/" />
+  <!-- Replace with your banner image -->
+  <meta property="og:image" content="static/image/your_banner_image.png" />
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+
+  <meta name="twitter:title" content="🚀 PromptSuite: A Task-Agnostic Framework for Multi-Prompt Generation">
+  <meta name="twitter:description" content="A flexible framework for automatic generation of prompt variations for robust LLM evaluation." />
+  <!-- Replace with your Twitter banner image -->
+  <meta name="twitter:image" content="static/images/your_twitter_banner_image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="keywords" content="PromptSuite, LLM Evaluation, prompt variations, multi-prompt evaluation, framework">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="logo.png">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+<style>
+  .highlight-word {
+    background-color: #ffff00;
+    padding: 0 4px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+  }
+  .compact-box {
+    padding: 1.5rem;
+    height: auto !important;
+  }
+  .info-footer {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  .code-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .code-header {
+    background-color: #777f8c; /* Our chosen gray */
+    color: #111111; /* Very dark color, almost black */
+    padding: 8px 16px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    font-size: 14px;
+    font-weight: bold; /* Bold text */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .copy-button {
+    background-color: #ffffff; /* Lighter */
+    color: #111111; /* Pure white */
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold; /* Bold text */
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .copy-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+        font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .copy-button.copied {
+    background-color: #4cd964;
+    color: #ffffff;
+  }
+
+  .code-container pre {
+    margin-top: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+
+  .language-tree {
+    line-height: 1.5;
+  }
+
+  .language-tree .hljs-directory {
+    color: #4a90e2 !important;
+    font-weight: bold;
+  }
+
+  .language-tree .hljs-file {
+    color: #4cd964 !important;
+  }
+
+  .language-tree .hljs-tree {
+    color: #f39c12 !important;
+  }
+
+  .language-tree .hljs-note {
+    color: #8a8a8a !important;
+    font-style: italic;
+  }
+
+  /* Make columns wider and equal height */
+  .columns.is-centered {
+    max-width: 2000px;  /* Increased from 1800px to 2000px */
+    margin: 0 auto;
+    padding: 0 2rem;
+    margin-left: -6rem;  /* Increased negative margin from -4rem to -6rem */
+    margin-right: -6rem; /* Increased negative margin from -4rem to -6rem */
+    width: calc(100% + 12rem); /* Adjusted to compensate for larger negative margins */
+  }
+
+  /* Make all boxes in contribution section equal height and wider */
+  .columns.is-centered .box.compact-box {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    width: 100%;
+    min-width: 443px;
+    max-width: 443px;
+    min-height: 320px;  /* Reduced from 380px to 320px */
+    margin: 0 auto;
+  }
+
+  /* Adjust content padding and margins */
+  .columns.is-centered .box.compact-box .content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: 1.15em;
+    padding: 0;
+    margin: 0;
+    height: 100%;    /* Added to ensure content fills box height */
+  }
+
+  /* Adjust list padding and margins */
+  .columns.is-centered .box.compact-box .content ul {
+    margin: 0;
+    padding-left: 0.8rem;
+    padding-right: 0.2rem;
+    flex-grow: 1;    /* Added to make list fill available space */
+    display: flex;    /* Added for vertical distribution */
+    flex-direction: column;  /* Added for vertical distribution */
+    justify-content: space-between;  /* Added to distribute items */
+  }
+
+  /* Adjust list items spacing */
+  .columns.is-centered .box.compact-box .content ul li {
+    margin-bottom: 0.3rem;  /* Reduced from 0.75rem */
+    line-height: 1.2;      /* Reduced from 1.4 */
+  }
+
+  /* Adjust title margins */
+  .columns.is-centered .box.compact-box h3.title {
+    margin-bottom: 1rem;     /* Reduce space after title */
+  }
+
+  /* Ensure all columns have same height */
+  .columns.is-centered .column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* Adjust nested list spacing */
+  .columns.is-centered .box.compact-box .content ul ul {
+    margin-bottom: 0.25rem !important;  /* Reduced from 0.5rem */
+    margin-top: 0.25rem !important;
+  }
+
+  /* Adjust nested list items spacing */
+  .columns.is-centered .box.compact-box .content ul ul li {
+    margin-bottom: 0.2rem;  /* Reduced from 0.25rem */
+    line-height: 1.2;      /* Reduced from 1.3 */
+    font-size: 0.95em;
+  }
+
+  /* Adjust spacing after list item with nested list */
+  .columns.is-centered .box.compact-box .content ul li:has(> ul) {
+    margin-bottom: 0.25rem;  /* Reduced space after parent list item */
+  }
+
+  /* Remove extra margin from last items */
+  .columns.is-centered .box.compact-box .content ul li:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Adjust content distribution in all boxes */
+  .columns.is-centered .box.compact-box .content ul {
+    justify-content: flex-start;  /* Changed from space-between */
+    gap: 0.3rem;                 /* Added consistent small gap */
+  }
+
+  /* Specific width for "Why Use" box */
+  .columns.is-centered .column:first-child .box.compact-box {
+    min-width: 400px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  /* Specific width for "How to Use" box */
+  .columns.is-centered .column:last-child .box.compact-box {
+    min-width: 400px;  /* Increased from 480px to 520px */
+    max-width: 400px;  /* Increased max-width to match */
+    margin: 0 auto;
+  }
+
+  /* Default width for middle box */
+  .columns.is-centered .column:not(:first-child):not(:last-child) .box.compact-box {
+    min-width: 443px;
+    max-width: 443px;
+    margin: 0 auto;
+  }
+
+  /* Specific spacing for "Why Use" box */
+  .columns.is-centered .column:first-child .box.compact-box .content ul li {
+    margin-bottom: 0.4rem;  /* Reduced from 0.75rem */
+    line-height: 1.3;      /* Reduced from 1.4 */
+  }
+
+/* Animated Waves Background */
+.animated-waves-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.animated-waves-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 1;
+}
+
+.animated-waves-bg::before,
+.animated-waves-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    -45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  animation: waves 8s linear infinite;
+}
+
+.animated-waves-bg::after {
+  background: linear-gradient(
+    45deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.05) 40%,
+    transparent 60%
+  );
+  animation: waves 12s linear infinite reverse;
+}
+
+@keyframes waves {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+/* Add some floating animation to the content */
+.animated-waves-section .box {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Animated Button with Waves */
+.animated-button {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: none !important;
+  overflow: hidden;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+}
+
+.animated-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: wave-sweep 3s linear infinite;
+}
+
+.animated-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+}
+
+.animated-button:hover::before {
+  animation: wave-sweep 1.5s linear infinite;
+}
+
+@keyframes wave-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Add shine effect to all buttons */
+.publication-links .button {
+  position: relative;
+  overflow: hidden;
+}
+
+.publication-links .button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: button-shine-initial 2s ease-out 0.5s 1 forwards, button-shine-regular 4s linear 3s infinite;
+  z-index: 1;
+}
+
+/* Different delays for each button to create staggered effect */
+.publication-links .button:nth-child(1)::before {
+  animation-delay: 0.2s, 2.2s;
+}
+
+.publication-links .button:nth-child(2)::before {
+  animation-delay: 0.4s, 2.4s;
+}
+
+.publication-links .button:nth-child(3)::before {
+  animation-delay: 0.6s, 2.6s;
+}
+
+.publication-links .button:nth-child(4)::before {
+  animation-delay: 0.8s, 2.8s;
+}
+
+.publication-links .button:nth-child(5)::before {
+  animation-delay: 1.0s, 3.0s;
+}
+
+.publication-links .button span {
+  position: relative;
+  z-index: 2;
+}
+
+/* Initial fast shine when page loads */
+@keyframes button-shine-initial {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Regular slower shine that repeats */
+@keyframes button-shine-regular {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Interactive Explore Button */
+.interactive-explore-button {
+  position: relative !important;
+  background: linear-gradient(45deg, #ffffff, #f8f9fa) !important;
+  color: #333333 !important;
+  border: 3px solid transparent !important;
+  background-clip: padding-box !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 3px rgba(255,255,255,0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-size: 1.2rem !important;
+  padding: 1rem 2rem !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  overflow: hidden;
+}
+
+.interactive-explore-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  z-index: -1;
+  transition: all 0.3s ease;
+  transform: scale(0);
+  border-radius: 50px;
+}
+
+.interactive-explore-button:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.2), 0 0 0 3px rgba(255,215,0,0.6) !important;
+  color: #333333 !important;
+}
+
+.interactive-explore-button:hover::before {
+  transform: scale(1);
+}
+
+.interactive-explore-button:active {
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+/* Pulse animation to draw attention */
+.interactive-explore-button {
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 3px rgba(255,255,255,0.3);
+  }
+  50% {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 6px rgba(255,255,255,0.5);
+  }
+}
+</style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+<script>
+  // First, activate highlight.js on all code blocks
+  document.addEventListener('DOMContentLoaded', (event) => {
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightElement(block);
+    });
+  });
+
+  // Then add the boxes and buttons
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('pre code').forEach((codeBlock) => {
+      const languageClass = codeBlock.className.split(' ').find(cls => cls.startsWith('language-')) || '';
+      const language = languageClass.replace('language-', '');
+
+      let displayLang = 'Code';
+      if (language === 'python') displayLang = 'Python';
+      else if (language === 'bash') displayLang = 'Bash';
+      else if (language === 'bibtex') displayLang = 'BibTeX';
+
+      const codeContainer = document.createElement('div');
+      codeContainer.className = 'code-container';
+
+      const codeHeader = document.createElement('div');
+      codeHeader.className = 'code-header';
+
+      const langName = document.createElement('span');
+      langName.textContent = displayLang;
+
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-button';
+      copyButton.textContent = 'Copy';
+
+      copyButton.addEventListener('click', () => {
+        const textArea = document.createElement('textarea');
+        textArea.value = codeBlock.textContent;
+        textArea.style.position = 'absolute';
+        textArea.style.left = '-999999px';
+
+        document.body.appendChild(textArea);
+        textArea.select();
+
+        try {
+          document.execCommand('copy');
+          copyButton.textContent = 'Copied!';
+          copyButton.classList.add('copied');
+
+          setTimeout(() => {
+            copyButton.textContent = 'Copy';
+            copyButton.classList.remove('copied');
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
+        }
+
+        document.body.removeChild(textArea);
+      });
+
+      codeHeader.appendChild(langName);
+      codeHeader.appendChild(copyButton);
+
+      const preElement = codeBlock.parentNode;
+      const parent = preElement.parentNode;
+
+      parent.insertBefore(codeContainer, preElement);
+
+      codeContainer.appendChild(codeHeader);
+      codeContainer.appendChild(preElement);
+    });
+  });
+</script>
+</head>
+<body>
+
+  <!-- Main Hero Section -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 0.5rem;">
+              <img src="logo.png" alt="PromptSuite Logo" style="width: 60px; height: 60px;">
+              <span style="font-size: 2.5rem; font-weight: 700; color: #222;">PromptSuite:</span>
+            </div>
+            <div style="font-size: 2.5rem; font-weight: 700; color: #222; margin-bottom: 2rem;">
+              A Task-Agnostic Framework for Multi-Prompt Generation
+            </div>
+            <div class="publication-links">
+              <!-- Code link with GitHub icon -->
+              <span class="link-block">
+                <a href="https://github.com/eliyahabba/PromptSuite" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+              <!-- Paper link -->
+              <span class="link-block">
+                <a href="#" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- PyPI Package link -->
+              <span class="link-block">
+                <a href="https://pypi.org/project/promptsuite/" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">📦</span>
+                  <span>PyPI Package</span>
+                </a>
+              </span>
+              <!-- Web Interface link -->
+              <span class="link-block">
+                <a href="https://promptsuite.streamlit.app/" target="_blank" class="external-link button is-normal is-rounded animated-button">
+                  <span class="icon">
+                    <i class="fas fa-globe"></i>
+                  </span>
+                  <span>Try Web Interface</span>
+                </a>
+              </span>
+              <!-- Contact link -->
+              <span class="link-block">
+                <a href="mailto:eliya.habba@mail.huji.ac.il" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">📧</span>
+                  <span>Contact</span>
+                </a>
+              </span>
+            </div>
+            <div class="is-size-5 publication-authors" style="margin-top: 1rem;">
+              <!-- Author names and institution -->
+              <span class="author-block">
+                <a href="https://eliyahabba.github.io/" target="_blank">Eliya Habba</a><sup>*</sup>,
+              </span>
+              <span class="author-block">
+                <a href="#" target="_blank">Noam Dahan</a><sup>*</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://gililior.github.io/" target="_blank">Gili Lior</a>,
+              </span>
+              <span class="author-block">
+                <a href="https://gabrielstanovsky.github.io/" target="_blank">Gabriel Stanovsky</a>
+              </span>
+              <br>
+              <span class="author-block" style="display: inline-block; min-width: 600px;">
+                The Hebrew University of Jerusalem
+              </span>
+              <br>
+              <span class="author-block" style="font-size: 0.9em; color: #666;">
+                <sup>*</sup>Equal contribution
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- Updated Layout: Demo on left, Installation on right -->
+<section class="hero" style="margin-top: -3rem;">
+  <div class="container is-max-desktop">
+    <div class="columns is-vcentered">
+      <!-- Left Column: Framework Image -->
+      <div class="column" style="max-width: 420px;">
+        <div class="has-text-centered">
+          <img src="static/images/promptsuite-components.png" alt="PromptSuite framework showing modular prompt components and their perturbations" style="margin-top: 5rem; width: 100%; max-width: 1400px; display: block; margin-left: auto; margin-right: auto;">
+          <div style="margin-top: 0.5rem; font-size: 1em; color: #666;">
+            <strong>PromptSuite framework showing modular prompt components and their perturbations</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Quick Start -->
+      <div class="column">
+        <div class="box">
+          <h3 class="title is-4">Python Example</h3>
+          <div class="content">
+            <pre><code class="language-python">from promptsuite import PromptSuite
+
+# Initialize and load data
+ps = PromptSuite()
+ps.load_dataset("squad", split="train[:100]")
+
+# Configure template with variations
+template = {
+    'instruction': 'Answer the question:',
+    'prompt format': 'Q: {question}\nA: {answer}',
+    'instruction variations': ['paraphrase_with_llm'],
+    'question': ['typos and noise']
+}
+ps.set_template(template)
+
+# Generate variations
+ps.configure(variations_per_field=3)
+variations = ps.generate(verbose=True)
+
+# Export results
+ps.export("output.json", format="json")</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+ <section class="section" style="padding-top: 3rem;">
+  <div class="container is-max-desktop">
+    <div class="has-text-centered" style="margin-bottom: 2rem;">
+      <img src="static/images/promptsuite-webui.png" alt="PromptSuite Web Interface" style="max-width: 100%; width: 100%; margin: 0 auto;">
+      <p class="has-text-centered" style="margin-top: 1rem; font-size: 1em; color: #666;">
+        PromptSuite's web interface for easy prompt variation generation
+      </p>
+    </div>
+  </div>
+</section>
+
+ <section class="section" style="background-color: #f5f5f5; padding: 2rem;">
+</section>
+
+<!-- Features Section -->
+<section class="section" style="background-color: #f5f5f5;">
+  <div class="container is-max-desktop">
+    <!-- Main Call to Action -->
+    <div class="has-text-centered mb-6">
+      <h2 class="title is-2">🎯 Why Use PromptSuite? 🎯</h2>
+      <p class="subtitle is-4">Transform single-prompt evaluation into robust multi-prompt evaluation</p>
+    </div>
+
+    <!-- Three Columns Section -->
+    <div class="columns is-centered">
+      <!-- Why Use -->
+      <div class="column">
+        <div class="box compact-box">
+          <h3 class="title is-4 has-text-centered">Why <span class="highlight-word">PromptSuite</span>?</h3>
+          <div class="content">
+            <ul class="has-text-weight-medium" style="margin-top: 0.5rem;">
+              <li class="mb-2">Single-prompt evaluation is unreliable</li>
+              <li class="mb-2">Small changes cause significant performance differences</li>
+              <li class="mb-2">Manual prompt variation is time-consuming</li>
+              <li class="mb-2">Need for standardized multi-prompt evaluation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- What it Does -->
+      <div class="column">
+        <div class="box compact-box">
+          <h3 class="title is-4 has-text-centered">What it <span class="highlight-word">Does</span>?</h3>
+          <div class="content">
+            <ul class="has-text-weight-medium" style="margin-top: 0.5rem;">
+              <li class="mb-2">Generates diverse prompt variations automatically</li>
+              <li class="mb-2">Supports different tasks out-of-the-box</li>
+              <li class="mb-2">Modular design with component-wise perturbations</li>
+              <li class="mb-2">Both Python API and web interface</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- How to Use -->
+      <div class="column">
+        <div class="box compact-box">
+          <h3 class="title is-4 has-text-centered">How to <span class="highlight-word">Use</span>?</h3>
+          <div class="content">
+            <ul class="has-text-weight-medium" style="margin-top: 0.5rem;">
+              <li class="mb-2">Install via pip: <code>pip install promptsuite</code></li>
+              <li class="mb-2">Load your dataset (CSV, JSON, HuggingFace)</li>
+              <li class="mb-2">Configure template with variation types</li>
+              <li class="mb-2">Generate variations with one command</li>
+              <li class="mb-2">Export in multiple formats</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- Interactive Web Interface Callout -->
+  <section class="section animated-waves-section" style="position: relative; overflow: hidden; color: white;">
+    <div class="animated-waves-bg"></div>
+    <div class="container is-max-desktop" style="position: relative; z-index: 2;">
+      <div class="has-text-centered">
+        <h2 class="title is-2" style="color: white; margin-bottom: 2rem;">🌐 Try Our Interactive Web Interface</h2>
+        <p class="subtitle is-4" style="color: #f0f0f0; margin-bottom: 2rem;">
+          No coding required - generate prompt variations through our user-friendly interface
+        </p>
+        <div class="columns is-centered">
+          <div class="column is-8">
+            <div class="box" style="background: rgba(255,255,255,0.1); border: none; backdrop-filter: blur(10px);">
+              <div class="content" style="color: white;">
+                <h3 class="title is-4" style="color: white; margin-bottom: 1rem;">🎮 Features:</h3>
+                <div class="columns">
+                  <div class="column">
+                    <ul style="text-align: left; color: #f0f0f0;">
+                      <li>📁 <strong>Upload Data</strong> or use sample datasets</li>
+                      <li>🔧 <strong>Build Templates</strong> with smart suggestions</li>
+                    </ul>
+                  </div>
+                  <div class="column">
+                    <ul style="text-align: left; color: #f0f0f0;">
+                      <li>⚡ <strong>Generate Variations</strong> with real-time progress</li>
+                      <li>💾 <strong>Export Results</strong> in multiple formats</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+                             <div class="has-text-centered" style="margin-top: 2rem;">
+                 <a href="https://promptsuite.streamlit.app/" class="button is-white is-large interactive-explore-button" style="font-weight: 600;">
+                   <span class="icon">🚀</span>
+                   <span>Launch Web Interface</span>
+                 </a>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">Abstract</h2>
+      <div class="content">
+        <p>
+          Evaluating LLMs with a single prompt has proven unreliable, with small changes leading to significant performance differences. However, generating the prompt variations needed for a more robust multi-prompt evaluation is challenging, limiting its adoption in practice.
+        </p>
+        <p>
+          To address this, we introduce PromptSuite, a framework that enables the automatic generation of various prompts. PromptSuite is flexible – working out of the box on a wide range of tasks and benchmarks. It follows a modular prompt design, allowing controlled perturbations to each component, and is extensible, supporting the addition of new components and perturbation types.
+        </p>
+        <p>
+          Through a series of case studies, we show that PromptSuite provides meaningful variations to support strong evaluation practices. It is available through both a Python API and a user-friendly web interface.
+        </p>
+        <p>
+          Get started: <a href="https://github.com/eliyahabba/PromptSuite" target="_blank">https://github.com/eliyahabba/PromptSuite</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Spacer Section -->
+  <section class="section" style="background-color: #f5f5f5; padding: 2rem;">
+  </section>
+
+<!-- Usage Section -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Using PromptSuite</h2>
+
+    <!-- Installation Section -->
+    <div class="content" style="margin-bottom: 2.5rem;">
+      <h3 class="title is-4">📦 Installation</h3>
+      <p>Install PromptSuite from PyPI:</p>
+      <pre><code class="language-bash">pip install promptsuite</code></pre>
+      <p>Or install from source:</p>
+      <pre><code class="language-bash">git clone https://github.com/eliyahabba/PromptSuite.git
+cd PromptSuite
+pip install -e .</code></pre>
+    </div>
+
+    <!-- Basic Usage Section -->
+    <div class="content" style="margin-bottom: 2.5rem;">
+      <h3 class="title is-4">🚀 Basic Usage</h3>
+      <p>Generate prompt variations with just a few lines of code:</p>
+      <pre><code class="language-python">from promptsuite import PromptSuite
+import pandas as pd
+
+# Initialize
+ps = PromptSuite()
+
+# Load data
+data = [{"question": "What is 2+2?", "answer": "4"}]
+ps.load_dataframe(pd.DataFrame(data))
+
+# Configure template
+template = {
+    'instruction': 'Please answer the following questions.',
+    'prompt format': 'Q: {question}\nA: {answer}',
+    'instruction variations': ['paraphrase_with_llm'],
+    'prompt format variations': ['format structure'],
+}
+ps.set_template(template)
+
+# Generate variations
+ps.configure(variations_per_field=3, api_platform="OpenAI", model_name="gpt-4o-mini")
+variations = ps.generate(verbose=True)
+
+# Export results
+ps.export("output.json", format="json")</code></pre>
+    </div>
+
+    <!-- Advanced Examples Section -->
+    <div class="content" style="margin-bottom: 2.5rem;">
+      <h3 class="title is-4">🎯 Advanced Examples</h3>
+
+      <h4 class="title is-5">Sentiment Analysis</h4>
+      <pre><code class="language-python">import pandas as pd
+from promptsuite import PromptSuite
+
+data = pd.DataFrame({
+    'text': ['I love this movie!', 'This book is terrible.'],
+    'label': ['positive', 'negative']
+})
+
+template = {
+    'instruction': 'Classify the sentiment',
+    'instruction variations': ['paraphrase_with_llm'],
+    'prompt format': 'Text: {text}\nSentiment: {label}',
+    'text': ['typos and noise'],
+}
+
+ps = PromptSuite()
+ps.load_dataframe(data)
+ps.set_template(template)
+ps.configure(variations_per_field=3, max_variations_per_row=2)
+variations = ps.generate(verbose=True)</code></pre>
+
+      <h4 class="title is-5">Multiple Choice with Few-shot</h4>
+      <pre><code class="language-python">template = {
+    'instruction': 'Answer the question:\nQuestion: {question}\nAnswer: {answer}',
+    'instruction variations': ['paraphrase_with_llm'],
+    'question': ['semantic'],
+    'gold': 'answer',
+    'few_shot': {
+        'count': 2,
+        'format': 'same_examples__synchronized_order_variations',
+        'split': 'train'
+    }
+}
+
+ps = PromptSuite()
+ps.load_dataframe(qa_data)
+ps.set_template(template)
+ps.configure(variations_per_field=2)
+variations = ps.generate(verbose=True)</code></pre>
+    </div>
+
+    <!-- Supported Variations Section -->
+    <div class="content" style="margin-bottom: 2.5rem;">
+      <h3 class="title is-4">🔧 Supported Perturbation Types</h3>
+      <div class="table-container">
+        <table class="table is-striped is-hoverable is-fullwidth">
+          <thead>
+            <tr>
+              <th>Perturbation Type</th>
+              <th>Applicable Components</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Formatting</strong></td>
+              <td>Instruction, prompt format, demonstrations, instance content</td>
+              <td>Adds surface-level noise to the text. It includes inserting extra spaces, introducing typos, changing letter casing, and altering punctuation. Following (Sclar et al., 2023).</td>
+            </tr>
+            <tr>
+              <td><strong>Paraphrase</strong></td>
+              <td>Instruction</td>
+              <td>Creates semantically equivalent variations to the instruction that differ in phrasing and style. Following (Mizrahi et al., 2024).</td>
+            </tr>
+            <tr>
+              <td><strong>Context addition</strong></td>
+              <td>Instance content</td>
+              <td>Uses an LLM to add text related to the instance content without revealing or changing the answer. Following (Liu et al., 2023; Levy et al., 2024).</td>
+            </tr>
+            <tr>
+              <td><strong>Demonstration Editing</strong></td>
+              <td>Demonstrations</td>
+              <td>Changes the few-shot examples, their order and their number. Following (Lu et al., 2021).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 0.9em; color: #666; margin-top: 1rem;">
+        <strong>Table 1:</strong> Overview of the perturbation types supported by PromptSuite. The "Applicable Components" column specifies which prompt components each perturbation can be applied to. For example, paraphrasing is applicable to the instruction component.
+      </p>
+    </div>
+
+    <!-- Export Formats Section -->
+    <div class="content">
+      <h3 class="title is-4">💾 Export Formats</h3>
+      <pre><code class="language-python"># JSON - Full data with metadata
+ps.export("output.json", format="json")
+
+# CSV - Flattened for spreadsheets
+ps.export("output.csv", format="csv")
+
+# TXT - Plain prompts only
+ps.export("output.txt", format="txt")</code></pre>
+    </div>
+  </div>
+</section>
+
+    <!-- Citation Section -->
+    <section class="section" id="BibTeX">
+      <div class="container is-max-desktop content">
+        <h2 class="title">Citation</h2>
+        <pre><code class="language-bibtex">@article{habba2024promptsuite,
+  title={PromptSuite: A Task-Agnostic Framework for Multi-Prompt Generation},
+  author={Habba, Eliya and Dahan, Noam and Lior, Gili and Stanovsky, Gabriel},
+  journal={arXiv preprint arXiv:XXXX.XXXXX},
+  year={2024}
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- License Section -->
+    <section class="section">
+      <div class="container is-max-desktop">
+        <h2 class="title is-3">License</h2>
+        <div class="content">
+          <p>
+            This project is licensed under the <strong>MIT License</strong>. See the LICENSE file for details.
+          </p>
+        </div>
+      </div>
+    </section>
+
+</body>
+</html>

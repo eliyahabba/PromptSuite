@@ -1,0 +1,307 @@
+/* Bulma CSS Framework - Placeholder */
+/* Download from: https://bulma.io/css/bulma.min.css */
+
+/* Basic reset and layout styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #363636;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.is-max-desktop {
+  max-width: 1152px;
+}
+
+.section {
+  padding: 3rem 1.5rem;
+}
+
+.hero {
+  background-color: #fafafa;
+}
+
+.hero-body {
+  padding: 3rem 1.5rem;
+}
+
+.columns {
+  display: flex;
+  margin: -0.75rem;
+}
+
+.column {
+  flex: 1;
+  padding: 0.75rem;
+}
+
+.is-centered {
+  justify-content: center;
+}
+
+.is-vcentered {
+  align-items: center;
+}
+
+.box {
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1);
+  color: #4a4a4a;
+  display: block;
+  padding: 1.25rem;
+}
+
+.title {
+  color: #363636;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.125;
+  margin-bottom: 1.5rem;
+}
+
+.title.is-2 {
+  font-size: 2.5rem;
+}
+
+.title.is-3 {
+  font-size: 2rem;
+}
+
+.title.is-4 {
+  font-size: 1.5rem;
+}
+
+.title.is-5 {
+  font-size: 1.25rem;
+}
+
+.subtitle {
+  color: #4a4a4a;
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.25;
+  margin-bottom: 1.5rem;
+}
+
+.subtitle.is-4 {
+  font-size: 1.125rem;
+}
+
+.button {
+  background-color: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  color: #363636;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  font-size: 1rem;
+  height: 2.5em;
+  justify-content: center;
+  line-height: 1.5;
+  padding: 0.5em 1em;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  border-color: #b5b5b5;
+  color: #363636;
+}
+
+.button.is-dark {
+  background-color: #363636;
+  border-color: transparent;
+  color: white;
+}
+
+.button.is-primary {
+  background-color: #3273dc;
+  border-color: transparent;
+  color: white;
+}
+
+.button.is-white {
+  background-color: white;
+  border-color: transparent;
+  color: #0a0a0a;
+}
+
+.button.is-large {
+  font-size: 1.25rem;
+  height: 3em;
+  padding: 0.75em 1.5em;
+}
+
+.button.is-normal {
+  font-size: 1rem;
+}
+
+.button.is-rounded {
+  border-radius: 290486px;
+}
+
+.has-text-centered {
+  text-align: center;
+}
+
+.has-text-weight-medium {
+  font-weight: 500;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.mt-5 {
+  margin-top: 1.25rem;
+}
+
+.content {
+  color: #4a4a4a;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.content ul {
+  list-style: disc outside;
+  margin-left: 2em;
+  margin-top: 1em;
+}
+
+.content li {
+  margin-bottom: 0.5em;
+}
+
+.icon {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  height: 1.5rem;
+  width: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.link-block {
+  display: inline-block;
+  margin: 0.25rem;
+}
+
+.external-link {
+  text-decoration: none;
+}
+
+.publication-title {
+  margin-bottom: 1.5rem;
+}
+
+.publication-authors {
+  margin-top: 1rem;
+}
+
+.publication-links {
+  margin-top: 1.5rem;
+}
+
+.author-block {
+  margin-right: 0.5rem;
+}
+
+.is-size-5 {
+  font-size: 1.25rem;
+}
+
+pre {
+  background-color: #f5f5f5;
+  color: #4a4a4a;
+  font-size: 0.875em;
+  overflow-x: auto;
+  padding: 1.25rem 1.5rem;
+  white-space: pre;
+  word-wrap: normal;
+}
+
+code {
+  background-color: #f5f5f5;
+  color: #ff3860;
+  font-size: 0.875em;
+  font-weight: normal;
+  padding: 0.25em 0.5em 0.25em;
+}
+
+/* Table styles */
+.table-container {
+  overflow-x: auto;
+}
+
+.table {
+  background-color: white;
+  color: #363636;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border: 1px solid #dbdbdb;
+  border-width: 0 0 1px;
+  padding: 0.5em 0.75em;
+  vertical-align: top;
+}
+
+.table th {
+  background-color: #f5f5f5;
+  color: #363636;
+  font-weight: 600;
+}
+
+.table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+  background-color: #fafafa;
+}
+
+.table.is-hoverable tbody tr:not(.is-selected):hover {
+  background-color: #fafafa;
+}
+
+.table.is-fullwidth {
+  width: 100%;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .columns {
+    flex-direction: column;
+  }
+  
+  .title.is-2 {
+    font-size: 2rem;
+  }
+  
+  .hero-body {
+    padding: 1.5rem;
+  }
+  
+  .section {
+    padding: 1.5rem;
+  }
+} 

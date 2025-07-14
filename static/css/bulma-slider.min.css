@@ -1,0 +1,41 @@
+/* Bulma Slider CSS - Placeholder */
+/* Download from: https://github.com/Wikiki/bulma-slider */
+
+.slider {
+  position: relative;
+  width: 100%;
+  height: 2rem;
+}
+
+.slider-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #dbdbdb;
+  border-radius: 2px;
+  transform: translateY(-50%);
+}
+
+.slider-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #3273dc;
+  border-radius: 2px;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: #3273dc;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+} 

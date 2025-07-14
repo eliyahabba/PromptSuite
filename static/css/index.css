@@ -1,0 +1,139 @@
+/* PromptSuite Website Styles */
+
+body {
+  font-family: 'Google Sans', 'Noto Sans', sans-serif;
+  line-height: 1.6;
+}
+
+.hero-body {
+  padding: 3rem 1.5rem;
+}
+
+.publication-title {
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.publication-authors {
+  margin-top: 1.5rem;
+}
+
+.author-block {
+  margin-right: 1rem;
+}
+
+.publication-links {
+  margin-top: 2rem;
+}
+
+.publication-links .button {
+  margin: 0.5rem;
+}
+
+.section {
+  padding: 3rem 1.5rem;
+}
+
+.box {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.subtitle {
+  font-weight: 400;
+  color: #666;
+}
+
+pre {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+code {
+  background-color: #f8f9fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.content ul {
+  margin-left: 1.5rem;
+}
+
+.content li {
+  margin-bottom: 0.5rem;
+}
+
+/* Table styles */
+.table-container {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table th {
+  background-color: #f8f9fa;
+  color: #363636;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: top;
+}
+
+.table.is-striped tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.table.is-hoverable tbody tr:hover {
+  background-color: #e8f4fd;
+}
+
+.table.is-fullwidth {
+  width: 100%;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .hero-body {
+    padding: 2rem 1rem;
+  }
+  
+  .publication-title {
+    font-size: 1.5rem;
+  }
+  
+  .publication-links .button {
+    margin: 0.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .table-container {
+    font-size: 0.9rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.75rem 0.5rem;
+  }
+} 
