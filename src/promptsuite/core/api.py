@@ -64,7 +64,7 @@ class PromptSuite:
 #        >>>
 #        >>> # Configure and generate
 #        >>> ps.configure(max_rows=10, variations_per_field=3)
-#        >>> variations = sp.generate(verbose=True)
+#        >>> variations = ps.generate(verbose=True)
 #        >>>
 #        >>> # Export results
 #        >>> ps.export("output.json", format="json")
@@ -72,7 +72,7 @@ class PromptSuite:
 
     def __init__(self):
         """Initialize the PromptSuite."""
-        self.sp = None
+        self.ps = None
         self.data = None
         self.template = None
         self.config = {
@@ -319,9 +319,9 @@ class PromptSuite:
             platform = self.config['api_platform']
             env_var = "TOGETHER_API_KEY" if platform == "TogetherAI" else "OPENAI_API_KEY"
             print(f"⚠️ Warning: Template uses paraphrase variations but no API key found for {platform}.")
-            print(f"   Set API key with: sp.configure(api_key='your_key')")
+            print(f"   Set API key with: ps.configure(api_key='your_key')")
             print(f"   Or set environment variable: {env_var}")
-            print(f"   Or change platform with: sp.configure(api_platform='TogetherAI'/'OpenAI')")
+            print(f"   Or change platform with: ps.configure(api_platform='TogetherAI'/'OpenAI')")
 
         if verbose:
             print("🚀 Starting PromptSuiteEngine generation...")
@@ -334,7 +334,7 @@ class PromptSuite:
             if verbose:
                 print("🔄 Step 1/5: Initializing PromptSuiteEngine...")
 
-            self.sp = PromptSuiteEngine(max_variations_per_row=self.config['max_variations_per_row'])
+            self.ps = PromptSuiteEngine(max_variations_per_row=self.config['max_variations_per_row'])
 
             # Step 2: Prepare data
             if verbose:
@@ -366,11 +366,11 @@ class PromptSuite:
             final_callback = progress_callback if progress_callback else (simple_progress_callback if verbose else None)
 
             # Debug - print what we're about to pass
-            print(f"🔍 API CALLING ENGINE - About to call sp.generate_variations with:")
+            print(f"🔍 API CALLING ENGINE - About to call ps.generate_variations with:")
             print(f"   model_name: {self.config['model_name']}")
             print(f"   api_platform: {self.config['api_platform']}")
             
-            self.results = self.sp.generate_variations(
+            self.results = self.ps.generate_variations(
                 template=self.template,
                 data=data_for_engine,
                 variations_per_field=self.config['variations_per_field'],
@@ -386,7 +386,7 @@ class PromptSuite:
             if verbose:
                 print("📈 Step 5/5: Computing statistics...")
 
-            self.stats = self.sp.get_stats(self.results)
+            self.stats = self.ps.get_stats(self.results)
             self.generation_time = time.time() - start_time
 
             if verbose:
@@ -427,7 +427,7 @@ class PromptSuite:
         filepath = Path(filepath)
 
         try:
-            self.sp.save_variations(self.results, str(filepath), format=format)
+            self.ps.save_variations(self.results, str(filepath), format=format)
             print(f"✅ Results exported to {filepath} ({format} format)")
         except Exception as e:
             raise ExportWriteError(str(filepath), str(e))

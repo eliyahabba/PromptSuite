@@ -147,9 +147,9 @@ def configure_generation():
         st.session_state.variations_per_field = variations_per_field
 
         # Calculate estimated_per_row after variations_per_field is set
-        sp = PromptSuiteEngine()
+        ps = PromptSuiteEngine()
         try:
-            variation_fields = sp.parse_template(st.session_state.selected_template)
+            variation_fields = ps.parse_template(st.session_state.selected_template)
             num_variation_fields = len([f for f, v in variation_fields.items() if v is not None])
 
             if num_variation_fields > 0:
@@ -219,7 +219,7 @@ def configure_generation():
         # API Configuration (only show if paraphrase is enabled)
         has_paraphrase = False
         try:
-            variation_fields = sp.parse_template(st.session_state.selected_template)
+            variation_fields = ps.parse_template(st.session_state.selected_template)
             has_paraphrase = any('paraphrase' in str(v).lower() for v in variation_fields.values() if v is not None)
         except Exception:
             pass
