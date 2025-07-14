@@ -827,7 +827,52 @@ ps.export("output.json", format="json")</code></pre>
   <section class="section" style="background-color: #f5f5f5; padding: 2rem;">
   </section>
 
-<!-- Usage Section -->
+  <!-- Supported Perturbation Types Section -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">🔧 Supported Perturbation Types</h2>
+    <div class="content" style="margin-bottom: 2.5rem;">
+      <div class="table-container">
+        <table class="table is-striped is-hoverable is-fullwidth">
+          <thead>
+            <tr>
+              <th>Perturbation Type</th>
+              <th>Applicable Components</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Formatting</strong></td>
+              <td>Instruction, prompt format, demonstrations, instance content</td>
+              <td>Adds surface-level noise to the text. It includes inserting extra spaces, introducing typos, changing letter casing, and altering punctuation. Following (Sclar et al., 2023).</td>
+            </tr>
+            <tr>
+              <td><strong>Paraphrase</strong></td>
+              <td>Instruction</td>
+              <td>Creates semantically equivalent variations to the instruction that differ in phrasing and style. Following (Mizrahi et al., 2024).</td>
+            </tr>
+            <tr>
+              <td><strong>Context addition</strong></td>
+              <td>Instance content</td>
+              <td>Uses an LLM to add text related to the instance content without revealing or changing the answer. Following (Liu et al., 2023; Levy et al., 2024).</td>
+            </tr>
+            <tr>
+              <td><strong>Demonstration Editing</strong></td>
+              <td>Demonstrations</td>
+              <td>Changes the few-shot examples, their order and their number. Following (Lu et al., 2021).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 0.9em; color: #666; margin-top: 1rem;">
+        <strong>Table 1:</strong> Overview of the perturbation types supported by PromptSuite. The "Applicable Components" column specifies which prompt components each perturbation can be applied to. For example, paraphrasing is applicable to the instruction component.
+      </p>
+    </div>
+  </div>
+</section>
+
+  <!-- Usage Section -->
 <section class="section">
   <div class="container is-max-desktop">
     <h2 class="title is-3">Using PromptSuite</h2>
@@ -918,47 +963,6 @@ ps.load_dataframe(qa_data)
 ps.set_template(template)
 ps.configure(variations_per_field=2)
 variations = ps.generate(verbose=True)</code></pre>
-    </div>
-
-    <!-- Supported Variations Section -->
-    <div class="content" style="margin-bottom: 2.5rem;">
-      <h3 class="title is-4">🔧 Supported Perturbation Types</h3>
-      <div class="table-container">
-        <table class="table is-striped is-hoverable is-fullwidth">
-          <thead>
-            <tr>
-              <th>Perturbation Type</th>
-              <th>Applicable Components</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Formatting</strong></td>
-              <td>Instruction, prompt format, demonstrations, instance content</td>
-              <td>Adds surface-level noise to the text. It includes inserting extra spaces, introducing typos, changing letter casing, and altering punctuation. Following (Sclar et al., 2023).</td>
-            </tr>
-            <tr>
-              <td><strong>Paraphrase</strong></td>
-              <td>Instruction</td>
-              <td>Creates semantically equivalent variations to the instruction that differ in phrasing and style. Following (Mizrahi et al., 2024).</td>
-            </tr>
-            <tr>
-              <td><strong>Context addition</strong></td>
-              <td>Instance content</td>
-              <td>Uses an LLM to add text related to the instance content without revealing or changing the answer. Following (Liu et al., 2023; Levy et al., 2024).</td>
-            </tr>
-            <tr>
-              <td><strong>Demonstration Editing</strong></td>
-              <td>Demonstrations</td>
-              <td>Changes the few-shot examples, their order and their number. Following (Lu et al., 2021).</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p style="font-size: 0.9em; color: #666; margin-top: 1rem;">
-        <strong>Table 1:</strong> Overview of the perturbation types supported by PromptSuite. The "Applicable Components" column specifies which prompt components each perturbation can be applied to. For example, paraphrasing is applicable to the instruction component.
-      </p>
     </div>
 
     <!-- Export Formats Section -->
