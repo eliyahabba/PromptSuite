@@ -5,7 +5,7 @@
 *.egg-info/
 build/
 dist/
-
+.venv/
 # Python cache files
 __pycache__/
 *.pyc
@@ -19,3 +19,4 @@ __pycache__/
 
 # Data files - exclude large datasets but keep structure
 tasks_data/
+/scripts/update_docs.py
