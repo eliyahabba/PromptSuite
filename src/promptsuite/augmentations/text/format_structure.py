@@ -170,7 +170,7 @@ class FormatStructureAugmenter(BaseAxisAugmenter):
 
 if __name__ == "__main__":
     # Test the FormatStructureAugmenter
-    augmenter = FormatStructureAugmenter(n_augments=5)
+    augmenter = FormatStructureAugmenter(n_augments=15, seed=42)
     
     # Test with a simple prompt format
     test_text = "Question: {question} Answer: {answer}"

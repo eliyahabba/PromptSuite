@@ -62,8 +62,7 @@ def random_composed_augmentations(
     Returns:
         List of n_augments unique variations (including the original text)
     """
-    variations: Set[str] = set()
-    variations.add(text)
+    variations = [text]  # Use list to maintain order
     attempts = 0
     max_attempts = n_augments * 5
     while len(variations) < n_augments and attempts < max_attempts:
@@ -77,6 +76,8 @@ def random_composed_augmentations(
                 var = result[-1]
             else:
                 var = result
-        variations.add(var)
+        # Only add if not already in list (maintain uniqueness)
+        if var not in variations:
+            variations.append(var)
         attempts += 1
-    return list(variations)[:n_augments]
+    return variations[:n_augments]
