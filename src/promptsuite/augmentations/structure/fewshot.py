@@ -195,21 +195,21 @@ This augmenter handles few-shot examples for NLP tasks.
                             
                             if 0 <= gold_index < len(options_list):
                                 # Format as enumerated item: "2. option_text"
-                                if enum_type == '1234':
+                                if enum_type == 'numbers':
                                     output_value = f"{gold_index + 1}. {options_list[gold_index].strip()}"
-                                elif enum_type == 'ABCD':
+                                elif enum_type == 'uppercase_letters':
                                     letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                                     if gold_index < len(letters):
                                         output_value = f"{letters[gold_index]}. {options_list[gold_index].strip()}"
-                                elif enum_type == 'abcd':
+                                elif enum_type == 'lowercase_letters':
                                     letters = 'abcdefghijklmnopqrstuvwxyz'
                                     if gold_index < len(letters):
                                         output_value = f"{letters[gold_index]}. {options_list[gold_index].strip()}"
-                                elif enum_type == 'roman':
+                                elif enum_type == 'roman_numerals':
                                     romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII', 'XXIX', 'XXX', 'XXXI', 'XXXII', 'XXXIII', 'XXXIV', 'XXXV', 'XXXVI', 'XXXVII', 'XXXVIII', 'XXXIX', 'XL']
                                     if gold_index < len(romans):
                                         output_value = f"{romans[gold_index]}. {options_list[gold_index].strip()}"
-                                elif enum_type == 'greek':
+                                elif enum_type == 'greek_letters':
                                     greek_letters = 'αβγδεζηθικλμνξοπρστυφχψω'
                                     if gold_index < len(greek_letters):
                                         output_value = f"{greek_letters[gold_index]}. {options_list[gold_index].strip()}"

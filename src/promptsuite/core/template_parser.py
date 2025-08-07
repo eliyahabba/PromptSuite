@@ -30,7 +30,7 @@ class TemplateField:
     few_shot_fallback_strategy: str = "global"  # 'global' or 'strict'
     # Enumerate specific parameters
     enumerate_field: Optional[str] = None  # Which field to enumerate
-    enumerate_type: Optional[str] = None  # Type of enumeration ('1234', 'ABCD', etc.)
+    enumerate_type: Optional[str] = None  # Type of enumeration ('numbers', 'uppercase_letters', etc.)
 
     def __post_init__(self):
         """Ensure variation_types is always a list"""

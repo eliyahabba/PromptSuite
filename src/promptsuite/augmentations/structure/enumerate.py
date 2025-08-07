@@ -15,7 +15,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     This augmenter works with template configuration like:
     'enumerate': {
         'field': 'options',    # Which field to enumerate
-        'type': '1234'         # Type of enumeration: '1234', 'ABCD', 'abcd', etc.
+        'type': 'numbers'      # Type of enumeration: 'numbers', 'uppercase_letters', 'lowercase_letters', etc.
     }
     
     The augmenter:
@@ -27,13 +27,13 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     attempting to parse commas, which prevents issues with values containing commas.
     """
 
-    # Predefined enumeration types
+    # Predefined enumeration types with descriptive names
     ENUMERATION_TYPES = {
-        '1234': '123456789012345678901234567890',  # Extended to support more items
-        'ABCD': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        'abcd': 'abcdefghijklmnopqrstuvwxyz',
-        'greek': 'αβγδεζηθικλμνξοπρστυφχψω',
-        'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI',
+        'numbers': '123456789012345678901234567890',  # Extended to support more items
+        'uppercase_letters': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'lowercase_letters': 'abcdefghijklmnopqrstuvwxyz',
+        'greek_letters': 'αβγδεζηθικλμνξοπρστυφχψω',
+        'roman_numerals': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI',
                   'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII',
                   'XXIX', 'XXX']
     }
@@ -88,7 +88,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         
         Args:
             field_data: The field data to enumerate (string or list)
-            enum_type: Type of enumeration ('1234', 'ABCD', etc.)
+            enum_type: Type of enumeration ('numbers', 'uppercase_letters', etc.)
             
         Returns:
             Enumerated string
@@ -129,14 +129,14 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         variations = []
 
         # Get enumeration type from identification_data if available
-        enum_type = '1234'  # default
+        enum_type = 'numbers'  # default
         if identification_data and 'enum_type' in identification_data:
             enum_type = identification_data['enum_type']
 
         # If we have n_augments > 1, generate multiple variations with different types
         if self.n_augments > 1:
             # Define different enumeration types to try
-            enum_types = ['1234', 'ABCD', 'abcd', 'roman', 'greek']
+            enum_types = ['numbers', 'uppercase_letters', 'lowercase_letters', 'roman_numerals', 'greek_letters']
 
             # Use deterministic selection to ensure consistency between few-shot and main variations
             # Take the first n_augments types in order for consistency
@@ -176,7 +176,7 @@ def main():
     options = "Venus, Mercury, Earth, Mars"
     print(f"Original options: {options}")
 
-    for enum_type in ['1234', 'ABCD', 'abcd', 'roman', 'greek']:
+    for enum_type in ['numbers', 'uppercase_letters', 'lowercase_letters', 'roman_numerals', 'greek_letters']:
         try:
             result = augmenter.enumerate_field(options, enum_type)
             print(f"Type '{enum_type}': {result}")
@@ -185,7 +185,7 @@ def main():
 
     # Test with list input
     options_list = ["Venus", "Mercury", "Earth", "Mars"]
-    result = augmenter.enumerate_field(options_list, 'ABCD')
+    result = augmenter.enumerate_field(options_list, 'uppercase_letters')
     print(f"List input: {result}")
 
     # Test with complex list containing commas (like SMILES)
@@ -193,7 +193,7 @@ def main():
         'name: compound1, formula: C2H4\nSMILES: C=C',
         'name: compound2, formula: C3H6\nSMILES: C=CC'
     ]
-    result = augmenter.enumerate_field(complex_list, '1234')
+    result = augmenter.enumerate_field(complex_list, 'numbers')
     print(f"Complex list with commas: {result}")
 
     # Test error case

@@ -225,10 +225,15 @@ class FewShotHandler:
             instruction_filled
         )
         # Prepare output field values
-        output_field_values = {
-            field_name: field_data.data
-            for field_name, field_data in field_values.items()
-        }
+        output_field_values = {}
+        for field_name, field_data in field_values.items():
+            # For most fields, just use the data
+            output_field_values[field_name] = field_data.data
+            
+            # If there's metadata (like enum_type), include it
+            if field_data.metadata:
+                for meta_key, meta_value in field_data.metadata.items():
+                    output_field_values[f"{field_name}_{meta_key}"] = meta_value
         
         # Prepare original row data - convert all values to strings for consistency
         original_row_data = {}
@@ -310,14 +315,6 @@ class FewShotHandler:
             enum_field = template[ENUMERATE_VARIATION].get('field')
             if enum_field:
                 enumerate_config[enum_field] = template[ENUMERATE_VARIATION]
-
-        # Check for field variations that include enumeration (for few-shot examples only)
-        for field_name, variations in template.items():
-            if isinstance(variations, list) and ENUMERATE_VARIATION in variations:
-                # Field has enumeration as a variation - use the first enumeration type for consistency
-                # This matches the deterministic order used in EnumeratorAugmenter
-                enum_types = ['1234', 'ABCD', 'abcd', 'roman', 'greek']
-                enumerate_config[field_name] = {'type': enum_types[0]}
 
         return enumerate_config
 
