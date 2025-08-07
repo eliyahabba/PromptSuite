@@ -115,7 +115,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         # Apply enumeration
         return self._enumerate_list(data_list, enumeration_sequence)
 
-    def augment(self, input_data: Any, identification_data: Dict[str, Any] = None) -> List[str]:
+    def augment(self, input_data: Any, identification_data: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """
         Generate multiple variations with different enumeration types.
 
@@ -124,7 +124,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
             identification_data: Optional data containing enumeration configuration
 
         Returns:
-            List of variations with different enumeration types
+            List of dictionaries with 'data' and 'enum_type' keys
         """
         variations = []
 
@@ -144,24 +144,24 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
 
             # Generate variations with different types
             for enum_type in selected_types:
-                try:
-                    result = self.enumerate_field(input_data, enum_type)
-                    if result not in variations:
-                        variations.append(result)
-                except Exception as e:
-                    print(f"⚠️ Error in enumerate augmentation with type {enum_type}: {e}")
-                    continue
+                result = self.enumerate_field(input_data, enum_type)
+                variation_data = {
+                    'data': result,
+                    'enum_type': enum_type
+                }
+                # Check for duplicates based on data only
+                if not any(v['data'] == result for v in variations):
+                    variations.append(variation_data)
         else:
             # Single variation with specified type
-            try:
-                result = self.enumerate_field(input_data, enum_type)
-                variations.append(result)
-            except Exception as e:
-                print(f"⚠️ Error in enumerate augmentation: {e}")
-                # Don't return original input_data for enumerate - it should always enumerate
-                return []
+            result = self.enumerate_field(input_data, enum_type)
+            variation_data = {
+                'data': result,
+                'enum_type': enum_type
+            }
+            variations.append(variation_data)
 
-        # For enumerate, we should always return enumerated versions, not the original
+        # For enumerate, we should always return enumerated versions with metadata
         return variations
 
 

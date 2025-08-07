@@ -365,11 +365,27 @@ class VariationGenerator:
                         text=var,  # Pass original value (could be list)
                         variation_type=variation_type
                     )
-                    if variations and isinstance(variations, list):
-                        for v in variations:
-                            next_variations.append(v)
-                            # Enumerate does not change gold index
-                            next_gold_updates.append(current_gold_updates[idx])
+                    # Extract the full results from AugmenterFactory (which preserves metadata for enumerate)
+                    extracted_results = AugmenterFactory.extract_text_from_result(variations, variation_type)
+                    if extracted_results:
+                        for result in extracted_results:
+                            if isinstance(result, dict) and 'data' in result:
+                                # Store the text and preserve enumeration type metadata
+                                next_variations.append(result['data'])
+                                # Store metadata about enumeration type in gold_updates for later use
+                                # We'll pass it through the system and extract it in few_shot_handler
+                                # Create a copy of the original gold_update for this specific variation
+                                base_gold_update = current_gold_updates[idx]
+                                if base_gold_update:
+                                    gold_update = base_gold_update.copy() if isinstance(base_gold_update, dict) else {}
+                                else:
+                                    gold_update = {}
+                                gold_update['_enum_type'] = result.get('enum_type', '1234')
+                                next_gold_updates.append(gold_update)
+                            else:
+                                # Fallback for string results
+                                next_variations.append(str(result))
+                                next_gold_updates.append(current_gold_updates[idx])
                 # Other augmenters (if any)
                 else:
                     # For other augmenters, format the value first
@@ -395,7 +411,16 @@ class VariationGenerator:
             formatted_v = format_field_value(v) if not isinstance(v, str) else v
             key = (formatted_v, str(current_gold_updates[i]))
             if key not in seen:
-                unique.append(FieldVariation(data=formatted_v, gold_update=current_gold_updates[i]))
+                # Extract enumeration metadata from gold_updates if present
+                gold_update = current_gold_updates[i]
+                metadata = None
+                if isinstance(gold_update, dict) and '_enum_type' in gold_update:
+                    metadata = {'enum_type': gold_update['_enum_type']}
+                    # Remove the temporary key from gold_update
+                    clean_gold_update = {k: v for k, v in gold_update.items() if k != '_enum_type'}
+                    gold_update = clean_gold_update if clean_gold_update else None
+                
+                unique.append(FieldVariation(data=formatted_v, gold_update=gold_update, metadata=metadata))
                 seen.add(key)
         # Deterministically sample the required number of variations using the configured random seed
         sample_seed = getattr(field_data.variation_config, 'random_seed', 42)

@@ -209,6 +209,10 @@ This augmenter handles few-shot examples for NLP tasks.
                                     romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII', 'XXIX', 'XXX', 'XXXI', 'XXXII', 'XXXIII', 'XXXIV', 'XXXV', 'XXXVI', 'XXXVII', 'XXXVIII', 'XXXIX', 'XL']
                                     if gold_index < len(romans):
                                         output_value = f"{romans[gold_index]}. {options_list[gold_index].strip()}"
+                                elif enum_type == 'greek':
+                                    greek_letters = 'αβγδεζηθικλμνξοπρστυφχψω'
+                                    if gold_index < len(greek_letters):
+                                        output_value = f"{greek_letters[gold_index]}. {options_list[gold_index].strip()}"
                                 # Add more enum types as needed
                         except (ValueError, IndexError) as e:
                             print(f"⚠️ Error formatting enumerated gold value: {e}")
