@@ -178,7 +178,7 @@ def get_available_language_pairs() -> List[str]:
 def generate_all_language_pairs(variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed):
     """Generate variations for all language pairs separately."""
     # Create output directory
-    output_dir = Path(__file__).parent.parent / "data" / "translation"
+    output_dir = Path(__file__).parent.parent / "tasks_data" / "generated_data" / "translation"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     language_pairs = get_available_language_pairs()
