@@ -227,8 +227,16 @@ class FewShotHandler:
         # Prepare output field values
         output_field_values = {}
         for field_name, field_data in field_values.items():
-            # For most fields, just use the data
+            # Store the processed data (for display in prompts)
             output_field_values[field_name] = field_data.data
+            
+            # Store the original value if it exists and is different from processed data
+            if field_name in variation_context.row_data.index:
+                original_value = variation_context.row_data[field_name]
+                # Only store original if it's different from the processed version
+                # (e.g., original list vs enumerated string)
+                if isinstance(original_value, (list, tuple)) and str(original_value) != field_data.data:
+                    output_field_values[f"{field_name}_original"] = original_value
             
             # If there's metadata (like enum_type), include it
             if field_data.metadata:
