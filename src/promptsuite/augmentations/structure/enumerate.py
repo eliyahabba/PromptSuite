@@ -15,7 +15,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     This augmenter works with template configuration like:
     'enumerate': {
         'field': 'options',    # Which field to enumerate
-        'type': '1234'         # Type of enumeration: '1234', 'ABCD', 'abcd', etc.
+        'type': 'numbers'      # Type of enumeration: 'numbers', 'capitals', 'lowercase', etc.
     }
     
     The augmenter:
@@ -27,11 +27,11 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     attempting to parse commas, which prevents issues with values containing commas.
     """
 
-    # Predefined enumeration types
+    # Predefined enumeration types with descriptive names
     ENUMERATION_TYPES = {
-        '1234': '123456789012345678901234567890',  # Extended to support more items
-        'ABCD': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        'abcd': 'abcdefghijklmnopqrstuvwxyz',
+        'numbers': '123456789012345678901234567890',  # Extended to support more items
+        'capitals': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'lowercase': 'abcdefghijklmnopqrstuvwxyz',
         'greek': 'αβγδεζηθικλμνξοπρστυφχψω',
         'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI',
                   'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII',
@@ -88,7 +88,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         
         Args:
             field_data: The field data to enumerate (string or list)
-            enum_type: Type of enumeration ('1234', 'ABCD', etc.)
+            enum_type: Type of enumeration ('numbers', 'capitals', etc.)
             
         Returns:
             Enumerated string
@@ -115,7 +115,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         # Apply enumeration
         return self._enumerate_list(data_list, enumeration_sequence)
 
-    def augment(self, input_data: Any, identification_data: Dict[str, Any] = None) -> List[str]:
+    def augment(self, input_data: Any, identification_data: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """
         Generate multiple variations with different enumeration types.
 
@@ -124,19 +124,19 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
             identification_data: Optional data containing enumeration configuration
 
         Returns:
-            List of variations with different enumeration types
+            List of dictionaries with 'data' and 'enum_type' keys
         """
         variations = []
 
         # Get enumeration type from identification_data if available
-        enum_type = '1234'  # default
+        enum_type = 'numbers'  # default
         if identification_data and 'enum_type' in identification_data:
             enum_type = identification_data['enum_type']
 
         # If we have n_augments > 1, generate multiple variations with different types
         if self.n_augments > 1:
             # Define different enumeration types to try
-            enum_types = ['1234', 'ABCD', 'abcd', 'roman', 'greek']
+            enum_types = ['numbers', 'capitals', 'lowercase', 'roman', 'greek']
 
             # Use deterministic selection to ensure consistency between few-shot and main variations
             # Take the first n_augments types in order for consistency
@@ -144,24 +144,24 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
 
             # Generate variations with different types
             for enum_type in selected_types:
-                try:
-                    result = self.enumerate_field(input_data, enum_type)
-                    if result not in variations:
-                        variations.append(result)
-                except Exception as e:
-                    print(f"⚠️ Error in enumerate augmentation with type {enum_type}: {e}")
-                    continue
+                result = self.enumerate_field(input_data, enum_type)
+                variation_data = {
+                    'data': result,
+                    'enum_type': enum_type
+                }
+                # Check for duplicates based on data only
+                if not any(v['data'] == result for v in variations):
+                    variations.append(variation_data)
         else:
             # Single variation with specified type
-            try:
-                result = self.enumerate_field(input_data, enum_type)
-                variations.append(result)
-            except Exception as e:
-                print(f"⚠️ Error in enumerate augmentation: {e}")
-                # Don't return original input_data for enumerate - it should always enumerate
-                return []
+            result = self.enumerate_field(input_data, enum_type)
+            variation_data = {
+                'data': result,
+                'enum_type': enum_type
+            }
+            variations.append(variation_data)
 
-        # For enumerate, we should always return enumerated versions, not the original
+        # For enumerate, we should always return enumerated versions with metadata
         return variations
 
 
@@ -176,7 +176,7 @@ def main():
     options = "Venus, Mercury, Earth, Mars"
     print(f"Original options: {options}")
 
-    for enum_type in ['1234', 'ABCD', 'abcd', 'roman', 'greek']:
+    for enum_type in ['numbers', 'capitals', 'lowercase', 'roman', 'greek']:
         try:
             result = augmenter.enumerate_field(options, enum_type)
             print(f"Type '{enum_type}': {result}")
@@ -185,7 +185,7 @@ def main():
 
     # Test with list input
     options_list = ["Venus", "Mercury", "Earth", "Mars"]
-    result = augmenter.enumerate_field(options_list, 'ABCD')
+    result = augmenter.enumerate_field(options_list, 'capitals')
     print(f"List input: {result}")
 
     # Test with complex list containing commas (like SMILES)
@@ -193,7 +193,7 @@ def main():
         'name: compound1, formula: C2H4\nSMILES: C=C',
         'name: compound2, formula: C3H6\nSMILES: C=CC'
     ]
-    result = augmenter.enumerate_field(complex_list, '1234')
+    result = augmenter.enumerate_field(complex_list, 'numbers')
     print(f"Complex list with commas: {result}")
 
     # Test error case

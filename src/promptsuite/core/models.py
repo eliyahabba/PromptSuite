@@ -50,6 +50,7 @@ class FieldVariation:
     """Represents a single field variation with its data and potential gold updates."""
     data: str
     gold_update: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None  # Store additional info like enumeration type
 
 
 @dataclass

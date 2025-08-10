@@ -41,6 +41,7 @@ class CodeGenerationTask(BaseTask):
         super().__init__(
             task_name=task_name,
             output_filename=output_filename,
+            subdirectory_name="code_generation",
             variations_per_field=variations_per_field,
             api_platform=api_platform,
             model_name=model_name,

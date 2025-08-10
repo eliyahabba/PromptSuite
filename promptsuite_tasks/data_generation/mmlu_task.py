@@ -58,6 +58,7 @@ class MMLUTask(BaseTask):
         super().__init__(
             task_name=task_name,
             output_filename=output_filename,
+            subdirectory_name="mmlu",
             variations_per_field=variations_per_field,
             api_platform=api_platform,
             model_name=model_name,
@@ -118,7 +119,7 @@ class MMLUTask(BaseTask):
 
 def get_available_subjects() -> List[str]:
     """Get list of available subjects from the MMLU dataset."""
-    csv_path = Path(__file__).parent.parent / "raw_data/mmlu_sample.csv"
+    csv_path = Path(__file__).parent.parent / "tasks_data/raw_data/mmlu_sample.csv"
     if not csv_path.exists():
         raise FileNotFoundError(f"MMLU CSV file not found: {csv_path}")
     
@@ -130,7 +131,7 @@ def get_available_subjects() -> List[str]:
 def generate_all_subjects(variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed):
     """Generate variations for all subjects separately."""
     # Create output directory
-    output_dir = Path(__file__).parent.parent / "data" / "mmlu"
+    output_dir = Path(__file__).parent.parent / "tasks_data" / "generated_data" / "mmlu"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     subjects = get_available_subjects()
@@ -232,8 +233,8 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Generate MMLU prompt variations")
-    parser.add_argument("--subject", help="Specific subject to process (e.g., anatomy, chemistry)", default='international_law')
-    parser.add_argument("--all", action="store_true", help="Process all subjects")
+    parser.add_argument("--subject", help="Specific subject to process (e.g., anatomy, chemistry)", default='college_chemistry')
+    parser.add_argument("--all", action="store_true", help="Process all subjects", default=True)
     parser.add_argument("--rows", type=int, help="Number of rows to process", default=10)
     parser.add_argument("--variations", type=int, help="Number of variations per row", default=DEFAULT_MAX_VARIATIONS_PER_ROW)
     parser.add_argument("--variations_per_field", type=int, default=DEFAULT_VARIATIONS_PER_FIELD)

@@ -31,6 +31,7 @@ class BaseTask(ABC):
     """
 
     def __init__(self, task_name: str, output_filename: str,
+                 subdirectory_name: str = None,
                  variations_per_field: int = DEFAULT_VARIATIONS_PER_FIELD,
                  api_platform: str = DEFAULT_PLATFORM,
                  model_name: str = DEFAULT_MODEL_NAME,
@@ -42,6 +43,7 @@ class BaseTask(ABC):
         Args:
             task_name: Name of the task for display
             output_filename: Name of the output file
+            subdirectory_name: Name of subdirectory to create (optional, defaults to no subdirectory)
             variations_per_field: Number of variations per field (default: from constants)
             api_platform: API platform to use (default: from constants)
             model_name: Model name to use (default: from constants)
@@ -51,6 +53,7 @@ class BaseTask(ABC):
         """
         self.task_name = task_name
         self.output_filename = output_filename
+        self.subdirectory_name = subdirectory_name
         self.variations_per_field = variations_per_field
         self.api_platform = api_platform
         self.model_name = model_name
@@ -138,7 +141,15 @@ class BaseTask(ABC):
             print("-" * 50)
 
         # Export results
-        output_file = Path(__file__).parent.parent / "tasks_data" / "generated_data" / self.output_filename
+        if self.subdirectory_name:
+            # Create subdirectory if specified
+            output_dir = Path(__file__).parent.parent / "tasks_data" / "generated_data" / self.subdirectory_name
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_file = output_dir / self.output_filename
+        else:
+            # Use root generated_data directory
+            output_file = Path(__file__).parent.parent / "tasks_data" / "generated_data" / self.output_filename
+        
         print(f"\n6. Exporting results to {output_file}...")
         self.ps.export(str(output_file), format="json")
         print("✅ Export completed!")
@@ -147,4 +158,4 @@ class BaseTask(ABC):
         print("\n7. Final statistics:")
         self.ps.info()
 
-        return output_file
+        return str(output_file)

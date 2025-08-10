@@ -34,6 +34,7 @@ class SummarizationTask(BaseTask):
         super().__init__(
             task_name="Summarization Task: CNN DailyMail",
             output_filename="summarization_cnn_dailymail_variations.json",
+            subdirectory_name="summarization",
             variations_per_field=variations_per_field,
             api_platform=api_platform,
             model_name=model_name,

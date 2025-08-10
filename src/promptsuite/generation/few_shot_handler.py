@@ -225,10 +225,23 @@ class FewShotHandler:
             instruction_filled
         )
         # Prepare output field values
-        output_field_values = {
-            field_name: field_data.data
-            for field_name, field_data in field_values.items()
-        }
+        output_field_values = {}
+        for field_name, field_data in field_values.items():
+            # Store the processed data (for display in prompts)
+            output_field_values[field_name] = field_data.data
+            
+            # Store the original value if it exists and is different from processed data
+            if field_name in variation_context.row_data.index:
+                original_value = variation_context.row_data[field_name]
+                # Only store original if it's different from the processed version
+                # (e.g., original list vs enumerated string)
+                if isinstance(original_value, (list, tuple)) and str(original_value) != field_data.data:
+                    output_field_values[f"{field_name}_original"] = original_value
+            
+            # If there's metadata (like enum_type), include it
+            if field_data.metadata:
+                for meta_key, meta_value in field_data.metadata.items():
+                    output_field_values[f"{field_name}_{meta_key}"] = meta_value
         
         # Prepare original row data - convert all values to strings for consistency
         original_row_data = {}
@@ -311,14 +324,6 @@ class FewShotHandler:
             if enum_field:
                 enumerate_config[enum_field] = template[ENUMERATE_VARIATION]
 
-        # Check for field variations that include enumeration (for few-shot examples only)
-        for field_name, variations in template.items():
-            if isinstance(variations, list) and ENUMERATE_VARIATION in variations:
-                # Field has enumeration as a variation - use the first enumeration type for consistency
-                # This matches the deterministic order used in EnumeratorAugmenter
-                enum_types = ['1234', 'ABCD', 'abcd', 'roman']
-                enumerate_config[field_name] = {'type': enum_types[0]}
-
         return enumerate_config
 
     def _get_enumerate_fields_config_for_variation(
@@ -345,39 +350,13 @@ class FewShotHandler:
         # Check for field variations that include enumeration
         for field_name, variations in template.items():
             if isinstance(variations, list) and ENUMERATE_VARIATION in variations:
-                # If we have field_values, try to determine the enumeration type from the actual field value
-                if field_values and field_name in field_values:
-                    field_data = field_values[field_name].data
-                    detected_enum_type = self._detect_enumeration_type(field_data)
-                    if detected_enum_type:
-                        enumerate_config[field_name] = {'type': detected_enum_type}
-                    else:
-                        # Fallback to first type
-                        enum_types = ['1234', 'ABCD', 'abcd', 'roman']
-                        enumerate_config[field_name] = {'type': enum_types[0]}
-                else:
-                    # Fallback to first type
-                    enum_types = ['1234', 'ABCD', 'abcd', 'roman']
-                    enumerate_config[field_name] = {'type': enum_types[0]}
+                # If we have field_values, extract enumeration type from metadata directly
+                field_variation = field_values[field_name]
+                enumerate_config[field_name] = {'type': field_variation.metadata['enum_type']}
 
         return enumerate_config
 
-    def _detect_enumeration_type(self, field_data: str) -> str:
-        """Detect the enumeration type from the field data."""
-        if not field_data:
-            return None
 
-        # Look for patterns in the enumerated data
-        if '1.' in field_data or '2.' in field_data:
-            return '1234'
-        elif 'A.' in field_data or 'B.' in field_data:
-            return 'ABCD'
-        elif 'a.' in field_data or 'b.' in field_data:
-            return 'abcd'
-        elif 'I.' in field_data or 'II.' in field_data:
-            return 'roman'
-
-        return None
 
     def _apply_enumerate_if_needed(self, value: str, field_name: str, enumerate_configs: Dict[str, dict]) -> str:
         """Apply enumeration to field value if configured."""

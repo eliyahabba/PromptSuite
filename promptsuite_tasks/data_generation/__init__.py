@@ -11,5 +11,7 @@ from .summarization_task import SummarizationTask
 from .sentiment_task import SentimentTask
 from .code_generation_task import CodeGenerationTask
 from .musique_task import MuSiQueTask
+from .gpqa_task import GPQATask
+from .math_task import MathTask
 
-__all__ = ['BaseTask', 'MMLUTask', 'TranslationTask', 'QATask', 'SummarizationTask', 'SentimentTask', 'CodeGenerationTask', 'MuSiQueTask'] 
+__all__ = ['BaseTask', 'MMLUTask', 'TranslationTask', 'QATask', 'SummarizationTask', 'SentimentTask', 'CodeGenerationTask', 'MuSiQueTask', 'GPQATask', 'MathTask']

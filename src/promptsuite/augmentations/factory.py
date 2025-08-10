@@ -184,7 +184,7 @@ class AugmenterFactory:
             variation_type: Type of augmenter that produced the result
             
         Returns:
-            List of text strings
+            List of text strings or dictionaries with metadata
         """
         if not result:
             return []
@@ -201,8 +201,13 @@ class AugmenterFactory:
             if len(result) > 0 and isinstance(result[0], str):
                 return result
 
-            # Handle list of dictionaries (e.g., from ShuffleAugmenter)
+            # Handle list of dictionaries (e.g., from ShuffleAugmenter, EnumeratorAugmenter)
             if len(result) > 0 and isinstance(result[0], dict):
+                # For enumerate, return the full dictionary with metadata
+                if variation_type == 'enumerate':
+                    return result
+                
+                # For other augmenters, extract text
                 extracted = []
                 for item in result:
                     if variation_type == 'shuffle' and 'shuffled_data' in item:

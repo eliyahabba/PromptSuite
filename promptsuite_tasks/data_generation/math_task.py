@@ -41,6 +41,7 @@ class MathTask(BaseTask):
         super().__init__(
             task_name=task_name,
             output_filename=output_filename,
+            subdirectory_name="math",
             variations_per_field=variations_per_field,
             api_platform=api_platform,
             model_name=model_name,
@@ -85,86 +86,6 @@ class MathTask(BaseTask):
                 'split': 'train'  # Use training split for few-shot examples
             }
         }
-
-
-def generate_math_variations(variations_per_field, api_platform, model_name, max_rows, max_variations_per_row, random_seed):
-    """Generate variations for math problems task."""
-    # Create output directory
-    output_dir = Path(__file__).parent.parent / "tasks_data" / "generated_data" / "math"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    print("🎯 Processing Math Problems Task")
-    print("=" * 50)
-
-    try:
-        task = MathTask(
-            variations_per_field=variations_per_field,
-            api_platform=api_platform,
-            model_name=model_name,
-            max_rows=max_rows,
-            max_variations_per_row=max_variations_per_row,
-            random_seed=random_seed
-        )
-
-        # Override output path to save in math folder
-        output_file = output_dir / "math_gsm8k_variations.json"
-
-        # Generate using custom path
-        print(f"🚀 Starting {task.task_name}")
-        print("=" * 60)
-        print("\n1. Loading data...")
-        task.load_data()
-        print("\n2. Setting up template...")
-        template = task.get_template()
-        task.ps.set_template(template)
-        print("✅ Template configured")
-        print(f"\n3. Configuring generation...")
-        print(f"   Variations per field: {task.variations_per_field}")
-        print(f"   API Platform: {task.api_platform}")
-        print(f"   Model: {task.model_name}")
-        print(f"   Max rows: {task.max_rows}")
-        print(f"   Max variations per row: {task.max_variations_per_row}")
-        print(f"   Random seed: {task.random_seed}")
-        task.ps.configure(
-            max_rows=task.max_rows,
-            variations_per_field=task.variations_per_field,
-            max_variations_per_row=task.max_variations_per_row,
-            random_seed=task.random_seed,
-            api_platform=task.api_platform,
-            model_name=task.model_name
-        )
-        print("\n4. Generating prompt variations...")
-        variations = task.ps.generate(verbose=True)
-
-        # Display results
-        print(f"\n✅ Generated {len(variations)} variations")
-
-        # Show a few examples
-        print("\n5. Sample variations:")
-        for i, var in enumerate(variations[:3]):
-            print(f"\nVariation {i + 1}:")
-            print("-" * 50)
-            prompt = var.get('prompt', 'No prompt found')
-            if len(prompt) > 500:
-                prompt = prompt[:500] + "..."
-            print(prompt)
-            print("-" * 50)
-
-        # Export results using the correct path
-        print(f"\n6. Exporting results to {output_file}...")
-        task.ps.export(str(output_file), format="json")
-        print("✅ Export completed!")
-
-        # Show final statistics
-        print("\n7. Final statistics:")
-        task.ps.info()
-
-        print(f"✅ Completed Math Problems Task: {output_file}")
-        return str(output_file)
-
-    except Exception as e:
-        print(f"❌ Error processing math problems task: {e}")
-        raise
 
 
 if __name__ == "__main__":
