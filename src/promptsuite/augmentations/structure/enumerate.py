@@ -15,7 +15,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     This augmenter works with template configuration like:
     'enumerate': {
         'field': 'options',    # Which field to enumerate
-        'type': 'numbers'      # Type of enumeration: 'numbers', 'uppercase_letters', 'lowercase_letters', etc.
+        'type': 'numbers'      # Type of enumeration: 'numbers', 'capitals', 'lowercase', etc.
     }
     
     The augmenter:
@@ -30,10 +30,10 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
     # Predefined enumeration types with descriptive names
     ENUMERATION_TYPES = {
         'numbers': '123456789012345678901234567890',  # Extended to support more items
-        'uppercase_letters': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        'lowercase_letters': 'abcdefghijklmnopqrstuvwxyz',
-        'greek_letters': 'αβγδεζηθικλμνξοπρστυφχψω',
-        'roman_numerals': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI',
+        'capitals': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'lowercase': 'abcdefghijklmnopqrstuvwxyz',
+        'greek': 'αβγδεζηθικλμνξοπρστυφχψω',
+        'roman': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI',
                   'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV', 'XXVI', 'XXVII', 'XXVIII',
                   'XXIX', 'XXX']
     }
@@ -88,7 +88,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         
         Args:
             field_data: The field data to enumerate (string or list)
-            enum_type: Type of enumeration ('numbers', 'uppercase_letters', etc.)
+            enum_type: Type of enumeration ('numbers', 'capitals', etc.)
             
         Returns:
             Enumerated string
@@ -136,7 +136,7 @@ class EnumeratorAugmenter(BaseAxisAugmenter):
         # If we have n_augments > 1, generate multiple variations with different types
         if self.n_augments > 1:
             # Define different enumeration types to try
-            enum_types = ['numbers', 'uppercase_letters', 'lowercase_letters', 'roman_numerals', 'greek_letters']
+            enum_types = ['numbers', 'capitals', 'lowercase', 'roman', 'greek']
 
             # Use deterministic selection to ensure consistency between few-shot and main variations
             # Take the first n_augments types in order for consistency
@@ -176,7 +176,7 @@ def main():
     options = "Venus, Mercury, Earth, Mars"
     print(f"Original options: {options}")
 
-    for enum_type in ['numbers', 'uppercase_letters', 'lowercase_letters', 'roman_numerals', 'greek_letters']:
+    for enum_type in ['numbers', 'capitals', 'lowercase', 'roman', 'greek']:
         try:
             result = augmenter.enumerate_field(options, enum_type)
             print(f"Type '{enum_type}': {result}")
@@ -185,7 +185,7 @@ def main():
 
     # Test with list input
     options_list = ["Venus", "Mercury", "Earth", "Mars"]
-    result = augmenter.enumerate_field(options_list, 'uppercase_letters')
+    result = augmenter.enumerate_field(options_list, 'capitals')
     print(f"List input: {result}")
 
     # Test with complex list containing commas (like SMILES)
