@@ -386,6 +386,10 @@
   animation-delay: 1.0s, 3.0s;
 }
 
+.publication-links .button:nth-child(6)::before {
+  animation-delay: 1.2s, 3.2s;
+}
+
 .publication-links .button span {
   position: relative;
   z-index: 2;
@@ -469,6 +473,52 @@
   }
   50% {
     box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 6px rgba(255,255,255,0.5);
+  }
+}
+
+/* Hugging Face Button Styling */
+.hf-button {
+  background: linear-gradient(135deg, #ff6b35 0%, #f39c12 100%) !important;
+  color: white !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease !important;
+}
+
+.hf-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: hf-shine 3s linear infinite;
+  z-index: 1;
+}
+
+.hf-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4) !important;
+}
+
+.hf-button span {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes hf-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
   }
 }
 </style>
@@ -600,6 +650,15 @@
                     <i class="fas fa-globe"></i>
                   </span>
                   <span>Try Web Interface</span>
+                </a>
+              </span>
+              <!-- Hugging Face Dataset link -->
+              <span class="link-block">
+                <a href="https://huggingface.co/datasets/eliyahabba/PromptSuite" target="_blank" class="external-link button is-normal is-rounded hf-button">
+                  <span class="icon">
+                    <i class="fas fa-database"></i>
+                  </span>
+                  <span>🤗 Dataset</span>
                 </a>
               </span>
               <!-- Contact link -->
@@ -818,6 +877,64 @@ ps.export("output.json", format="json")</code></pre>
         </p>
         <p>
           Get started: <a href="https://github.com/eliyahabba/PromptSuite" target="_blank">https://github.com/eliyahabba/PromptSuite</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hugging Face Dataset Section -->
+  <section class="section" style="background-color: #f8f9fa;">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">🤗 Public Dataset on Hugging Face</h2>
+      <div class="content">
+        <p>
+          We've made our comprehensive benchmark results publicly available on Hugging Face! The dataset contains <strong>prompt variations and model outputs</strong> in DOVE format across multiple tasks and models.
+        </p>
+        
+        <div class="columns">
+          <div class="column is-half">
+            <div class="box">
+              <h4 class="title is-5">📊 What's Included</h4>
+              <ul>
+                <li><strong>2 Models:</strong> GPT-4o-mini, Llama-3.3-70B-Instruct</li>
+                <li><strong>9 Task Categories:</strong> MMLU (12 subjects), GSM8K, SST, WMT14 translation, CNN/DailyMail, MuSiQue, SQuAD, GPQA Diamond, HumanEval</li>
+                <li><strong>Scale:</strong> 50 examples per task, up to 25 variations per example</li>
+                <li><strong>Total:</strong> ~1,250 evaluated prompts per task</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="column is-half">
+            <div class="box">
+              <h4 class="title is-5">🔧 Quick Usage</h4>
+              <pre><code class="language-python">from datasets import load_dataset
+
+# Load MMLU anatomy with GPT-4o-mini
+dataset = load_dataset(
+    "eliyahabba/PromptSuite",
+    data_files="GPT-4o-mini/en/2_shots/mmlu:dataset=mmlu.anatomy*.parquet"
+)
+
+# Load all tasks for a model
+all_tasks = load_dataset(
+    "eliyahabba/PromptSuite", 
+    data_files="GPT-4o-mini/en/2_shots/*.parquet"
+)</code></pre>
+            </div>
+          </div>
+        </div>
+        
+        <div class="has-text-centered" style="margin-top: 1.5rem;">
+          <a href="https://huggingface.co/datasets/eliyahabba/PromptSuite" target="_blank" class="button is-large hf-button">
+            <span class="icon">
+              <i class="fas fa-database"></i>
+            </span>
+            <span>🤗 Explore Dataset on Hugging Face</span>
+          </a>
+        </div>
+        
+        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+          The dataset includes metadata for prompt variations, model responses, and evaluation metrics. Perfect for studying prompt sensitivity and robustness across different tasks and models.
         </p>
       </div>
     </div>
