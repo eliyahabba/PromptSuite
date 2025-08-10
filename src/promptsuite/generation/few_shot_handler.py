@@ -441,7 +441,7 @@ class FewShotHandler:
         if gold_config.field:
             main_input = main_input.replace(f'{{{gold_config.field}}}', '')
 
-        return main_input.strip()
+        return main_input
 
     def _format_conversation(
             self,
