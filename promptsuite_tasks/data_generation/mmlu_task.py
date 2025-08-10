@@ -99,7 +99,7 @@ class MMLUTask(BaseTask):
     def get_template(self) -> Dict[str, Any]:
         """Get template configuration for MMLU task according to paper specifications."""
         return {
-            INSTRUCTION: "The following are multiple choice questions (with answers) about {subject_display}.",
+            INSTRUCTION: "The following are multiple choice questions (with answers) about {subject}.",
             INSTRUCTION_VARIATIONS: [PARAPHRASE_WITH_LLM],
             PROMPT_FORMAT: "Question: {question}\nChoices: {choices}\nAnswer:\n{answer}",
             PROMPT_FORMAT_VARIATIONS: [FORMAT_STRUCTURE_VARIATION],
