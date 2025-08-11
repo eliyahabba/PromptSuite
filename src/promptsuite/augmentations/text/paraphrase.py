@@ -3,52 +3,9 @@ from typing import List, Optional
 import ast
 from promptsuite.shared.model_client import get_completion
 from promptsuite.core.template_keys import PARAPHRASE_WITH_LLM
+import os
 
-
-#moran's gpt3.5 templates, changes to general LLM and {k} times and the
-# return style
-llm_template = (
-    "Rephrase the follbuild_rephrasing_promptowing prompt, providing {k} alternative versions that are better suited for an LLM while preserving the original meaning. Output only a Python list of strings with the alternatives. Do not include any explanation or additional text. \n"
-    "Prompt: '''{prompt}'''"
-)
-
-#moran's begining but adding specifications, restriction on the output and
-# the word "creative"
-talkative_template = (
-    "Can you help me write a prompt to an LLM for the following task "
-    "description? Providing {n_augments} creative versions while preserving the "
-    "original meaning. \nOutput only a Python list of strings with the "
-    "alternatives. Do not include any explanation or additional text. \n"
-    "Prompt: '''{prompt}'''"
-)
-
-instruction_template = """You are a prompt rewriting assistant. Your task is to create {n_augments} creative versions of the given prompt template.
-
-CRITICAL REQUIREMENTS:
-1. PRESERVE ALL PLACEHOLDERS: Any text within curly braces {{}} must appear EXACTLY as given in all variations
-2. Keep the same semantic meaning and task structure
-3. Vary the instructional language while maintaining clarity
-4. Ensure each variation would produce the same type of response
-
-PLACEHOLDERS TO PRESERVE (copy exactly):
-- Do NOT modify anything inside {{}} brackets
-- Common placeholders include: {{text}}, {{category}}, {{question}}, {{options}}, {{answer}}, etc.
-
-WHAT YOU CAN CHANGE:
-- The instructional phrases (e.g., "Answer the following" → "Please respond to")
-- Word order and sentence structure (while keeping meaning)
-- Formatting style (but keep placeholders in logical positions)
-- Level of formality or politeness
-
-OUTPUT FORMAT:
-Return ONLY a Python list of strings. Each string should be a complete prompt variation.
-
-Original prompt: '''{prompt}'''
-
-Generate {n_augments} creative variations:"""
-
-
-instruction_template = """Can you help me write variations of an instruction prompt to an LLM for the following task description? 
+instruction_template = """Help me write creative variations of an instruction prompt to an LLM for the following task description. 
 
 IMPORTANT: The instruction may contain placeholders in curly braces like {{subject}}, {{topic}}, {{field}}, etc. These placeholders MUST be preserved EXACTLY as they appear in ALL variations.
 
@@ -152,6 +109,33 @@ class Paraphrase(BaseAxisAugmenter):
 
 
 if __name__ == '__main__':
-    para = Paraphrase(3)
-    print(para.augment("Describe a historical figure you admire"))
+    text = 'The following are multiple choice questions (with answers) about {subject}.'
+    
+    # Example usage with 10 variations
+    # Configure paraphraser with default parameters from constants
+    paraphraser = Paraphrase(
+        n_augments=10,
+        api_key=os.getenv("TOGETHERAI_API_KEY"),  # Will use environment variable or default
+        seed=42,       # TASK_DEFAULT_RANDOM_SEED
+        model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",  # TASK_DEFAULT_MODEL_NAME
+        api_platform="TogetherAI",   # TASK_DEFAULT_PLATFORM,
+    )
+
+    print("=== Paraphrase Example ===")
+    print(f"Original text: '{text}'")
+    print(f"Number of variations: {paraphraser.n_augments}")
+    print(f"Model: {paraphraser.model_name}")
+    print(f"Platform: {paraphraser.api_platform}")
+    print("-" * 50)
+    
+    print("\n2. LLM-based paraphrases (requires API key):")
+    try:
+        llm_variations = paraphraser.augment(text)
+        for i, variation in enumerate(llm_variations):
+            print(f"   {i+1}. '{variation}'")
+    except Exception as e:
+        print(f"   ❌ API call failed: {e}")
+        print("   💡 Make sure to set your API key in environment variables")
+    
+    print("\n✅ Example completed!")
 
