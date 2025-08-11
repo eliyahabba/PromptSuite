@@ -6,8 +6,8 @@ A tool that creates multi-prompt datasets from single-prompt datasets using temp
 
 ## Overview
 [![Paper](https://img.shields.io/badge/arxiv-paper-red)](https://arxiv.org/abs/2503.01622)
-[![Dataset](https://img.shields.io/badge/🤗-dataset-yellow)]([https://huggingface.co/datasets/nlphuji/DOVE](https://huggingface.co/datasets/nlphuji/PromptSuite))
-[![Website](https://img.shields.io/badge/🌐-website-blue)]([https://slab-nlp.github.io/DOVE/](https://eliyahabba.github.io/PromptSuite/))
+[![Dataset](https://img.shields.io/badge/🤗-dataset-yellow)](https://huggingface.co/datasets/nlphuji/PromptSuite)
+[![Website](https://img.shields.io/badge/🌐-website-blue)](https://eliyahabba.github.io/PromptSuite/)
 [![Contact](https://img.shields.io/badge/📧-contact-green)](mailto:eliyahaba@mail.huji.ac.il)
 
 PromptSuite transforms your single-prompt datasets into rich multi-prompt datasets by applying various types of variations specified in your templates. It supports HuggingFace-compatible datasets and provides both a command-line interface and a modern web UI.
