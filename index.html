@@ -717,21 +717,26 @@
             <pre><code class="language-python">from promptsuite import PromptSuite
 
 # Initialize and load data
-ps = PromptSuite()
-ps.load_dataset("rajpurkar/squad", split="train[:100]")
+from promptsuite import PromptSuite
 
-# Configure template with variations
+# Initialize
+ps = PromptSuite()
+
+# 1) Load dataset directly from HF
+ps.load_dataset("rajpurkar/squad")
+
+# 2) Setup template and 3) Choose pertubations
 template = {
-    'instruction': 'Answer the question:',
-    'prompt format': 'Q: {question}\nA: {answer}',
-    'instruction variations': ['paraphrase_with_llm'],
-    'question': ['typos and noise']
+  'instruction': 'Please answer the following questions.',
+  'prompt format': 'Q: {question}\nA: {answer}',
+"instruction variations": ["paraphrase_with_llm"],
+"prompt format variations": ["format structure"],
 }
 ps.set_template(template)
 
-# Generate variations
-ps.configure(variations_per_field=3)
-variations = ps.generate(verbose=True)
+# 4) Generate variations
+ps.configure(variations_per_field=3,   api_platform="OpenAI", model_name="gpt-4o-mini")
+variations = mp.generate(verbose=True)
 
 # Export results
 ps.export("output.json", format="json")</code></pre>
