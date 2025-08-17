@@ -521,6 +521,52 @@
     left: 100%;
   }
 }
+
+/* Video Button Styling */
+.video-button {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  color: white !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease !important;
+}
+
+.video-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: video-shine 3s linear infinite;
+  z-index: 1;
+}
+
+.video-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+}
+
+.video-button span {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes video-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
 </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
@@ -643,6 +689,19 @@
                   <span>PyPI Package</span>
                 </a>
               </span>
+              <!-- Contact link -->
+              <span class="link-block">
+                <a href="mailto:eliya.habba@mail.huji.ac.il" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">📧</span>
+                  <span>Contact</span>
+                </a>
+              </span>
+              <!-- Hugging Face Dataset link -->
+              <span class="link-block">
+                <a href="https://huggingface.co/datasets/nlphuji/PromptSuite" target="_blank" class="external-link button is-normal is-rounded hf-button">
+                  <span>🤗 Dataset</span>
+                </a>
+              </span>
               <!-- Web Interface link -->
               <span class="link-block">
                 <a href="https://promptsuite.streamlit.app/" target="_blank" class="external-link button is-normal is-rounded animated-button">
@@ -652,17 +711,13 @@
                   <span>Try Web Interface</span>
                 </a>
               </span>
-              <!-- Hugging Face Dataset link -->
+              <!-- Demonstration Video link -->
               <span class="link-block">
-                <a href="https://huggingface.co/datasets/nlphuji/PromptSuite" target="_blank" class="external-link button is-normal is-rounded hf-button">
-                  <span>🤗 Dataset</span>
-                </a>
-              </span>
-              <!-- Contact link -->
-              <span class="link-block">
-                <a href="mailto:eliya.habba@mail.huji.ac.il" target="_blank" class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">📧</span>
-                  <span>Contact</span>
+                <a href="https://www.youtube.com/watch?v=kJP2_ucGsXA" target="_blank" class="external-link button is-normal is-rounded video-button">
+                  <span class="icon">
+                    <i class="fas fa-video"></i>
+                  </span>
+                  <span>Demonstration Video</span>
                 </a>
               </span>
             </div>
