@@ -5,7 +5,7 @@
 A tool that creates multi-prompt datasets from single-prompt datasets using templates with variation specifications.
 
 ## Overview
-[![Paper](https://img.shields.io/badge/arxiv-paper-red)](https://arxiv.org/abs/2503.01622)
+[![Paper](https://img.shields.io/badge/arxiv-paper-red)](https://www.arxiv.org/abs/2507.14913)
 [![Dataset](https://img.shields.io/badge/🤗-dataset-yellow)](https://huggingface.co/datasets/nlphuji/PromptSuite)
 [![Website](https://img.shields.io/badge/🌐-website-blue)](https://eliyahabba.github.io/PromptSuite/)
 [![Contact](https://img.shields.io/badge/📧-contact-green)](mailto:eliyahaba@mail.huji.ac.il)
