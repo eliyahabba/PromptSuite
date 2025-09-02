@@ -769,8 +769,7 @@
         <div class="box">
           <h3 class="title is-4">Python Example</h3>
           <div class="content">
-            <pre><code class="language-python">
-# Initialize and load data
+            <pre><code class="language-python"># Initialize and load data
 from promptsuite import PromptSuite
 
 # Initialize
@@ -789,7 +788,8 @@ template = {
 ps.set_template(template)
 
 # 4) Generate variations
-ps.configure(variations_per_field=3, api_platform="OpenAI", model_name="gpt-4o-mini", api_key="YOUR_OPENAI_API_KEY")
+ps.configure(variations_per_field=3, api_platform="OpenAI",
+              model_name="gpt-4o-mini", api_key="YOUR_OPENAI_API_KEY")
 
 variations = ps.generate(verbose=True)
 
